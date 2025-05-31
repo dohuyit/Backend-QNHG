@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Table;
+use App\Models\Branch;
 use Illuminate\Http\Request;
 
-class TableController extends Controller
+class BranchController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -27,7 +27,7 @@ class TableController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Table $table)
+    public function show(Branch $branch)
     {
         //
     }
@@ -35,7 +35,7 @@ class TableController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Table $table)
+    public function update(Request $request, Branch $branch)
     {
         //
     }
@@ -43,7 +43,7 @@ class TableController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Table $table)
+    public function destroy(Branch $branch)
     {
         //
     }
