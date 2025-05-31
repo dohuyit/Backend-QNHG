@@ -17,10 +17,20 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
+    protected $table = 'users';
     protected $fillable = [
-        'name',
+        'username',
+        'password', // Sẽ được hash trước khi lưu
+        'avatar',
+        'full_name',
         'email',
-        'password',
+        'phone_number',
+        'branch_id',        // ID chi nhánh chính (nếu có)
+        'status',            // Trạng thái tài khoản (active, inactive, banned)
+        'email_verified_at',
+        'last_login',
+        'remember_token',
+        'deleted_at', // Thời điểm xóa mềm (nếu có)
     ];
 
     /**
