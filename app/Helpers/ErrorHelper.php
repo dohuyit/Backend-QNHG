@@ -2,7 +2,7 @@
 
 namespace App\Helpers;
 
-class NotificationHelper
+class ErrorHelper
 {
     const SUCCESS = 'SUCCESS';
     const FAILED = 'FAILED';
@@ -15,7 +15,6 @@ class NotificationHelper
     const INVALID_REQUEST_FORMAT = 'INVALID_REQUEST_FORMAT';
     const INVALID_AUTH_TOKEN = 'INVALID_AUTH_TOKEN';
     const HTTP_UNAUTHORIZED = 'HTTP_UNAUTHORIZED';
-    const HTTP_FORBIDDEN = 'HTTP_FORBIDDEN';
 
     public static function getError(string $errorCode, string $customMessage = '')
     {

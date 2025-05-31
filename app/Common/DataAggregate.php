@@ -2,66 +2,64 @@
 
 namespace App\Domain\Aggregate\Common;
 
-use App\Helpers\NotificationHelper;
+use App\Helpers\ErrorHelper;
 use Illuminate\Support\Facades\Log;
 
 class DataAggregate
 {
-    private string $errorCode = NotificationHelper::FAILED;
+    private string $code;
     private string $message;
     private array $data = [];
     private array $errors = [];
 
-    public function __construct()
+    public function __construct(string $code = ErrorHelper::FAILED, string $message = '')
     {
-        $this->message = __('error.FAILED');
+        $this->code = $code;
+        $this->message = $message ?: __("error.$code");
     }
 
-    public function setResultError(string $message = '', array $errors = [], string $errorCode = NotificationHelper::FAILED)
+    public function setResultSuccess(array $data = [], string $message = ''): void
+    {
+        $this->code = ErrorHelper::SUCCESS;
+        $this->message = $message ?: __('error.SUCCESS');
+        $this->data = $data;
+        $this->errors = [];
+    }
+
+    public function setResultError(string $message = '', array $errors = [], string $code = ErrorHelper::FAILED): void
     {
         try {
-            $this->errorCode = $errorCode;
-            if ($message) {
-                $this->message = $message;
-            } else {
-                $this->message = __("error.$errorCode");
-            }
+            $this->code = $code;
+            $this->message = $message ?: __("error.$code");
         } catch (\Exception $e) {
-            $this->errorCode = NotificationHelper::SERVER_ERROR;
-            $this->message = __("error.$errorCode");
-            Log::error("[ErrorResultAggregate@setResultError] Error code not exist: ", [$e]);
+            $this->code = ErrorHelper::SERVER_ERROR;
+            $this->message = __("error." . ErrorHelper::SERVER_ERROR);
+            Log::error("[ResultAggregate@setResultError] Error code not exist: ", [$e]);
         }
+
         if (!empty($errors)) {
             $this->errors = $errors;
         }
     }
 
-    public function setResultSuccess(array $data = [], string $message = '')
-    {
-        if (!empty($data)) {
-            $this->data = $data;
-        }
-        $this->errorCode = NotificationHelper::SUCCESS;
-        if ($message) {
-            $this->message = $message;
-        } else {
-            $this->message = __('error.Thành công');
-        }
-    }
-
-    public function setData(array $data)
-    {
-        $this->data = $data;
-    }
-
     public function isSuccess(): bool
     {
-        return $this->errorCode == NotificationHelper::SUCCESS && empty($this->errors);
+        return $this->code === ErrorHelper::SUCCESS && empty($this->errors);
     }
 
-    public function getErrors(): array
+    public function getCode(): string
     {
-        return $this->errors;
+        return $this->code;
+    }
+
+    public function getMessage(): string
+    {
+        return $this->message;
+    }
+
+    public function setMessage(string $message): void
+    {
+        $this->message = $message;
     }
 
     public function getData(): array
@@ -69,13 +67,13 @@ class DataAggregate
         return $this->data;
     }
 
-    public function getErrorCode(): int
+    public function setData(array $data): void
     {
-        return $this->errorCode;
+        $this->data = $data;
     }
 
-    public function getMessage(): string
+    public function getErrors(): array
     {
-        return $this->message;
+        return $this->errors;
     }
 }
