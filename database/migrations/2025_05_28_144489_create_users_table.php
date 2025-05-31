@@ -12,13 +12,21 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
+            $table->id()->comment('Mã người dùng (nhân viên)');
+            $table->string('username', 50)->unique()->comment('Tên đăng nhập');
+            $table->string('avatar')->nullable()->comment('Ảnh đại diện');
+            $table->string('password')->comment('Mật khẩu mã hóa');
+            $table->string('full_name', 100)->comment('Họ và tên');
+            $table->string('email', 100)->unique()->nullable()->comment('Địa chỉ Email');
+            $table->string('phone_number', 20)->unique()->nullable()->comment('Số điện thoại');
+            $table->foreignId('branch_id')->nullable()->comment('Mã chi nhánh làm việc')->constrained('branches', 'id')->onDelete('set null');
+            $table->enum('status', ['active', 'inactive', 'pending_activation'])->default('active')->comment('Trạng thái tài khoản');
+            $table->timestamp('last_login')->nullable()->comment('Thời gian đăng nhập cuối');
+            $table->timestamp('email_verified_at')->nullable()->comment('Thời điểm xác thực email');
             $table->rememberToken();
+            $table->softDeletes()->comment('Xoá mềm');
             $table->timestamps();
+            $table->comment('Thông tin tài khoản nhân viên');
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

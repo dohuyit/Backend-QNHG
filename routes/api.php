@@ -1,10 +1,9 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+// Routes for Admin
+require __DIR__ . '/admin/auth.php';
+require __DIR__ . '/admin/admin.php';
 
-Route::get('/test', function () {
-    return response()->json([
-        'status' => 'true',
-        'data' => 'Kết nối thành công'
-    ]);
-});
+// Routes for Client
+require __DIR__ . '/client/auth.php';
+require __DIR__ . '/client/client.php';
