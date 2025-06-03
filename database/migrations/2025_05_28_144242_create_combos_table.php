@@ -19,7 +19,6 @@ return new class extends Migration
             $table->decimal('original_total_price', 10, 2)->comment('Tổng giá gốc các món');
             $table->decimal('selling_price', 10, 2)->comment('Giá bán combo');
             $table->string('image_url', 255)->nullable()->comment('URL hình ảnh');
-            $table->json('tags')->nullable()->comment('Các tag cho combo (VD: ["tiết kiệm", "cho 2 người", "gia đình"])');
             $table->boolean('is_active')->default(true)->comment('Trạng thái áp dụng');
             $table->timestamps();
             $table->softDeletes()->comment('Thêm trường xóa mềm');

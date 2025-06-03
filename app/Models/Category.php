@@ -13,5 +13,7 @@ class Category extends Model
         'description',      // Ví dụ: "Các món ăn nhẹ nhàng để bắt đầu bữa tiệc."
         'image_url',        // Ví dụ: "/images/categories/khai-vi.jpg"
         'is_active',        // Ví dụ: true, false
+        'parent_id',        // Ví dụ: 1 (ID của danh mục cha, NULL nếu là danh mục gốc)
+        'deleted_at',       // Trường xóa mềm
     ];
 }

@@ -13,8 +13,8 @@ class ResponseHelper
     public static function responseSuccess(?array $data = [], string $message = '', int $statusCode = 200, ?array $headers = [])
     {
         $res = [
-            'code' => NotificationHelper::SUCCESS,
-            'message' => $message ?: NotificationHelper::getMessage(NotificationHelper::SUCCESS),
+            'code' => ErrorHelper::SUCCESS,
+            'message' => $message ?: ErrorHelper::getMessage(ErrorHelper::SUCCESS),
             'data' => $data,
         ];
         return response($res, $statusCode, $headers);
@@ -32,7 +32,7 @@ class ResponseHelper
     {
         $errors = [
             'code' => $code,
-            'message' => $message ?: NotificationHelper::getMessage($code),
+            'message' => $message ?: ErrorHelper::getMessage($code),
             'errors' => $errors,
         ];
         return response($errors, $statusCode, $headers);

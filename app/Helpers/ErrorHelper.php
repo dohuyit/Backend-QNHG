@@ -20,7 +20,7 @@ class ErrorHelper
     {
         $res = [
             'code' => $errorCode,
-            'message' => $customMessage ?: __("error.$errorCode"),
+            'message' => $customMessage ?: __("$errorCode"),
         ];
         return $res;
     }
@@ -28,8 +28,6 @@ class ErrorHelper
 
     public static function getMessage(string $errorCode): string
     {
-        return __("error.$errorCode");
+        return __("$errorCode");
     }
-
-
 }
