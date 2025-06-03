@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('categories', function (Blueprint $table) {
             $table->id()->comment('Mã danh mục món ăn');
+            $table->foreignId('parent_id')->nullable()->comment('Mã danh mục cha (NULL nếu là danh mục gốc)')->constrained('categories', 'id')->onDelete('set null');
             $table->string('name', 100)->comment('Tên danh mục');
             $table->string('slug', 100)->unique()->comment('Định danh URL');
             $table->text('description')->nullable()->comment('Mô tả danh mục');

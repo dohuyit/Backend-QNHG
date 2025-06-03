@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domain\Aggregate\Common;
+namespace App\Common;
 
 use App\Helpers\ErrorHelper;
 use Illuminate\Support\Facades\Log;
@@ -42,7 +42,7 @@ class DataAggregate
         }
     }
 
-    public function isSuccess(): bool
+    public function isSuccessCode(): bool
     {
         return $this->code === ErrorHelper::SUCCESS && empty($this->errors);
     }
