@@ -17,6 +17,6 @@ class Combo extends Model
         'image_url',            // Ví dụ: "/images/combos/gia-dinh.jpg"
         'tags',                 // Ví dụ (JSON): ["cho 4 người", "tiết kiệm", "cuối tuần"]
         'is_active',            // Ví dụ: true (đang áp dụng)
-        'deleted_at'
+        'deleted_at',
     ];
 }

@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Branch extends Model
 {
     use SoftDeletes;
+
     protected $table = 'branches';
+
     protected $fillable = [
         'city_id',          // Ví dụ: "01" (ID Thành phố Hà Nội từ API)
         'district_id',      // Ví dụ: "001" (ID Quận Ba Đình từ API)
@@ -30,5 +32,6 @@ class Branch extends Model
     ];
 
     const STATUS_ACTIVE = 'active';
+
     const STATUS_INACTIVE = 'inactive';
 }
