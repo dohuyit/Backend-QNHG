@@ -25,7 +25,7 @@ class ResponseHelper
     {
         $errors = [
             'code' => $code,
-            'message' => $message ?: NotificationHelper::getMessage($code),
+            'message' => $message ?: ErrorHelper::getMessage($code),
             'errors' => $errors,
         ];
 

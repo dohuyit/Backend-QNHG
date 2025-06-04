@@ -29,10 +29,6 @@ return new class extends Migration
             $table->string('delivery_contact_phone', 20)->nullable()->comment('SĐT người nhận (delivery)');
             $table->decimal('total_amount', 12, 2)->default(0.00)->comment('Tổng tiền tạm tính');
             $table->decimal('final_amount', 12, 2)->default(0.00)->comment('Tổng tiền cuối cùng (từ Bill)');
-            $table->integer('preparation_time_estimated_minutes')->nullable()->comment('TG dự kiến chuẩn bị (phút)');
-            $table->integer('preparation_time_actual_minutes')->nullable()->comment('TG thực tế chuẩn bị (phút)');
-            $table->dateTime('pickup_time')->nullable()->comment('TG dự kiến/thực tế lấy (takeaway)');
-            $table->dateTime('delivery_dispatched_at')->nullable()->comment('TG shipper rời đi');
             $table->dateTime('delivered_at')->nullable()->comment('TG giao thành công');
             $table->timestamps();
             $table->softDeletes()->comment('Thêm trường xóa mềm');

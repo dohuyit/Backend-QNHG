@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domain\Aggregate\Common;
+namespace App\Common;
 
 class ListAggregate
 {

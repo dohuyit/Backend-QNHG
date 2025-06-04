@@ -48,3 +48,4 @@ class TableController extends Controller
         //
     }
 }
+
