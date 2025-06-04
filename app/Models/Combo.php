@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Combo extends Model
 {
     protected $table = 'combos';
+
     protected $fillable = [
         'name',                 // Ví dụ: "Combo Gia Đình Vui Vẻ", "Set Lẩu Thái Đặc Biệt"
         'slug',                 // Ví dụ: "combo-gia-dinh-vui-ve"

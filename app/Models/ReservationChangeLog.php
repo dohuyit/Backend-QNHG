@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class ReservationChangeLog extends Model
 {
     protected $table = 'reservation_change_logs';
+
     protected $fillable = [
         'reservation_id',
         'user_id',              // ID nhân viên thực hiện thay đổi

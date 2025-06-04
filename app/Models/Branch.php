@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Branch extends Model
 {
     protected $table = 'branchs';
+
     protected $fillable = [
         'city_id',          // Ví dụ: "01" (ID Thành phố Hà Nội từ API)
         'district_id',      // Ví dụ: "001" (ID Quận Ba Đình từ API)

@@ -5,27 +5,20 @@ namespace App\Helpers;
 class ResponseHelper
 {
     /**
-     * @param array|null $data
-     * @param int $statusCode
-     * @param array|null $headers
      * @return \Illuminate\Http\Response
      */
     public static function responseSuccess(?array $data = [], string $message = '', int $statusCode = 200, ?array $headers = [])
     {
         $res = [
-            'code' => NotificationHelper::SUCCESS,
-            'message' => $message ?: NotificationHelper::getMessage(NotificationHelper::SUCCESS),
+            'code' => ErrorHelper::SUCCESS,
+            'message' => $message ?: ErrorHelper::getMessage(ErrorHelper::SUCCESS),
             'data' => $data,
         ];
+
         return response($res, $statusCode, $headers);
     }
 
     /**
-     * @param string $code
-     * @param array|null $errors
-     * @param string $message
-     * @param int $statusCode
-     * @param array|null $headers
      * @return \Illuminate\Http\Response
      */
     public static function responseFail(string $code, ?array $errors = [], string $message = '', int $statusCode = 400, ?array $headers = [])
@@ -35,9 +28,9 @@ class ResponseHelper
             'message' => $message ?: NotificationHelper::getMessage($code),
             'errors' => $errors,
         ];
+
         return response($errors, $statusCode, $headers);
     }
-
 
     public static function getResponseFailData(string $code, ?array $errors = [])
     {
@@ -46,6 +39,7 @@ class ResponseHelper
             'message' => __("error.$code"),
             'errors' => $errors,
         ];
+
         return $res;
     }
 }

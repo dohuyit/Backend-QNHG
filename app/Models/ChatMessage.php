@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class ChatMessage extends Model
 {
     protected $table = 'chat_messages'; // Tên bảng trong cơ sở dữ liệu
+
     protected $fillable = [
         'chat_id',
         'sender_type',          // 'customer', 'agent', 'system'

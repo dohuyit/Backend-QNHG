@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Order extends Model
 {
     protected $table = 'orders'; // Tên bảng trong cơ sở dữ liệu
+
     protected $fillable = [
         'order_code',           // Tự sinh hoặc theo quy tắc
         'branch_id',

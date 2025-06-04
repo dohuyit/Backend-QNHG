@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('order_items', function (Blueprint $table) {
             $table->id()->comment('Mã chi tiết đơn hàng');
             $table->foreignId('order_id')->comment('Mã đơn hàng')->constrained('orders', 'id')->onDelete('cascade');
-           $table->foreignId('dish_id')->nullable()->comment('Mã món ăn')->constrained('dishes', 'id')->onDelete('set null');
+            $table->foreignId('dish_id')->nullable()->comment('Mã món ăn')->constrained('dishes', 'id')->onDelete('set null');
             $table->foreignId('combo_id')->nullable()->comment('Mã combo')->constrained('combos', 'id')->onDelete('set null');
             $table->integer('quantity')->comment('Số lượng');
             $table->decimal('unit_price', 10, 2)->comment('Giá tại thời điểm đặt');

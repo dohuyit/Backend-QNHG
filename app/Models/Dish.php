@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Dish extends Model
 {
     protected $table = 'dishes';
+
     protected $fillable = [
         'category_id',      // ID của danh mục món ăn
         'name',             // Ví dụ: "Phở Bò Tái Chín", "Cơm Sườn Nướng Mật Ong"
