@@ -3,69 +3,85 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\TableAreaRequest\StoreTableAreaRequest;
-use App\Http\Requests\TableAreaRequest\UpdateTableAreaRequest;
-use App\Services\TableAreas\TableAreaService;
+use App\Http\Requests\TableAreaRequest\CreateBranchTableAreaRequest;
+use App\Services\TableAreas\BranchTableAreaService;
+use App\Models\TableArea;
 use Illuminate\Http\Request;
 
 class TableAreaController extends Controller
 {
-    protected TableAreaService $tableAreaService;
+    protected BranchTableAreaService $branchTableAreaService;
 
-    public function __construct(TableAreaService $tableAreaService)
+    public function __construct(BranchTableAreaService $branchTableAreaService)
     {
-        $this->tableAreaService = $tableAreaService;
+        $this->branchTableAreaService = $branchTableAreaService;
     }
 
-    /**
-     * Display a listing of the resource.
-     */
-    public function getListTableAreas(Request $request)
+    public function getTableAreasByBranch(Request $request, int $branchId)
     {
-        $params = $request->only(['page', 'limit', 'query', 'branch_id', 'status', 'sort_by', 'sort_order']);
-        $result = $this->tableAreaService->getListTableAreas($params);
+        $filter = $request->only(['page', 'limit', 'query', 'sort_by', 'sort_order', 'status']);
+        $result = $this->branchTableAreaService->getTableAreasByBranch($branchId, $filter);
         return $this->responseSuccess($result->getResult());
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function createTableArea(StoreTableAreaRequest $request)
+    public function createTableAreaForBranch(CreateBranchTableAreaRequest $request)
     {
-        $data = $request->only(['branch_id', 'name', 'slug', 'description', 'capacity', 'status']);
-        $result = $this->tableAreaService->createTableArea($data);
+        $data = $request->validated();
+        $result = $this->branchTableAreaService->createTableAreaForBranch($data);
+
         if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage());
         }
         return $this->responseSuccess(message: $result->getMessage());
     }
 
-    /**
-     * Display the specified resource.
-     */
+    public function createTableAreaForAllBranches(CreateBranchTableAreaRequest $request)
+    {
+        $data = $request->validated();
+        $result = $this->branchTableAreaService->createTableAreaForAllBranches($data);
+
+        if (!$result->isSuccessCode()) {
+            return $this->responseFail(message: $result->getMessage());
+        }
+        return $this->responseSuccess(message: $result->getMessage());
+    }
+
+    public function updateTableAreaForBranch(CreateBranchTableAreaRequest $request, string $slug)
+    {
+        $tableArea = TableArea::where('slug', $slug)->first();
+        if (!$tableArea) {
+            return $this->responseFail(message: 'Không tìm thấy khu vực bàn.', statusCode: 404);
+        }
+
+        $data = $request->validated();
+        $result = $this->branchTableAreaService->updateTableAreaForBranch($data, $tableArea);
+
+        if (!$result->isSuccessCode()) {
+            return $this->responseFail(message: $result->getMessage());
+        }
+        return $this->responseSuccess(message: $result->getMessage());
+    }
+
     public function getTableAreaDetail(string $slug)
     {
-        $result = $this->tableAreaService->getTableAreaDetail($slug);
+        $tableArea = TableArea::where('slug', $slug)->first();
+        if (!$tableArea) {
+            return $this->responseFail(message: 'Không tìm thấy khu vực bàn.', statusCode: 404);
+        }
+        $result = $this->branchTableAreaService->getTableAreaDetail($tableArea);
         if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage(), statusCode: 404);
         }
         return $this->responseSuccess($result->getData());
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function updateTableArea(UpdateTableAreaRequest $request, string $slug)
+    public function deleteTableAreaForBranch(string $slug)
     {
-        $data = $request->only(['branch_id', 'name', 'slug', 'description', 'capacity', 'status']);
-
-        $tableAreaResult = $this->tableAreaService->getTableAreaDetail($slug);
-        if (!$tableAreaResult->isSuccessCode()) {
-            return $this->responseFail(message: $tableAreaResult->getMessage(), statusCode: 404);
+        $tableArea = TableArea::where('slug', $slug)->first();
+        if (!$tableArea) {
+            return $this->responseFail(message: 'Không tìm thấy khu vực bàn.', statusCode: 404);
         }
-        $tableArea = $tableAreaResult->getData();
-
-        $result = $this->tableAreaService->updateTableArea($data, $tableArea);
+        $result = $this->branchTableAreaService->deleteTableAreaForBranch($tableArea);
         if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage());
         }

@@ -2,8 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Models\Branch;
 use App\Models\TableArea;
+use App\Models\Branch;
+use App\Models\AreaTemplate;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
@@ -15,26 +16,18 @@ class TableAreaSeeder extends Seeder
     public function run(): void
     {
         $branches = Branch::all();
-
-        // if ($branches->isEmpty()) {
-        //     // Handle case where there are no branches, maybe create one or log a warning
-        //     echo "No branches found. Skipping TableArea seeder.\n";
-
-        //     return;
-        // }
+        $templates = AreaTemplate::all();
 
         foreach ($branches as $branch) {
-            // Seed 5 table areas for each branch
-            for ($i = 1; $i <= 5; $i++) {
-                $name = 'Khu vuc '.$i.' - '.$branch->name;
+            foreach ($templates as $template) {
                 TableArea::create([
                     'branch_id' => $branch->id,
-                    'name' => $name,
-                    'slug' => Str::slug($name),
-                    'description' => 'Mo ta cho khu vuc '.$i.' cua '.$branch->name,
-                    'status' => rand(0, 1) ? 'active' : 'inactive',
-                    'created_by' => 1, // Assuming user with ID 1 exists
-                    'updated_by' => 1, // Assuming user with ID 1 exists
+                    'area_template_id' => $template->id,
+                    'name' => $template->name . ' - ' . $branch->name,
+                    'slug' => Str::slug($template->name . ' ' . $branch->name),
+                    'description' => $template->description,
+                    'capacity' => 10,
+                    'status' => 'active',
                 ]);
             }
         }

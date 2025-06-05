@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id()->comment('Mã mẫu khu vực');
             $table->string('name', 100)->comment('Tên mẫu khu vực');
             $table->text('description')->nullable()->comment('Mô tả chi tiết');
+            $table->string('slug', 120)->nullable()->comment('Slug (nếu cần, thường không cần cho table area)');
             $table->timestamps();
             $table->softDeletes();
         });
