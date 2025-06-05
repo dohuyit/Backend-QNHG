@@ -28,6 +28,7 @@ class UpdateCategoryRequest extends FormRequest
             'image_url' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'description' => 'nullable|string',
             'is_active' => 'required|boolean',
+            'slug' => 'required|string|max:100|unique:categories,slug,' . $this->route('category'),
         ];
     }
      public function messages(): array
