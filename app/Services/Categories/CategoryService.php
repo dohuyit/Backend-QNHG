@@ -69,7 +69,7 @@ class CategoryService
             $filename = 'category_' . uniqid() . '.' . $extension;
 
             $path = $file->storeAs('categories', $filename, 'public');
-            $listDataUpdate['image_url'] = $path;
+            $listDataCreate['image_url'] = $path;
         }
 
         $ok = $this->categoryRepository->createData($listDataCreate);
