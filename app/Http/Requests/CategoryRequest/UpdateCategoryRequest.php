@@ -2,9 +2,10 @@
 
 namespace App\Http\Requests\CategoryRequest;
 
-use Illuminate\Foundation\Http\FormRequest;
+use App\Http\Requests\BaseFormRequest;
+use App\Models\Category;
 
-class UpdateCategoryRequest extends FormRequest
+class UpdateCategoryRequest extends BaseFormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,12 +25,12 @@ class UpdateCategoryRequest extends FormRequest
         return [
             'parent_id' => 'nullable|exists:categories,id',
             'name' => 'required|string|max:100',
-            'unique:categories,slug,' . $this->route('category'),
+            'slug' => 'required|string|max:100|unique:categories,slug,' . Category::where('slug', $this->route('slug'))->value('id'),
             'image_url' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'description' => 'nullable|string',
             'is_active' => 'required|boolean',
-            'slug' => 'required|string|max:100|unique:categories,slug,' . $this->route('category'),
         ];
+
     }
      public function messages(): array
      {

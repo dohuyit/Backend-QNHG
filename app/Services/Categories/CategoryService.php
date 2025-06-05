@@ -54,14 +54,11 @@ class CategoryService
             'name' => $data['name'],
             'slug' => $slug,
             'description' => $data['description'],
-            'image_url' => $data['image_url'],
+            'image_url' => $data['image_url'] ?? null,
             'is_active' => $data['is_active'],
             'parent_id' => $data['parent_id'],
         ];
 
-        if (!empty($data['tags'])) {
-            $listDataCreate['tags'] = ConvertHelper::convertStringToJson($data['tags']);
-        }
         if (!empty($data['image_url'])) {
             $file = $data['image_url'];
             $extension = $file->getClientOriginalExtension();
@@ -80,7 +77,6 @@ class CategoryService
         $result->setResultSuccess(message: 'Thêm mới thành công!');
         return $result;
     }
-
     public function getCategoryDetail(string $slug): DataAggregate
     {
         $result = new DataAggregate();
@@ -95,7 +91,6 @@ class CategoryService
         $result->setResultSuccess(data: ['category' => $category]);
         return $result;
     }
-
     public function updateCategory(array $data, Category $category): DataAggregate
     {
         $result = new DataAggregate();
@@ -104,12 +99,21 @@ class CategoryService
             'name' => $data['name'],
             'slug' => $slug,
             'description' => $data['description'],
-            'image_url' => $data['image_url'],
+            'image_url' => $data['image_url'] ?? $category->image_url,
             'is_active' => $data['is_active'],
             'parent_id' => $data['parent_id'],
         ];
 
         if (!empty($data['image_url'])) {
+
+            if(!empty($category->image_url) && $category->image_url !== $data['image_url']){
+            $oldImagePath = storage_path('app/public/' . $category->image_url);
+
+                if (file_exists($oldImagePath)) {
+                    unlink($oldImagePath);
+                }
+            }
+
             $file = $data['image_url'];
             $extension = $file->getClientOriginalExtension();
 
@@ -117,6 +121,9 @@ class CategoryService
 
             $path = $file->storeAs('categories', $filename, 'public');
             $listDataUpdate['image_url'] = $path;
+            
+        }else{
+            $listDataUpdate['image_url'] = $category->image_url;
         }
 
         $ok = $this->categoryRepository->updateByConditions(['slug' => $category->slug], $listDataUpdate);
@@ -176,6 +183,12 @@ class CategoryService
     {
         $result = new DataAggregate();
         $category = $this->categoryRepository->findOnlyTrashedBySlug($slug);
+
+        $oldImagePath = storage_path('app/public/' . $category->image_url);
+        if (file_exists($oldImagePath)) {
+            unlink($oldImagePath);
+        }
+
         $ok = $category->forceDelete();
         if (!$ok) {
             $result->setMessage(message: 'Xóa vĩnh viễn thất bại, vui lòng thử lại!');
