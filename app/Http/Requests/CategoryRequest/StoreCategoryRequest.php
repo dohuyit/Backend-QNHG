@@ -24,7 +24,6 @@ class StoreCategoryRequest extends BaseFormRequest
         return [
             'parent_id' => 'nullable|exists:categories,id',
             'name' => 'required|string|max:100',
-            'slug' => 'required|string|max:100|unique:categories,slug',
             'image_url' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'description' => 'nullable|string',
             'is_active' => 'required|boolean',
@@ -36,9 +35,6 @@ class StoreCategoryRequest extends BaseFormRequest
             'parent_id.exists' => 'Danh mục cha không tồn tại.',
             'name.required' => 'Vui lòng nhập tên danh mục.',
             'name.max' => 'Tên danh mục không được vượt quá 100 ký tự.',
-            'slug.required' => 'Vui lòng nhập đường dẫn (slug) cho danh mục.',
-            'slug.unique' => 'Slug này đã tồn tại, vui lòng chọn slug khác.',
-            'slug.max' => 'Slug không được vượt quá 100 ký tự.',
             'image_url.image' => 'Ảnh phải là tệp hình ảnh.',
             'image_url.mimes' => 'Ảnh phải có định dạng jpeg, png, jpg hoặc webp.',
             'image_url.max' => 'Ảnh không được vượt quá 2MB.',
