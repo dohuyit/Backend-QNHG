@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\BranchController;
+use App\Http\Controllers\Admin\CategoryController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('admin')->group(function () {
@@ -13,4 +14,14 @@ Route::prefix('admin')->group(function () {
     Route::delete('branches/{slug}/soft/delete', [BranchController::class, 'softDeleteBranch']);
     Route::delete('branches/{slug}/force/delete', [BranchController::class, 'forceDeleteBranch']);
     Route::post('branches/{slug}/restore', [BranchController::class, 'restoreBranch']);
+
+    ## categories
+    Route::get('categories/list', [CategoryController::class, 'getListCategories']);
+    Route::get('categories/{slug}/detail', [CategoryController::class, 'getCategoryDetail']);
+    Route::post('categories/create', [CategoryController::class, 'createCategory']);
+    Route::post('categories/{slug}/update', [CategoryController::class, 'updateCategory']);
+    Route::get('categories/trash', [CategoryController::class, 'listTrashedCategory']);
+    Route::delete('categories/{slug}/soft/delete', [CategoryController::class, 'softDeleteCategory']);
+    Route::delete('categories/{slug}/force/delete', [CategoryController::class, 'forceDeleteCategory']);
+    Route::post('categories/{slug}/restore', [CategoryController::class, 'restoreCategory']);
 });
