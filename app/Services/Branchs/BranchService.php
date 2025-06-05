@@ -159,6 +159,14 @@ class BranchService
         }
 
         if (!empty($data['image_banner'])) {
+            if (!empty($branch->image_banner) && $branch->image_banner !== $data['image_banner']) {
+                $oldImagePath = storage_path('app/public/' . $branch->image_banner);
+
+                if (file_exists($oldImagePath)) {
+                    unlink($oldImagePath);
+                }
+            }
+
             $file = $data['image_banner'];
 
             // Xóa ảnh cũ nếu tồn tại
@@ -239,10 +247,16 @@ class BranchService
     {
         $result = new DataAggregate();
         $branch = $this->branchRepository->findOnlyTrashedBySlug($slug);
+
         if (!empty($branch->image_banner)) {
             if (Storage::disk('public')->exists($branch->image_banner)) {
                 Storage::disk('public')->delete($branch->image_banner);
             }
+
+        $oldImagePath = storage_path('app/public/' . $branch->image_banner);
+        if (file_exists($oldImagePath)) {
+            unlink($oldImagePath);
+
         }
         $ok = $branch->forceDelete();
         if (!$ok) {
