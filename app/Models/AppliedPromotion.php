@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class AppliedPromotion extends Model
 {
     protected $table = 'applied_promotions'; // Tên bảng trong cơ sở dữ liệu
+
     protected $fillable = [
         'bill_id',
         'promotion_id',

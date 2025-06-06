@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class UserCombo extends Model
 {
     protected $table = 'user_combos';
+
     protected $fillable = [
         'user_id',          // ID của người dùng (nhân viên) tạo combo này
         'combo_name',       // Ví dụ: "Combo trưa yêu thích của Sếp"

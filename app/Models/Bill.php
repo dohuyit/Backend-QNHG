@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Bill extends Model
 {
     protected $table = 'bills'; // Tên bảng trong cơ sở dữ liệu
+
     protected $fillable = [
         'order_id',
         'customer_id',

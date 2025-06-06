@@ -9,6 +9,7 @@ class Category extends Model
 {
     use SoftDeletes;
     protected $table = 'categories';
+
     protected $fillable = [
         'name',             // Ví dụ: "Món Khai Vị", "Món Chính", "Tráng Miệng", "Đồ Uống"
         'slug',             // Ví dụ: "mon-khai-vi", "mon-chinh"

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class ReservationDish extends Model
 {
     protected $table = 'reservation_dishes';
+
     protected $fillable = [
         'reservation_id',
         'menu_item_id',

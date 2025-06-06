@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Table extends Model
 {
     protected $table = 'tables';
+
     protected $fillable = [
         'table_area_id',    // ID của khu vực bàn
         'branch_id',        // ID của chi nhánh

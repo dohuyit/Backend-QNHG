@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Reservation extends Model
 {
     protected $table = 'reservations';
+
     protected $fillable = [
         'branch_id',
         'customer_id',
