@@ -18,4 +18,8 @@ class Combo extends Model
         'is_active',            // Ví dụ: true (đang áp dụng)
         'deleted_at'
     ];
+    public function items()
+    {
+        return $this->hasMany(ComboItem::class, 'combo_id');
+    }
 }

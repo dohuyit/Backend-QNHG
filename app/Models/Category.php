@@ -25,5 +25,16 @@ class Category extends Model
     public function children(){
         return $this->hasMany(Category::class, 'parent_id');
     }
+    public function getAllChildrenIds(){
+        $ids = [$this->id];
+        foreach($this->children as $child) {
+            $ids = array_merge($ids, $child->getAllChildrenIds());
+        }
+        return $ids;
+    }
+    public function dishes(){
+        return $this->hasMany(Dish::class, 'category_id');
+    }
+
 
 }

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\BranchController;
 use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\DishController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('admin')->group(function () {
@@ -24,4 +25,15 @@ Route::prefix('admin')->group(function () {
     Route::delete('categories/{slug}/soft/delete', [CategoryController::class, 'softDeleteCategory']);
     Route::delete('categories/{slug}/force/delete', [CategoryController::class, 'forceDeleteCategory']);
     Route::post('categories/{slug}/restore', [CategoryController::class, 'restoreCategory']);
+
+    ## dishes
+    Route::get('dishes/list', [DishController::class, 'getListDishes']);
+    Route::get('dishes/{slug}/detail', [DishController::class, 'getDishDetail']); 
+    Route::get('dishes/category/{slug}', [DishController::class, 'getDishesByCategory']);
+    Route::post('dishes/create', [DishController::class, 'createDish']); 
+    Route::post('dishes/{slug}/update', [DishController::class, 'updateDish']);
+    Route::get('dishes/trash', [DishController::class, 'listTrashedDish']);
+    Route::delete('dishes/{slug}/soft/delete', [DishController::class, 'softDeleteDish']);
+    Route::delete('dishes/{slug}/force/delete', [DishController::class, 'forceDeleteDish']);
+    Route::post('dishes/{slug}/restore', [DishController::class, 'restoreDish']);
 });

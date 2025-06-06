@@ -4,7 +4,6 @@ namespace App\Services\Categories;
 
 use App\Common\DataAggregate;
 use App\Common\ListAggregate;
-use App\Helpers\ConvertHelper;
 use App\Models\Category;
 use App\Repositories\Categories\CategoryRepositoryInterface;
 use Illuminate\Support\Str;
@@ -54,7 +53,6 @@ class CategoryService
             'name' => $data['name'],
             'slug' => $slug,
             'description' => $data['description'],
-            'image_url' => $data['image_url'] ?? null,
             'is_active' => $data['is_active'],
             'parent_id' => $data['parent_id'],
         ];
@@ -98,8 +96,7 @@ class CategoryService
         $listDataUpdate = [
             'name' => $data['name'],
             'slug' => $slug,
-            'description' => $data['description'],
-            'image_url' => $data['image_url'] ?? $category->image_url,
+            'description' => $data['description'],            
             'is_active' => $data['is_active'],
             'parent_id' => $data['parent_id'],
         ];
@@ -122,8 +119,6 @@ class CategoryService
             $path = $file->storeAs('categories', $filename, 'public');
             $listDataUpdate['image_url'] = $path;
             
-        }else{
-            $listDataUpdate['image_url'] = $category->image_url;
         }
 
         $ok = $this->categoryRepository->updateByConditions(['slug' => $category->slug], $listDataUpdate);

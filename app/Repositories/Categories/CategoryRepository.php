@@ -44,14 +44,6 @@ class CategoryRepository implements CategoryRepositoryInterface
             $query->where('name', 'like', '%' . $val . '%');
         }
 
-        if ($val = $filter['city_id'] ?? null) {
-            $query->where('city_id', $val);
-        }
-
-        if ($val = $filter['district_id'] ?? null) {
-            $query->where('district_id', $val);
-        }
-
         if ($val = $filter['status'] ?? null) {
             $query->where('status', $val);
         }
