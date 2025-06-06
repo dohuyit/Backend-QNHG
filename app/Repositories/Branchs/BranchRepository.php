@@ -25,9 +25,10 @@ class BranchRepository implements BranchRepositoryInterface
 
     public function getByConditions(array $conditions): ?Branch
     {
-        $result = Branch::where($conditions)->first();
+        $result = Branch::withTrashed()->where($conditions)->first();
         return $result;
     }
+
 
     public function getBranchList(array $filter = [], int $limit = 10): LengthAwarePaginator
     {

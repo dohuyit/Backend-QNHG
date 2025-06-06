@@ -7,6 +7,7 @@ use App\Common\ListAggregate;
 use App\Helpers\ConvertHelper;
 use App\Models\Branch;
 use App\Repositories\Branchs\BranchRepositoryInterface;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class BranchService
@@ -57,48 +58,56 @@ class BranchService
         return $result;
     }
 
-
-
     public function createBranch(array $data): DataAggregate
     {
         $result = new DataAggregate();
         $slug = Str::slug($data['name'] ?? '');
+
+
+        $slugExists = $this->branchRepository->getByConditions(['slug' => $slug]);
+        if ($slugExists) {
+            $result->setMessage('Chi nhánh đã tồn tại, vui lòng chọn tên khác!');
+            return $result;
+        }
+
         $listDataCreate = [
             'city_id' => $data['city_id'],
             'district_id' => $data['district_id'],
             'name' => $data['name'],
             'slug' => $slug,
             'phone_number' => $data['phone_number'],
-            'opening_hours' => $data['opening_hours'],
+            'opening_hours' => $data['opening_hours'] ?? null,
             'status' => $data['status'],
             'is_main_branch' => $data['is_main_branch'],
-            'capacity' => $data['capacity'],
-            'area_size' => $data['area_size'],
-            'number_of_floors' => $data['number_of_floors'],
-            'url_map' => $data['url_map'],
-            'description' => $data['description'],
-            'main_description' => $data['main_description'],
+            'capacity' => $data['capacity'] ?? null,
+            'area_size' => $data['area_size'] ?? null,
+            'number_of_floors' => $data['number_of_floors'] ?? null,
+            'url_map' => $data['url_map'] ?? null,
+            'description' => $data['description'] ?? null,
+            'main_description' => $data['main_description'] ?? null,
         ];
 
         if (!empty($data['tags'])) {
             $listDataCreate['tags'] = ConvertHelper::convertStringToJson($data['tags']);
         }
+
         if (!empty($data['image_banner'])) {
             $file = $data['image_banner'];
             $extension = $file->getClientOriginalExtension();
-
             $filename = 'branch_' . uniqid() . '.' . $extension;
 
-            $path = $file->storeAs('branchs', $filename, 'public');
-            $listDataUpdate['image_banner'] = $path;
+            // Lưu file vào storage/public/branches
+            $path = Storage::disk('public')->putFileAs('branches', $file, $filename);
+            $listDataCreate['image_banner'] = $path;
         }
 
         $ok = $this->branchRepository->createData($listDataCreate);
         if (!$ok) {
-            $result->setMessage(message: 'Thêm mới thất bại, vui lòng thử lại!');
+            $result->setMessage('Thêm mới thất bại, vui lòng thử lại!');
             return $result;
         }
-        $result->setResultSuccess(message: 'Thêm mới thành công!');
+
+        $result->setResultSuccess(message: 'Cập nhật thành công!');
         return $result;
     }
 
@@ -121,6 +130,13 @@ class BranchService
     {
         $result = new DataAggregate();
         $slug = Str::slug($data['name'] ?? '');
+
+        // Nếu slug mới khác slug cũ → cần kiểm tra trùng
+        if ($slug !== $branch->slug && $this->branchRepository->getByConditions(['slug' => $slug])) {
+            $result->setMessage('Tên chi nhánh đã được sử dụng, vui lòng chọn tên khác!');
+            return $result;
+        }
+
         $listDataUpdate = [
             'city_id' => $data['city_id'],
             'district_id' => $data['district_id'],
@@ -152,19 +168,26 @@ class BranchService
             }
 
             $file = $data['image_banner'];
-            $extension = $file->getClientOriginalExtension();
 
+            // Xóa ảnh cũ nếu tồn tại
+            if (!empty($branch->image_banner) && Storage::disk('public')->exists($branch->image_banner)) {
+                Storage::disk('public')->delete($branch->image_banner);
+            }
+
+            $extension = $file->getClientOriginalExtension();
             $filename = 'branch_' . uniqid() . '.' . $extension;
 
-            $path = $file->storeAs('branchs', $filename, 'public');
+            // Lưu ảnh mới
+            $path = Storage::disk('public')->putFileAs('branches', $file, $filename);
             $listDataUpdate['image_banner'] = $path;
         }
 
         $ok = $this->branchRepository->updateByConditions(['slug' => $branch->slug], $listDataUpdate);
         if (!$ok) {
-            $result->setMessage(message: 'Cập nhật thất bại, vui lòng thử lại!');
+            $result->setMessage('Cập nhật thất bại, vui lòng thử lại!');
             return $result;
         }
+
         $result->setResultSuccess(message: 'Cập nhật thành công!');
         return $result;
     }
@@ -224,9 +247,16 @@ class BranchService
     {
         $result = new DataAggregate();
         $branch = $this->branchRepository->findOnlyTrashedBySlug($slug);
+
+        if (!empty($branch->image_banner)) {
+            if (Storage::disk('public')->exists($branch->image_banner)) {
+                Storage::disk('public')->delete($branch->image_banner);
+            }
+
         $oldImagePath = storage_path('app/public/' . $branch->image_banner);
         if (file_exists($oldImagePath)) {
             unlink($oldImagePath);
+
         }
         $ok = $branch->forceDelete();
         if (!$ok) {

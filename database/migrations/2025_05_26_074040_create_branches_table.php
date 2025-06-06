@@ -22,7 +22,7 @@ return new class extends Migration
             $table->json('tags')->nullable()->comment('Các tag cho chi nhánh (ví dụ: "gần trường học", "có chỗ đậu xe ô tô")');
             $table->string('city_id', 10)->comment('ID Thành phố từ API địa giới hành chính, bắt buộc nhập');
             $table->string('district_id', 10)->comment('ID Quận/Huyện từ API địa giới hành chính, bắt buộc nhập');
-            $table->boolean('is_main_branch')->default(false)->comment('Là trụ sở chính');
+            $table->enum('is_main_branch', ['true', 'false'])->default('false')->comment('Là trụ sở chính');
             $table->integer('capacity')->nullable()->comment('Sức chứa tổng cộng');
             $table->decimal('area_size', 10, 2)->nullable()->comment('Diện tích (mét vuông)');
             $table->integer('number_of_floors')->nullable()->comment('Số tầng');
