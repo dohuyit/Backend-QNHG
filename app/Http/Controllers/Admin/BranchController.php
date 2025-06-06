@@ -106,7 +106,6 @@ class BranchController extends Controller
      */
     public function updateBranch(UpdateBranchRequest $request, string $slug)
     {
-        dd($request->all());
         $data = $request->only([
             'city_id',
             'district_id',

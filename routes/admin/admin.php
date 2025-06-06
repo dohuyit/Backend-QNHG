@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\BranchController;
 use App\Http\Controllers\Admin\TableAreaController;
 use App\Http\Controllers\Admin\TableAreaTemplateController;
+use App\Http\Controllers\Admin\CategoryController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('admin')->group(function () {
@@ -30,4 +31,13 @@ Route::prefix('admin')->group(function () {
     Route::post('table-areas/create-for-all-branches', [TableAreaController::class, 'createTableAreaForAllBranches']);
     Route::get('table-areas/{slug}/detail', [TableAreaController::class, 'getTableAreaDetail']);
     Route::delete('table-areas/{slug}/delete/{branchId}', [TableAreaController::class, 'deleteTableAreaForBranch']);
+    ## categories
+    Route::get('categories/list', [CategoryController::class, 'getListCategories']);
+    Route::get('categories/{slug}/detail', [CategoryController::class, 'getCategoryDetail']);
+    Route::post('categories/create', [CategoryController::class, 'createCategory']);
+    Route::post('categories/{slug}/update', [CategoryController::class, 'updateCategory']);
+    Route::get('categories/trash', [CategoryController::class, 'listTrashedCategory']);
+    Route::delete('categories/{slug}/soft/delete', [CategoryController::class, 'softDeleteCategory']);
+    Route::delete('categories/{slug}/force/delete', [CategoryController::class, 'forceDeleteCategory']);
+    Route::post('categories/{slug}/restore', [CategoryController::class, 'restoreCategory']);
 });

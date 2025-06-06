@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Category extends Model
 {
+    use SoftDeletes;
     protected $table = 'categories';
 
     protected $fillable = [
@@ -17,4 +19,12 @@ class Category extends Model
         'parent_id',        // Ví dụ: 1 (ID của danh mục cha, NULL nếu là danh mục gốc)
         'deleted_at',       // Trường xóa mềm
     ];
+
+    public function parent(){
+        return $this->belongsTo(Category::class, 'parent_id');
+    }
+    public function children(){
+        return $this->hasMany(Category::class, 'parent_id');
+    }
+
 }

@@ -18,10 +18,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             AreaTemplateSeeder::class,
             TableAreaSeeder::class,
+            CategorySeeder::class
         ]);
-        // User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
     }
 }
