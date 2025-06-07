@@ -252,24 +252,29 @@ class BranchService
         $result = new DataAggregate;
         $branch = $this->branchRepository->findOnlyTrashedBySlug($slug);
 
+        if (!$branch) {
+            $result->setMessage(message: 'Chi nhánh không tồn tại trong thùng rác!');
+            return $result;
+        }
+
         if (!empty($branch->image_banner)) {
             if (Storage::disk('public')->exists($branch->image_banner)) {
                 Storage::disk('public')->delete($branch->image_banner);
             }
 
-        $oldImagePath = storage_path('app/public/' . $branch->image_banner);
-        if (file_exists($oldImagePath)) {
-            unlink($oldImagePath);
-
+            $oldImagePath = storage_path('app/public/' . $branch->image_banner);
+            if (file_exists($oldImagePath)) {
+                unlink($oldImagePath);
+            }
         }
-        $ok = $branch->forceDelete();
-        if (! $ok) {
-            $result->setMessage(message: 'Xóa vĩnh viễn thất bại, vui lòng thử lại!');
 
+        $ok = $branch->forceDelete();
+        if (!$ok) {
+            $result->setMessage(message: 'Xóa vĩnh viễn thất bại, vui lòng thử lại!');
             return $result;
         }
-        $result->setResultSuccess(message: 'Xóa vĩnh viễn thành công!');
 
+        $result->setResultSuccess(message: 'Xóa vĩnh viễn thành công!');
         return $result;
     }
 
@@ -278,9 +283,8 @@ class BranchService
         $result = new DataAggregate;
         $branch = $this->branchRepository->findOnlyTrashedBySlug($slug);
         $ok = $branch->restore();
-        if (! $ok) {
+        if (!$ok) {
             $result->setMessage(message: 'Khôi phục thất bại, vui lòng thử lại!');
-
             return $result;
         }
         $result->setResultSuccess(message: 'Khôi phục thành công!');
