@@ -33,6 +33,10 @@ class User extends Authenticatable
         'deleted_at', // Thời điểm xóa mềm (nếu có)
     ];
 
+
+    public const STATUS_ACTIVE = 'active';
+    public const STATUS_INACTIVE = 'inactive';
+    public const STATUS_BLOCKED = 'blocked';
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -55,4 +59,9 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class, 'branch_id');
+    }
+
 }
