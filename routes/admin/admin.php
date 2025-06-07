@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\BranchController;
 use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\ComboController;
 use App\Http\Controllers\Admin\DishController;
 use Illuminate\Support\Facades\Route;
 
@@ -36,4 +37,16 @@ Route::prefix('admin')->group(function () {
     Route::delete('dishes/{slug}/soft/delete', [DishController::class, 'softDeleteDish']);
     Route::delete('dishes/{slug}/force/delete', [DishController::class, 'forceDeleteDish']);
     Route::post('dishes/{slug}/restore', [DishController::class, 'restoreDish']);
+
+    // Combos
+    Route::get('combos/list', [ComboController::class, 'getListCombos']);
+    Route::get('combos/{slug}/detail', [ComboController::class, 'getComboDetail']);
+    Route::post('combos/create', [ComboController::class, 'createCombo']);
+    Route::post('combos/{slug}/update', [ComboController::class, 'updateCombo']);
+    Route::get('combos/trash', [ComboController::class, 'listTrashedCombo']);
+    Route::delete('combos/{slug}/soft/delete', [ComboController::class, 'softDeleteCombo']);
+    Route::delete('combos/{slug}/force/delete', [ComboController::class, 'forceDeleteCombo']);
+    Route::post('combos/{slug}/restore', [ComboController::class, 'restoreCombo']);
+    Route::post('combos/{slug}/add-item', [ComboController::class, 'addItemToCombo']);
+    Route::post('combos/{slug}/remove-item', [ComboController::class, 'removeItemFromCombo']);
 });

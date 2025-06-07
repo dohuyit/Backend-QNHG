@@ -4,21 +4,22 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\DishRequest\StoreDishRequest;
+use App\Http\Requests\DishRequest\UpdateDishRequest;
 use App\Models\Dish;
 use App\Repositories\Dishes\DishRepositoryInterface;
-use App\Services\Dishes\DishesService;
+use App\Services\Dishes\DishService;
 use Illuminate\Contracts\Cache\Store;
 use Illuminate\Http\Request;
 
 class DishController extends Controller
 {
-   protected DishesService $dishesService;
+   protected DishService $dishService;
    protected DishRepositoryInterface $dishRepository;
     public function __construct(
-         DishesService $dishesService,
+         DishService $dishService,
          DishRepositoryInterface $dishRepository
     ) {
-         $this->dishesService = $dishesService;
+         $this->dishService = $dishService;
          $this->dishRepository = $dishRepository;
     }
 
@@ -40,7 +41,7 @@ class DishController extends Controller
             'is_featured',
             'is_active'
         );
-        $result = $this->dishesService->getListDishes($params);
+        $result = $this->dishService->getListDishes($params);
         $data = $result->getResult();
         return $this->responseSuccess($data);
     }
@@ -62,7 +63,7 @@ class DishController extends Controller
             'is_featured',
             'is_active'
         );
-        $result = $this->dishesService->getDishByCategory($params, $slug);
+        $result = $this->dishService->getDishByCategory($params, $slug);
         $data = $result->getResult();
         return $this->responseSuccess($data);
     }
@@ -83,7 +84,7 @@ class DishController extends Controller
             'is_active'
         ]);
 
-        $result = $this->dishesService->createDish($data);
+        $result = $this->dishService->createDish($data);
         if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage());
         }
@@ -91,14 +92,14 @@ class DishController extends Controller
     }
     public function getDishDetail(string $slug)
     {
-        $result = $this->dishesService->getDishDetail($slug);
+        $result = $this->dishService->getDishDetail($slug);
         if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage(), statusCode: 404);
         }
         $data = $result->getData();
         return $this->responseSuccess($data);
     }
-    public function updateDish(StoreDishRequest $request, string $slug)
+    public function updateDish(UpdateDishRequest $request, string $slug)
     {
         $data = $request->only([
             'category_id',
@@ -119,7 +120,7 @@ class DishController extends Controller
             return $this->responseFail(message: 'Món ăn không tồn tại', statusCode: 404);
         }
 
-        $result = $this->dishesService->updateDish($data, $dish);
+        $result = $this->dishService->updateDish($data, $dish);
         if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage());
         }
@@ -143,7 +144,7 @@ class DishController extends Controller
             'is_featured',
             'is_active'
         );
-        $result = $this->dishesService->listTrashedDish($params);
+        $result = $this->dishService->listTrashedDish($params);
         $data = $result->getResult();
         return $this->responseSuccess($data);
     }
@@ -153,7 +154,7 @@ class DishController extends Controller
         if (!$dish) {
             return $this->responseFail(message: 'Món ăn không tồn tại', statusCode: 404);
         }
-        $result = $this->dishesService->softDeleteDish($slug);
+        $result = $this->dishService->softDeleteDish($slug);
         if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage());
         }
@@ -161,7 +162,7 @@ class DishController extends Controller
     }
     public function forceDeleteDish(string $slug)
     {
-        $result = $this->dishesService->forceDeleteDish($slug);
+        $result = $this->dishService->forceDeleteDish($slug);
         if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage());
         }
@@ -169,7 +170,7 @@ class DishController extends Controller
     }
     public function restoreDish($slug)
     {
-        $result = $this->dishesService->restoreDish($slug);
+        $result = $this->dishService->restoreDish($slug);
         if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage());
         }

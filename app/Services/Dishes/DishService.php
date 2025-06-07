@@ -6,9 +6,10 @@ use App\Common\DataAggregate;
 use App\Common\ListAggregate;
 use App\Helpers\ConvertHelper;
 use App\Repositories\Dishes\DishRepositoryInterface;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
-class DishesService
+class DishService
 {
     protected DishRepositoryInterface $dishRepository;
     public function __construct(DishRepositoryInterface $dishRepository)
@@ -53,6 +54,12 @@ class DishesService
     {
         $result = new DataAggregate();
         $slug = Str::slug($data['name'] ?? '');
+
+        $slugExists = $this->dishRepository->getByConditions(['slug' => $slug]);
+        if ($slugExists) {  
+            $result->setMessage(message: 'Tên món ăn đã tồn tại, vui lòng chọn tên khác!');
+            return $result;
+        }
         $listDataCreate = [
             'category_id' => $data['category_id'],
             'name' => $data['name'],
@@ -71,10 +78,9 @@ class DishesService
         if (!empty($data['image_url'])) {
             $file = $data['image_url'];
             $extension = $file->getClientOriginalExtension();
-
             $filename = 'dish_' . uniqid() . '.' . $extension;
 
-            $path = $file->storeAs('dishes', $filename, 'public');
+            $path = Storage::disk('public')->putFileAs('dishes', $file, $filename);
             $listDataCreate['image_url'] = $path;
         }
 
@@ -107,6 +113,11 @@ class DishesService
     {
         $result = new DataAggregate();
         $slug = Str::slug($data['name'] ?? '');
+
+        if ($slug !== $dish->slug && $this->dishRepository->getByConditions(['slug' => $slug])) {
+            $result->setMessage(message: 'Tên món ăn đã tồn tại, vui lòng chọn tên khác!');
+            return $result;
+        }
         $listDataUpdate = [
             'category_id' => $data['category_id'],
             'name' => $data['name'],
@@ -132,17 +143,21 @@ class DishesService
                 }
             }
 
-            $file = $data['image_url'];
-            $extension = $file->getClientOriginalExtension();
+            $file = $data['image_url'];  
 
+            if(!empty($dish->image_url) && Storage::disk('public')->exists($dish->image_url)) {
+                Storage::disk('public')->delete($dish->image_url);
+            }
+
+            $extension = $file->getClientOriginalExtension();
             $filename = 'dish_' . uniqid() . '.' . $extension;
 
-            $path = $file->storeAs('dishes', $filename, 'public');
+            $path = Storage::disk('public')->putFileAs('dishes', $file, $filename);
             $listDataUpdate['image_url'] = $path;
         }
 
         $ok = $this->dishRepository->updateByConditions( ['slug' => $dish->slug], $listDataUpdate);
-        if  (!$ok) {
+        if (!$ok) {
             $result->setMessage(message: 'Cập nhật thất bại, vui lòng thử lại!');
             return $result;
         } 
@@ -174,7 +189,6 @@ class DishesService
             ];
         }
         
-
         $result = new ListAggregate($data);
         $result->setMeta(
             page: $pagination->currentPage(),
@@ -200,6 +214,13 @@ class DishesService
     {
         $result = new DataAggregate();
         $dish = $this->dishRepository->findOnlyTrashedBySlug($slug);
+
+        if (!empty($dish->image_url)){
+            if (Storage::disk('public')->exists($dish->image_url)) {
+                Storage::disk('public')->delete($dish->image_url);
+            }
+        }
+
         $oldImagePath = storage_path('app/public/' . $dish->image_url);
         if (file_exists($oldImagePath)) {
             unlink($oldImagePath);
@@ -258,7 +279,5 @@ class DishesService
 
         return $result;
     }
-    
-
 }
 

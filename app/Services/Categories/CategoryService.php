@@ -6,6 +6,7 @@ use App\Common\DataAggregate;
 use App\Common\ListAggregate;
 use App\Models\Category;
 use App\Repositories\Categories\CategoryRepositoryInterface;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 class CategoryService
 { 
@@ -49,6 +50,12 @@ class CategoryService
     {
         $result = new DataAggregate();
         $slug = Str::slug($data['name'] ?? '');
+
+        $slugExists = $this->categoryRepository->getByConditions(['slug' => $slug]);
+        if ($slugExists) {
+            $result->setMessage(message: 'Tên danh mục đã tồn tại, vui lòng chọn tên khác!');
+            return $result;
+        }
         $listDataCreate = [
             'name' => $data['name'],
             'slug' => $slug,
@@ -60,10 +67,9 @@ class CategoryService
         if (!empty($data['image_url'])) {
             $file = $data['image_url'];
             $extension = $file->getClientOriginalExtension();
-
             $filename = 'category_' . uniqid() . '.' . $extension;
 
-            $path = $file->storeAs('categories', $filename, 'public');
+            $path = Storage::disk('public')->putFileAs('categories', $file, $filename);
             $listDataCreate['image_url'] = $path;
         }
 
@@ -93,6 +99,12 @@ class CategoryService
     {
         $result = new DataAggregate();
         $slug = Str::slug($data['name'] ?? '');
+
+        if($slug !== $category->slug && $this->categoryRepository->getByConditions(['slug' => $slug])) {
+            $result->setMessage(message: 'Tên danh mục đã tồn tại, vui lòng chọn tên khác!');
+            return $result;
+        }
+
         $listDataUpdate = [
             'name' => $data['name'],
             'slug' => $slug,
@@ -112,11 +124,15 @@ class CategoryService
             }
 
             $file = $data['image_url'];
-            $extension = $file->getClientOriginalExtension();
 
+            if(!empty($category->image_url) && Storage::disk('public')->exists($category->image_url)) {
+                Storage::disk('public')->delete($category->image_url);
+            }
+
+            $extension = $file->getClientOriginalExtension();
             $filename = 'category_' . uniqid() . '.' . $extension;
 
-            $path = $file->storeAs('categories', $filename, 'public');
+            $path = Storage::disk('public')->putFileAs('categories', $file, $filename);
             $listDataUpdate['image_url'] = $path;
             
         }
@@ -179,11 +195,16 @@ class CategoryService
         $result = new DataAggregate();
         $category = $this->categoryRepository->findOnlyTrashedBySlug($slug);
 
+        if (!empty($category->image_url)) {
+            if(Storage::disk('public')->exists($category->image_url)){
+                Storage::disk('public')->delete($category->image_url);
+            }
+        }
+
         $oldImagePath = storage_path('app/public/' . $category->image_url);
         if (file_exists($oldImagePath)) {
             unlink($oldImagePath);
         }
-
         $ok = $category->forceDelete();
         if (!$ok) {
             $result->setMessage(message: 'Xóa vĩnh viễn thất bại, vui lòng thử lại!');
