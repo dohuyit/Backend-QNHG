@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\BranchController;
 use App\Http\Controllers\Admin\TableAreaController;
 use App\Http\Controllers\Admin\TableAreaTemplateController;
 use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\User\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('admin')->group(function () {
@@ -40,4 +41,14 @@ Route::prefix('admin')->group(function () {
     Route::delete('categories/{slug}/soft/delete', [CategoryController::class, 'softDeleteCategory']);
     Route::delete('categories/{slug}/force/delete', [CategoryController::class, 'forceDeleteCategory']);
     Route::post('categories/{slug}/restore', [CategoryController::class, 'restoreCategory']);
+
+    ##users
+    Route::post('users/create', [UserController::class, 'createUser']);
+    Route::post('users/{id}/update', [UserController::class, 'updateUser']);
+    Route::get('users/list', [UserController::class, 'getListUser']);
+    Route::get('users/{id}/delete', [UserController::class, 'deleteUser']);
+    Route::post('users/{id}/block', [UserController::class, 'blockUser']);
+    Route::post('users/{id}/unblock', [UserController::class, 'unblockUser']);
+
+
 });
