@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class BillPayment extends Model
 {
     protected $table = 'bill_payments';
+
     protected $fillable = [
         'bill_id',
         'payment_method',       // 'cash', 'credit_card', ...

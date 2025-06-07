@@ -30,7 +30,7 @@ class UpdateBranchRequest extends BaseFormRequest
             'opening_hours' => 'nullable|string|max:255',
             'tags' => 'nullable|string|max:255',
             'status' => 'required|in:active,inactive,temporarily_closed',
-            'is_main_branch' => 'required|boolean',
+            'is_main_branch' => 'required|in:true,false',
             'capacity' => 'nullable|integer|min:0',
             'area_size' => 'nullable|numeric|min:0',
             'number_of_floors' => 'nullable|integer|min:1',
@@ -66,7 +66,7 @@ class UpdateBranchRequest extends BaseFormRequest
             'status.in' => 'Trạng thái không hợp lệ. Giá trị cho phép: active, inactive, temporarily_closed.',
 
             'is_main_branch.required' => 'Vui lòng xác định chi nhánh này có phải là chi nhánh chính không.',
-            'is_main_branch.boolean' => 'Giá trị chi nhánh chính phải là true hoặc false.',
+            'is_main_branch.in' => 'Giá trị chi nhánh chính phải là true hoặc false.',
 
             'capacity.integer' => 'Sức chứa phải là số nguyên.',
             'capacity.min' => 'Sức chứa không được nhỏ hơn 0.',

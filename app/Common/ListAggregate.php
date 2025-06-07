@@ -5,11 +5,17 @@ namespace App\Common;
 class ListAggregate
 {
     public int $total = 0;
+
     public int $totalPage = 0;
+
     public int $page = 1;
+
     public int $perPage = 10;
+
     public ?string $nextCursor = null;
+
     public $items;
+
     private bool $useCursor = false;
 
     public function __construct($items)
@@ -17,7 +23,7 @@ class ListAggregate
         $this->items = $items;
     }
 
-    public function setMeta(int $page, int $perPage, int $total, string $nextCursor = null)
+    public function setMeta(int $page, int $perPage, int $total, ?string $nextCursor = null)
     {
         $this->page = $page;
         $this->perPage = $perPage;
@@ -26,7 +32,7 @@ class ListAggregate
         $this->nextCursor = $nextCursor;
     }
 
-    public function setMetaCursor(int $perPage, string $nextCursor = null)
+    public function setMetaCursor(int $perPage, ?string $nextCursor = null)
     {
         $this->useCursor = true;
         $this->perPage = $perPage;
@@ -39,11 +45,12 @@ class ListAggregate
             return [
                 'meta' => [
                     'perPage' => $this->perPage,
-                    'nextCursor' => $this->nextCursor ? (string)$this->nextCursor : null,
+                    'nextCursor' => $this->nextCursor ? (string) $this->nextCursor : null,
                 ],
                 'items' => $this->items,
             ];
         }
+
         return [
             'meta' => [
                 'page' => $this->page,

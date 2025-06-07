@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Combo extends Model
 {
     protected $table = 'combos';
+
     protected $fillable = [
         'name',                 // Ví dụ: "Combo Gia Đình Vui Vẻ", "Set Lẩu Thái Đặc Biệt"
         'slug',                 // Ví dụ: "combo-gia-dinh-vui-ve"
@@ -16,6 +17,6 @@ class Combo extends Model
         'image_url',            // Ví dụ: "/images/combos/gia-dinh.jpg"
         'tags',                 // Ví dụ (JSON): ["cho 4 người", "tiết kiệm", "cuối tuần"]
         'is_active',            // Ví dụ: true (đang áp dụng)
-        'deleted_at'
+        'deleted_at',
     ];
 }
