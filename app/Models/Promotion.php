@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Promotion extends Model
 {
     protected $table = 'promotions';
+
     protected $fillable = [
         'name',                     // Ví dụ: "Giảm giá 20% Thứ Tư Vui Vẻ"
         'slug',                     // Ví dụ: "giam-gia-20-thu-tu-vui-ve"

@@ -3,28 +3,28 @@
 namespace App\Repositories\Branchs;
 
 use App\Models\Branch;
-use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class BranchRepository implements BranchRepositoryInterface
 {
-
     public function updateByConditions(array $conditions, array $updateData): bool
     {
         $result = Branch::where($conditions)->update($updateData);
-        return (bool)$result;
+
+        return (bool) $result;
     }
 
     public function createData(array $data): bool
     {
         $result = Branch::create($data);
-        return (bool)$result;
-    }
 
+        return (bool) $result;
+    }
 
     public function getByConditions(array $conditions): ?Branch
     {
+
         $result = Branch::withTrashed()->where($conditions)->first();
         return $result;
     }
@@ -34,7 +34,7 @@ class BranchRepository implements BranchRepositoryInterface
     {
         $query = Branch::query();
 
-        if (!empty($filter)) {
+        if (! empty($filter)) {
             $query = $this->filterBranchList($query, $filter);
         }
 
@@ -44,7 +44,7 @@ class BranchRepository implements BranchRepositoryInterface
     private function filterBranchList(Builder $query, array $filter = []): Builder
     {
         if ($val = $filter['name'] ?? null) {
-            $query->where('name', 'like', '%' . $val . '%');
+            $query->where('name', 'like', '%'.$val.'%');
         }
 
         if ($val = $filter['city_id'] ?? null) {
@@ -65,6 +65,7 @@ class BranchRepository implements BranchRepositoryInterface
     public function findOnlyTrashedBySlug($slug): ?Branch
     {
         $result = Branch::onlyTrashed()->where('slug', $slug)->firstOrFail();
+
         return $result;
     }
 
@@ -72,7 +73,7 @@ class BranchRepository implements BranchRepositoryInterface
     {
         $query = Branch::onlyTrashed();
 
-        if (!empty($filter)) {
+        if (! empty($filter)) {
             $query = $this->filterBranchList($query, $filter);
         }
 

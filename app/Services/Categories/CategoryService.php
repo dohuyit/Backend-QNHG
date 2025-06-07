@@ -145,7 +145,6 @@ class CategoryService
         $result->setResultSuccess(message: 'Cập nhật thành công!');
         return $result;
     }
-
     public function listTrashedCategory(array $params): ListAggregate
     {
         $filter = $params;
@@ -176,7 +175,6 @@ class CategoryService
 
         return $result;
     }
-
     public function softDeleteCategory($slug): DataAggregate
     {
         $result = new DataAggregate();
@@ -201,10 +199,10 @@ class CategoryService
             }
         }
 
-        $oldImagePath = storage_path('app/public/' . $category->image_url);
-        if (file_exists($oldImagePath)) {
-            unlink($oldImagePath);
-        }
+        // $oldImagePath = storage_path('app/public/' . $category->image_url);
+        // if (file_exists($oldImagePath)) {
+        //     unlink($oldImagePath);
+        // }
         $ok = $category->forceDelete();
         if (!$ok) {
             $result->setMessage(message: 'Xóa vĩnh viễn thất bại, vui lòng thử lại!');

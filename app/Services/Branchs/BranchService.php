@@ -12,8 +12,8 @@ use Illuminate\Support\Str;
 
 class BranchService
 {
-
     protected BranchRepositoryInterface $branchRepository;
+
     public function __construct(BranchRepositoryInterface $branchRepository)
     {
         $this->branchRepository = $branchRepository;
@@ -22,20 +22,20 @@ class BranchService
     public function getListBranchs(array $params): ListAggregate
     {
         $filter = $params;
-        $limit = !empty($params['limit']) && $params['limit'] > 0 ? (int)$params['limit'] : 10;
+        $limit = ! empty($params['limit']) && $params['limit'] > 0 ? (int) $params['limit'] : 10;
 
         $pagination = $this->branchRepository->getBranchList(filter: $filter, limit: $limit);
 
         $data = [];
         foreach ($pagination->items() as $item) {
             $data[] = [
-                'id' => (string)$item->id,
+                'id' => (string) $item->id,
                 'name' => $item->name,
                 'slug' => $item->slug,
                 'city_id' => $item->city_id,
                 'district_id' => $item->district_id,
                 'status' => $item->status,
-                'is_main_branch' => (bool)$item->is_main_branch,
+                'is_main_branch' => (bool) $item->is_main_branch,
                 'capacity' => $item->capacity,
                 'area_size' => $item->area_size,
                 'number_of_floors' => $item->number_of_floors,
@@ -60,7 +60,7 @@ class BranchService
 
     public function createBranch(array $data): DataAggregate
     {
-        $result = new DataAggregate();
+        $result = new DataAggregate;
         $slug = Str::slug($data['name'] ?? '');
 
 
@@ -87,7 +87,7 @@ class BranchService
             'main_description' => $data['main_description'] ?? null,
         ];
 
-        if (!empty($data['tags'])) {
+        if (! empty($data['tags'])) {
             $listDataCreate['tags'] = ConvertHelper::convertStringToJson($data['tags']);
         }
 
@@ -113,22 +113,24 @@ class BranchService
 
     public function getBranchDetail(string $slug): DataAggregate
     {
-        $result = new DataAggregate();
+        $result = new DataAggregate;
 
         $branch = $this->branchRepository->getByConditions(['slug' => $slug, 'status' => Branch::STATUS_ACTIVE]);
 
-        if (!$branch) {
+        if (! $branch) {
             $result->setResultError(message: 'Chi nhánh không tồn tại');
+
             return $result;
         }
 
         $result->setResultSuccess(data: ['branch' => $branch]);
+
         return $result;
     }
 
     public function updateBranch(array $data, Branch $branch): DataAggregate
     {
-        $result = new DataAggregate();
+        $result = new DataAggregate;
         $slug = Str::slug($data['name'] ?? '');
 
         // Nếu slug mới khác slug cũ → cần kiểm tra trùng
@@ -154,10 +156,9 @@ class BranchService
             'main_description' => $data['main_description'],
         ];
 
-        if (!empty($data['tags'])) {
+        if (! empty($data['tags'])) {
             $listDataUpdate['tags'] = ConvertHelper::convertStringToJson($data['tags']);
         }
-
         if (!empty($data['image_banner'])) {
             if (!empty($branch->image_banner) && $branch->image_banner !== $data['image_banner']) {
                 $oldImagePath = storage_path('app/public/' . $branch->image_banner);
@@ -166,7 +167,6 @@ class BranchService
                     unlink($oldImagePath);
                 }
             }
-
             $file = $data['image_banner'];
 
             // Xóa ảnh cũ nếu tồn tại
@@ -183,31 +183,33 @@ class BranchService
         }
 
         $ok = $this->branchRepository->updateByConditions(['slug' => $branch->slug], $listDataUpdate);
+
         if (!$ok) {
             $result->setMessage('Cập nhật thất bại, vui lòng thử lại!');
             return $result;
         }
 
         $result->setResultSuccess(message: 'Cập nhật thành công!');
+
         return $result;
     }
 
     public function listTrashedBranch(array $params): ListAggregate
     {
         $filter = $params;
-        $limit = !empty($params['limit']) && $params['limit'] > 0 ? (int)$params['limit'] : 10;
-        $pagination =  $this->branchRepository->getTrashBranchList($filter, $limit);
+        $limit = ! empty($params['limit']) && $params['limit'] > 0 ? (int) $params['limit'] : 10;
+        $pagination = $this->branchRepository->getTrashBranchList($filter, $limit);
 
         $data = [];
         foreach ($pagination->items() as $item) {
             $data[] = [
-                'id' => (string)$item->id,
+                'id' => (string) $item->id,
                 'name' => $item->name,
                 'slug' => $item->slug,
                 'city_id' => $item->city_id,
                 'district_id' => $item->district_id,
                 'status' => $item->status,
-                'is_main_branch' => (bool)$item->is_main_branch,
+                'is_main_branch' => (bool) $item->is_main_branch,
                 'capacity' => $item->capacity,
                 'area_size' => $item->area_size,
                 'number_of_floors' => $item->number_of_floors,
@@ -232,20 +234,22 @@ class BranchService
 
     public function softDeleteBranch($slug): DataAggregate
     {
-        $result = new DataAggregate();
+        $result = new DataAggregate;
         $branch = $this->branchRepository->getByConditions(['slug' => $slug]);
         $ok = $branch->delete();
-        if (!$ok) {
+        if (! $ok) {
             $result->setMessage(message: 'Xóa thất bại, vui lòng thử lại!');
+
             return $result;
         }
         $result->setResultSuccess(message: 'Xóa thành công!');
+
         return $result;
     }
 
     public function forceDeleteBranch($slug): DataAggregate
     {
-        $result = new DataAggregate();
+        $result = new DataAggregate;
         $branch = $this->branchRepository->findOnlyTrashedBySlug($slug);
 
         if (!empty($branch->image_banner)) {
@@ -259,24 +263,28 @@ class BranchService
 
         }
         $ok = $branch->forceDelete();
-        if (!$ok) {
+        if (! $ok) {
             $result->setMessage(message: 'Xóa vĩnh viễn thất bại, vui lòng thử lại!');
+
             return $result;
         }
         $result->setResultSuccess(message: 'Xóa vĩnh viễn thành công!');
+
         return $result;
     }
 
     public function restoreBranch($slug): DataAggregate
     {
-        $result = new DataAggregate();
+        $result = new DataAggregate;
         $branch = $this->branchRepository->findOnlyTrashedBySlug($slug);
         $ok = $branch->restore();
-        if (!$ok) {
+        if (! $ok) {
             $result->setMessage(message: 'Khôi phục thất bại, vui lòng thử lại!');
+
             return $result;
         }
         $result->setResultSuccess(message: 'Khôi phục thành công!');
+
         return $result;
     }
 }

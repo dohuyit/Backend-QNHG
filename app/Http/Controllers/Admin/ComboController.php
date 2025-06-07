@@ -29,6 +29,7 @@ class ComboController extends Controller
             'query',
             'name',
             'slug',
+            'image_url',
             'description',
             'original_total_price',
             'selling_price',
@@ -71,6 +72,7 @@ class ComboController extends Controller
             'name',
             'slug',
             'description',
+            'image_url',
             'original_total_price',
             'selling_price',
             'is_active'
@@ -85,13 +87,14 @@ class ComboController extends Controller
         }
         return $this->responseSuccess(message: $result->getMessage());
     }
-    public function listTrashedDish(Request $request)
+    public function listTrashedCombo(Request $request)
     {
         $params = $request->only(
             'page',
             'limit',
             'query',
             'name',
+            'image_url',
             'slug',
             'description',
             'original_total_price',
@@ -108,7 +111,7 @@ class ComboController extends Controller
         if (!$combo) {
             return $this->responseFail(message: 'Combo không tồn tại', statusCode: 404);
         }
-        $result = $this->comboService->softDeleteCombo($combo);
+        $result = $this->comboService->softDeleteCombo($slug);
         if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage());
         }

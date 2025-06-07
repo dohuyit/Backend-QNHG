@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class OrderItemChangeLog extends Model
 {
     protected $table = 'order_item_change_logs';
+
     protected $fillable = [
         'order_item_id',
         'order_id',

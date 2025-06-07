@@ -38,7 +38,8 @@ class ComboRepository implements ComboRepositoryInterface
     }
     public function getByConditions(array $conditions): ?Combo
     {
-        return Combo::where($conditions)->first();
+        $result = Combo::where($conditions)->first();
+        return $result;
     }
     public function getTrashComboList(array $filter = [], int $limit = 10): LengthAwarePaginator
     {
@@ -50,7 +51,8 @@ class ComboRepository implements ComboRepositoryInterface
     }
     public function findOnlyTrashedBySlug($slug): ?Combo
     {
-        return Combo::onlyTrashed()->where('slug', $slug)->first();
+        $result = Combo::onlyTrashed()->where('slug', $slug)->firstOrFail();
+        return $result;
     }
 
 }

@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Combo extends Model
 {
+    use SoftDeletes;
     protected $table = 'combos';
     protected $fillable = [
         'name',                 // Ví dụ: "Combo Gia Đình Vui Vẻ", "Set Lẩu Thái Đặc Biệt"
@@ -15,7 +17,7 @@ class Combo extends Model
         'selling_price',        // Ví dụ: 499000.00 (giá bán combo)
         'image_url',            // Ví dụ: "/images/combos/gia-dinh.jpg"
         'is_active',            // Ví dụ: true (đang áp dụng)
-        'deleted_at'
+        'deleted_at',
     ];
     public function items()
     {

@@ -29,6 +29,7 @@ class DishService
                 'category_id' => $item->category_id,
                 'name' => $item->name,
                 'slug' => $item->slug,
+                'image_url' => $item->image_url,
                 'description' => $item->description,
                 'original_price' => $item->original_price,
                 'selling_price' => $item->selling_price,
@@ -177,6 +178,7 @@ class DishService
                 'category_id' => $item->category_id,
                 'name' => $item->name,
                 'slug' => $item->slug,
+                'image_url' => $item->image_url,
                 'description' => $item->description,
                 'original_price' => $item->original_price,
                 'selling_price' => $item->selling_price,
@@ -221,10 +223,6 @@ class DishService
             }
         }
 
-        $oldImagePath = storage_path('app/public/' . $dish->image_url);
-        if (file_exists($oldImagePath)) {
-            unlink($oldImagePath);
-        }
         $ok = $dish->forceDelete();
         if (!$ok) {
             $result->setMessage(message: 'Xóa vĩnh viễn thất bại, vui lòng thử lại!');

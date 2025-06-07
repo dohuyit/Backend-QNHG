@@ -9,6 +9,7 @@ class Dish extends Model
 {
     use SoftDeletes;
     protected $table = 'dishes';
+
     protected $fillable = [
         'category_id',      // ID của danh mục món ăn
         'name',             // Ví dụ: "Phở Bò Tái Chín", "Cơm Sườn Nướng Mật Ong"

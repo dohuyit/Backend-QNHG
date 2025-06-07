@@ -8,8 +8,11 @@ use Illuminate\Support\Facades\Log;
 class DataAggregate
 {
     private string $code;
+
     private string $message;
+
     private array $data = [];
+
     private array $errors = [];
 
     public function __construct(string $code = ErrorHelper::FAILED, string $message = '')
@@ -33,11 +36,11 @@ class DataAggregate
             $this->message = $message ?: __("error.$code");
         } catch (\Exception $e) {
             $this->code = ErrorHelper::SERVER_ERROR;
-            $this->message = __("error." . ErrorHelper::SERVER_ERROR);
-            Log::error("[ResultAggregate@setResultError] Error code not exist: ", [$e]);
+            $this->message = __('error.'.ErrorHelper::SERVER_ERROR);
+            Log::error('[ResultAggregate@setResultError] Error code not exist: ', [$e]);
         }
 
-        if (!empty($errors)) {
+        if (! empty($errors)) {
             $this->errors = $errors;
         }
     }
