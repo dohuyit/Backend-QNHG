@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('tables', function (Blueprint $table) {
             $table->id()->comment('Mã bàn ăn duy nhất');
             $table->foreignId('table_area_id')->comment('Mã khu vực chứa bàn')->constrained('table_areas', 'id');
-            $table->foreignId('branch_id')->comment('Mã chi nhánh')->constrained('branches', 'id');
             $table->string('table_number', 20)->comment('Số hiệu hoặc tên của bàn');
             $table->integer('capacity')->comment('Số lượng chỗ ngồi');
             $table->integer('min_guests')->default(1)->comment('Số khách tối thiểu');

@@ -2,15 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class TableArea extends Model
 {
+    use HasFactory;
     protected $table = 'table_areas';
 
     protected $fillable = [
-        'branch_id',         // ID chi nhánh
-        'area_template_id',  // ID template khu vực bàn
         'name',              // Tên khu vực bàn
         'slug',              // Slug cho khu vực bàn
         'description',       // Mô tả khu vực bàn

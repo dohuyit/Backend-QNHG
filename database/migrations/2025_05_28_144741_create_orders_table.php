@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id()->comment('Mã đơn hàng');
             $table->string('order_code', 20)->unique()->comment('Mã code đơn hàng');
-            $table->foreignId('branch_id')->comment('Chi nhánh xử lý')->constrained('branches', 'id');
             $table->enum('order_type', ['dine-in', 'takeaway', 'delivery'])->comment('Loại đơn hàng');
             $table->foreignId('table_id')->nullable()->comment('Bàn đặt hàng (dine-in)')->constrained('tables', 'id')->onDelete('set null');
             $table->foreignId('reservation_id')->nullable()->comment('Mã đặt bàn liên quan')->constrained('reservations', 'id')->onDelete('set null');
