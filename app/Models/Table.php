@@ -10,7 +10,6 @@ class Table extends Model
 
     protected $fillable = [
         'table_area_id',    // ID của khu vực bàn
-        'branch_id',        // ID của chi nhánh
         'table_number',     // Ví dụ: "A10", "VIP02", "Bar-05"
         'capacity',         // Ví dụ: 4 (bàn 4 người)
         'min_guests',       // Ví dụ: 2

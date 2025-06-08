@@ -3,12 +3,12 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\TableArea;
+use App\Models\Customer;
 
-class TableAreaSeeder extends Seeder
+class CustomerSeeder extends Seeder
 {
     public function run(): void
     {
-        TableArea::factory()->count(10)->create();
+        Customer::factory()->count(30)->create();
     }
 }

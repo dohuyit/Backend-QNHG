@@ -36,7 +36,7 @@ return new class extends Migration
             $table->json('tags')->nullable()->comment('Các tag cho khách hàng (VD: ["khách VIP", "dị ứng hải sản"])');
             $table->text('notes')->nullable()->comment('Ghi chú nội bộ');
 
-            $table->boolean('is_active')->default(true)->comment('Trạng thái hoạt động của khách hàng');
+            $table->enum('status', ['active', 'inactive', 'pending_activation', 'blocked'])->default('active')->comment('Trạng thái tài khoản');
             $table->rememberToken()->comment('Token ghi nhớ đăng nhập');
             $table->softDeletes()->comment('Xoá mềm');
             $table->timestamps();

@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('reservations', function (Blueprint $table) {
             $table->id()->comment('Mã đặt bàn');
-            $table->foreignId('branch_id')->comment('Mã chi nhánh')->constrained('branches', 'id');
             $table->foreignId('customer_id')->nullable()->comment('Mã khách hàng')->constrained('customers', 'id')->onDelete('set null');
             $table->string('customer_name', 100)->comment('Tên khách đặt');
             $table->string('customer_phone', 20)->comment('SĐT khách đặt');

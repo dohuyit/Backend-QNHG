@@ -12,11 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('table_areas', function (Blueprint $table) {
-            $table->id()->comment('Mã khu vực bàn');
-            $table->foreignId('branch_id')->comment('Mã cơ sở/chi nhánh')->constrained('branches', 'id');
-            $table->foreignId('area_template_id')->nullable()->comment('Mã mẫu khu vực')->constrained('area_templates', 'id');
-            $table->string('name', 100)->comment('Tên khu vực trong chi nhánh');
-            $table->string('slug', 120)->nullable()->comment('Slug (nếu cần, thường không cần cho table area)');
+            $table->id();
+            $table->string('name', 100)->unique()->notNull();
             $table->text('description')->nullable()->comment('Mô tả chi tiết');
             $table->string('status')->default('active')->comment('Trạng thái khu vực bàn');
             $table->integer('capacity')->default(0)->comment('Số lượng bàn thực tế trong khu vực');

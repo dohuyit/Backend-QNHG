@@ -23,7 +23,6 @@ class Promotion extends Model
         'usage_limit_per_customer', // Ví dụ: 1 (mỗi khách dùng 1 lần)
         'current_usage_count',      // Tự động tăng, không nên fillable
         'is_active',                // Ví dụ: true
-        'branch_id',                // ID chi nhánh áp dụng (nếu có)
         'user_id',                  // ID nhân viên tạo khuyến mãi
     ];
 }

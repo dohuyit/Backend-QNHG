@@ -10,7 +10,6 @@ class Order extends Model
 
     protected $fillable = [
         'order_code',           // Tự sinh hoặc theo quy tắc
-        'branch_id',
         'order_type',           // 'dine-in', 'takeaway', 'delivery'
         'table_id',             // Cho 'dine-in'
         'reservation_id',       // Nếu đơn hàng từ đặt bàn
