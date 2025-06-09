@@ -26,7 +26,6 @@ class User extends Authenticatable
         'full_name',
         'email',
         'phone_number',
-        'branch_id',        // ID chi nhánh chính (nếu có)
         'status',            // Trạng thái tài khoản (active, inactive, banned)
         'email_verified_at',
         'last_login',
@@ -60,9 +59,4 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
-    public function branch()
-    {
-        return $this->belongsTo(Branch::class, 'branch_id');
-    }
-
 }
