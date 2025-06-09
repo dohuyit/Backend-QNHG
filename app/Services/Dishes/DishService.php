@@ -27,6 +27,7 @@ class DishService
             $data[] = [
                 'id' => (string)$item->id,
                 'category_id' => $item->category_id,
+                'category_name' => $item->category ? $item->category->name : '',
                 'name' => $item->name,
                 'slug' => $item->slug,
                 'image_url' => $item->image_url,
@@ -107,7 +108,11 @@ class DishService
 
         $dish->tags = ConvertHelper::convertJsonToString($dish->tags);
 
-        $result->setResultSuccess(data: ['dish' => $dish]);
+        $dish->category_name =  $dish->category->name;
+
+        $dish->unsetRelation('category');
+        
+        $result->setResultSuccess(data: ['dish' => $dish] );
         return $result;
     }
     public function updateDish(array $data, $dish): DataAggregate
@@ -176,6 +181,7 @@ class DishService
             $data[] = [
                 'id' => (string)$item->id,
                 'category_id' => $item->category_id,
+                'category_name' => $item->category ? $item->category->name : '',
                 'name' => $item->name,
                 'slug' => $item->slug,
                 'image_url' => $item->image_url,
@@ -254,6 +260,7 @@ class DishService
             $data[] = [
                 'id' => (string)$item->id,
                 'category_id' => $item->category_id,
+                'category_name' => $item->category ? $item->category->name : '',
                 'name' => $item->name,
                 'slug' => $item->slug,
                 'description' => $item->description,

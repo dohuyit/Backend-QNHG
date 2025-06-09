@@ -95,7 +95,19 @@ class ComboServices
             $result->setMessage('Không tìm thấy combo!');
             return $result;
         }
-        $result->setResultSuccess(['combo' => $combo]);
+        $comboItems = $combo->items;
+
+        $items = [];
+        foreach($comboItems as $item){
+            $items[] = [
+                'dish_name' => $item->dish->name ?? '',
+                'quantity' => $item->quantity,
+            ];
+        }
+        $result->setResultSuccess([
+            'combo' => $combo,
+            'items' => $items,
+        ]);
         return $result;
     }
 

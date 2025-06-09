@@ -19,8 +19,6 @@ class CategoryRepository implements CategoryRepositoryInterface
         $result = Category::create($data);
         return (bool)$result;
     }
-
-
     public function getByConditions(array $conditions): ?Category
     {
         $result = Category::where($conditions)->first();

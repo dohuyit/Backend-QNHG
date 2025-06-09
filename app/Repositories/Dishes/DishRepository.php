@@ -40,7 +40,7 @@ class DishRepository implements DishRepositoryInterface
     }
     public function getDishList(array $filter = [], int $limit = 10): LengthAwarePaginator
     {
-        $query = Dish::query();
+        $query = Dish::with('category');
 
         if(!empty($filter)){
             $result = $this->filterDishList($query, $filter);

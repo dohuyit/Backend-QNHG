@@ -23,4 +23,9 @@ class Dish extends Model
         'is_featured',      // Ví dụ: true (món nổi bật)
         'is_active',        // Ví dụ: true (đang bán)
     ];
+    public function category()
+    {
+        return $this->belongsTo(Category::class, 'category_id');
+    }
+
 }

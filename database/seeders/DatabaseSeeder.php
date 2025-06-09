@@ -18,12 +18,12 @@ class DatabaseSeeder extends Seeder
         $this->call([
             AreaTemplateSeeder::class,
             TableAreaSeeder::class,
-            CategorySeeder::class
+            CategorySeeder::class,
+            DishSeeder::class,
+            ComboSeeder::class,
+            ComboItemSeeder::class,
         ]);
 
-        // $this->call(CategorySeeder::class);
-        // $this->call(DishSeeder::class);
-        $this->call(ComboSeeder::class);
 
     }
 }

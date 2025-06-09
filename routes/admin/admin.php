@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\TableAreaController;
 use App\Http\Controllers\Admin\TableAreaTemplateController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ComboController;
+use App\Http\Controllers\Admin\ComboItemController;
 use App\Http\Controllers\Admin\DishController;
 use Illuminate\Support\Facades\Route;
 
@@ -33,7 +34,7 @@ Route::prefix('admin')->group(function () {
     Route::post('table-areas/create-for-all-branches', [TableAreaController::class, 'createTableAreaForAllBranches']);
     Route::get('table-areas/{slug}/detail', [TableAreaController::class, 'getTableAreaDetail']);
     Route::delete('table-areas/{slug}/delete/{branchId}', [TableAreaController::class, 'deleteTableAreaForBranch']);
-    ## categories
+    // categories
     Route::get('categories/list', [CategoryController::class, 'getListCategories']);
     Route::get('categories/{slug}/detail', [CategoryController::class, 'getCategoryDetail']);
     Route::post('categories/create', [CategoryController::class, 'createCategory']);
@@ -43,7 +44,7 @@ Route::prefix('admin')->group(function () {
     Route::delete('categories/{slug}/force/delete', [CategoryController::class, 'forceDeleteCategory']);
     Route::post('categories/{slug}/restore', [CategoryController::class, 'restoreCategory']);
 
-    ## dishes
+    // dishes
     Route::get('dishes/list', [DishController::class, 'getListDishes']);
     Route::get('dishes/{slug}/detail', [DishController::class, 'getDishDetail']); 
     Route::get('dishes/category/{slug}', [DishController::class, 'getDishesByCategory']);
@@ -63,6 +64,14 @@ Route::prefix('admin')->group(function () {
     Route::delete('combos/{slug}/soft/delete', [ComboController::class, 'softDeleteCombo']);
     Route::delete('combos/{slug}/force/delete', [ComboController::class, 'forceDeleteCombo']);
     Route::post('combos/{slug}/restore', [ComboController::class, 'restoreCombo']);
-    Route::post('combos/{slug}/add-item', [ComboController::class, 'addItemToCombo']);
-    Route::post('combos/{slug}/remove-item', [ComboController::class, 'removeItemFromCombo']);
+
+    // Combo Items
+    Route::get('combo-items/list', [ComboItemController::class, 'getListComboItems']);
+    Route::post('combo-items/add-items', [ComboItemController::class, 'addItemToCombo']);
+    Route::post('combo-items/{comboSlug}/{dishSlug}/update-quantity', [ComboItemController::class, 'updateItemQuantity']);
+    Route::delete('combo-items/{comboSlug}/{dishSlug}/force/delete', [ComboItemController::class, 'forceDeleteComboItem']);
+
+
+    
+
 });

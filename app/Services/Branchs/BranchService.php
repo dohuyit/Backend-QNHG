@@ -256,7 +256,7 @@ class BranchService
             if (Storage::disk('public')->exists($branch->image_banner)) {
                 Storage::disk('public')->delete($branch->image_banner);
             }
-
+        }
         $oldImagePath = storage_path('app/public/' . $branch->image_banner);
         if (file_exists($oldImagePath)) {
             unlink($oldImagePath);
