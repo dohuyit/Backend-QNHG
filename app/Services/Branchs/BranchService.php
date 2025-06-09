@@ -257,20 +257,21 @@ class BranchService
                 Storage::disk('public')->delete($branch->image_banner);
             }
 
-        $oldImagePath = storage_path('app/public/' . $branch->image_banner);
-        if (file_exists($oldImagePath)) {
-            unlink($oldImagePath);
+            $oldImagePath = storage_path('app/public/' . $branch->image_banner);
+            if (file_exists($oldImagePath)) {
+                unlink($oldImagePath);
 
-        }
-        $ok = $branch->forceDelete();
-        if (! $ok) {
-            $result->setMessage(message: 'Xóa vĩnh viễn thất bại, vui lòng thử lại!');
+            }
+            $ok = $branch->forceDelete();
+            if (!$ok) {
+                $result->setMessage(message: 'Xóa vĩnh viễn thất bại, vui lòng thử lại!');
+
+                return $result;
+            }
+            $result->setResultSuccess(message: 'Xóa vĩnh viễn thành công!');
 
             return $result;
         }
-        $result->setResultSuccess(message: 'Xóa vĩnh viễn thành công!');
-
-        return $result;
     }
 
     public function restoreBranch($slug): DataAggregate
