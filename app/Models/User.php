@@ -26,7 +26,6 @@ class User extends Authenticatable
         'full_name',
         'email',
         'phone_number',
-        'branch_id',        // ID chi nhánh chính (nếu có)
         'status',            // Trạng thái tài khoản (active, inactive, banned)
         'email_verified_at',
         'last_login',
@@ -34,6 +33,10 @@ class User extends Authenticatable
         'deleted_at', // Thời điểm xóa mềm (nếu có)
     ];
 
+
+    public const STATUS_ACTIVE = 'active';
+    public const STATUS_INACTIVE = 'inactive';
+    public const STATUS_BLOCKED = 'blocked';
     /**
      * The attributes that should be hidden for serialization.
      *

@@ -27,7 +27,6 @@ return new class extends Migration
             $table->integer('usage_limit_per_customer')->nullable()->comment('Giới hạn sử dụng/khách');
             $table->integer('current_usage_count')->default(0)->comment('Số lần đã sử dụng');
             $table->boolean('is_active')->default(true)->comment('Trạng thái');
-            $table->foreignId('branch_id')->nullable()->comment('Áp dụng cho chi nhánh')->constrained('branches', 'id')->onDelete('set null');
             $table->foreignId('user_id')->nullable()->comment('Người tạo')->constrained('users', 'id')->onDelete('set null');
             $table->timestamps();
             $table->softDeletes()->comment('Thêm trường xóa mềm');

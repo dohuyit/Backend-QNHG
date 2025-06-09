@@ -11,6 +11,5 @@ class UserRole extends Model
     protected $fillable = [
         'user_id',
         'role_id',
-        'branch_id',        // ID chi nhánh mà vai trò này được áp dụng cho người dùng
     ];
 }

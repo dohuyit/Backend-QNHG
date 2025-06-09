@@ -19,8 +19,7 @@ return new class extends Migration
             $table->string('full_name', 100)->comment('Họ và tên');
             $table->string('email', 100)->unique()->nullable()->comment('Địa chỉ Email');
             $table->string('phone_number', 20)->unique()->nullable()->comment('Số điện thoại');
-            $table->foreignId('branch_id')->nullable()->comment('Mã chi nhánh làm việc')->constrained('branches', 'id')->onDelete('set null');
-            $table->enum('status', ['active', 'inactive', 'pending_activation'])->default('active')->comment('Trạng thái tài khoản');
+            $table->enum('status', ['active', 'inactive', 'pending_activation','blocked'])->default('active')->comment('Trạng thái tài khoản');
             $table->timestamp('last_login')->nullable()->comment('Thời gian đăng nhập cuối');
             $table->timestamp('email_verified_at')->nullable()->comment('Thời điểm xác thực email');
             $table->rememberToken();
