@@ -26,7 +26,6 @@ class AuthController extends Controller
 
         return $this->responseSuccess(message: $result->getMessage());
     }
-    // Xác thực token và đổi mật khẩu
     public function resetPassword(string $id, ResetPasswordRequest $request)
     {
         $token = $request->token;

@@ -30,9 +30,8 @@ class AuthService
             return $result;
         }
 
-        // Tạo token mới
         $token = Str::random(64);
-        $expiredAt = Carbon::now()->addMinutes(60); // Token hết hạn 60 phút
+        $expiredAt = Carbon::now()->addMinutes(60);
 
         $this->authVerifyTokenRepository->createData([
             'user_id' => $user->id,
@@ -88,7 +87,6 @@ class AuthService
             return $result;
         }
 
-        // Cập nhật mật khẩu mới
         $this->userRepository->updateByConditions(
             ['id' => $id],
             [
