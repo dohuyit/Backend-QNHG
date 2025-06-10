@@ -15,13 +15,6 @@ class CustomerRepository implements CustomerRepositoryInterface
         return (bool) $result;
     }
 
-    public function createData(array $data): bool
-    {
-        $result = Customer::create($data);
-
-        return (bool) $result;
-    }
-
     public function getByConditions(array $conditions): ?Customer
     {
 
@@ -75,12 +68,8 @@ class CustomerRepository implements CustomerRepositoryInterface
             $query->where('ward_id', $val);
         }
 
-        if ($val = $filter['notes'] ?? null) {
-            $query->where('notes', 'like', '%' . $val . '%');
-        }
-
-        if ($val = $filter['status'] ?? null) {
-            $query->where('status', $val);
+        if ($val = $filter['status_customer'] ?? null) {
+            $query->where('status_customer', $val);
         }
 
         return $query;
