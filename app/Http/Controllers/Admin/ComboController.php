@@ -2,9 +2,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ComboItemRequest\StoreComboItemRequest;
+use App\Http\Requests\ComboItemRequest\UpdateComboItemRequest;
 use App\Http\Requests\ComboRequest\StoreComboRequest;
 use App\Http\Requests\ComboRequest\UpdateComboRequest;
+use App\Repositories\ComboItems\ComboItemRepositoryInterface;
 use App\Repositories\Combos\ComboRepositoryInterface;
+use App\Services\ComboItems\ComboItemServices;
 use App\Services\Combos\ComboServices;
 use Faker\Provider\Base;
 use Illuminate\Http\Request;
@@ -14,12 +18,18 @@ class ComboController extends Controller
 {
     protected ComboServices $comboService;
     protected ComboRepositoryInterface $comboRepository;
+    protected ComboItemServices $comboItemService;
+    protected ComboItemRepositoryInterface $comboItemRepository;
     public function __construct(
         ComboServices $comboService,
-        ComboRepositoryInterface $comboRepository
+        ComboRepositoryInterface $comboRepository,
+        ComboItemServices $comboItemService,
+        ComboItemRepositoryInterface $comboItemRepository,
     ) {
         $this->comboService = $comboService;
         $this->comboRepository = $comboRepository;
+        $this->comboItemService = $comboItemService;
+        $this->comboItemRepository = $comboItemRepository;
     }
     public function getListCombos()
     {
@@ -28,7 +38,6 @@ class ComboController extends Controller
             'limit',
             'query',
             'name',
-            'slug',
             'image_url',
             'description',
             'original_total_price',
@@ -44,7 +53,6 @@ class ComboController extends Controller
     {
         $data = $request->only(
             'name',
-            'slug',
             'description',
             'original_total_price',
             'selling_price',
@@ -57,27 +65,26 @@ class ComboController extends Controller
         }
         return $this->responseSuccess(message: $result->getMessage());
     }
-    public function getComboDetail(string $slug)
+    public function getComboDetail(int $id)
     {
-        $result = $this->comboService->getComboDetail($slug);
+        $result = $this->comboService->getComboDetail($id);
         if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage());
         }
         $data = $result->getData();
         return $this->responseSuccess($data);
     }
-    public function updateCombo(UpdateComboRequest $request, string $slug)
+    public function updateCombo(UpdateComboRequest $request, int $id)
     {
         $data = $request->only(
             'name',
-            'slug',
             'description',
             'image_url',
             'original_total_price',
             'selling_price',
             'is_active'
         );
-        $combo = $this->comboRepository->getByConditions(['slug' => $slug]);
+        $combo = $this->comboRepository->getByConditions(['id' => $id]);
         if(!$combo) {
             return $this->responseFail(message: 'Combo không tồn tại', statusCode: 404);
         }
@@ -95,7 +102,6 @@ class ComboController extends Controller
             'query',
             'name',
             'image_url',
-            'slug',
             'description',
             'original_total_price',
             'selling_price',
@@ -105,29 +111,69 @@ class ComboController extends Controller
         $data = $result->getResult();
         return $this->responseSuccess($data);
     }
-    public function softDeleteCombo(string $slug)
+    public function softDeleteCombo(int $id)
     {
-        $combo = $this->comboRepository->getByConditions(['slug' => $slug]);
+        $combo = $this->comboRepository->getByConditions(['id' => $id]);
         if (!$combo) {
             return $this->responseFail(message: 'Combo không tồn tại', statusCode: 404);
         }
-        $result = $this->comboService->softDeleteCombo($slug);
+        $result = $this->comboService->softDeleteCombo($id);
         if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage());
         }
         return $this->responseSuccess(message: $result->getMessage());
     }
-    public function forceDeleteCombo(string $slug)
+    public function forceDeleteCombo(int $id)
     {
-        $result = $this->comboService->forceDeleteCombo($slug);
+        $result = $this->comboService->forceDeleteCombo($id);
         if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage());
         }
         return $this->responseSuccess(message: $result->getMessage());
     }
-    public function restoreCombo($slug)
+    public function restoreCombo($id)
     {
-        $result = $this->comboService->restoreCombo($slug);
+        $result = $this->comboService->restoreCombo($id);
+        if (!$result->isSuccessCode()) {
+            return $this->responseFail(message: $result->getMessage());
+        }
+        return $this->responseSuccess(message: $result->getMessage());
+    }
+
+      public function addItemToCombo(StoreComboItemRequest $request, int $id)
+    {
+        $data = $request->only( 'dish_id', 'quantity');
+
+        $data['combo_id'] = $id;
+
+        $result = $this->comboItemService->addItem($data);
+
+        if (!$result->isSuccessCode()) {
+            return $this->responseFail(message: $result->getMessage());
+        }
+
+        return $this->responseSuccess(message: $result->getMessage());
+    }
+    public function updateItemQuantity(UpdateComboItemRequest $request, $comboId, $dishId)
+    {
+        $data['combo_id'] = $comboId;
+        $data['dish_id'] = $dishId;
+        $data['quantity'] = $request->get('quantity');
+        
+
+        $result = $this->comboItemService->updateItemQuantity($data);
+
+        if (!$result->isSuccessCode()) {
+            return $this->responseFail(message: $result->getMessage());
+        }
+
+        return $this->responseSuccess(message: $result->getMessage());
+    }
+
+    public function forceDeleteComboItem(string $comboId, string $dishId)
+    {
+        $result = $this->comboItemService->forceDeleteComboItem($comboId, $dishId);
+
         if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage());
         }

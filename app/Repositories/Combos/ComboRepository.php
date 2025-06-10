@@ -49,9 +49,9 @@ class ComboRepository implements ComboRepositoryInterface
         }
         return $query->orderBy('created_at', 'desc')->paginate($limit);
     }
-    public function findOnlyTrashedBySlug($slug): ?Combo
+    public function findOnlyTrashedById($id): ?Combo
     {
-        $result = Combo::onlyTrashed()->where('slug', $slug)->firstOrFail();
+        $result = Combo::onlyTrashed()->where('id', $id)->firstOrFail();
         return $result;
     }
 

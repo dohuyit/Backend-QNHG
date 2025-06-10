@@ -17,7 +17,6 @@ class DishSeeder extends Seeder
         Dish::insert([
             [
                 'name' => 'Rượu mơ 9chum (500ml)',
-                'slug' => Str::slug('Rượu mơ 9chum (500ml)'),
                 'description' => 'Rượu mơ 9chum được làm từ mơ tươi, hương vị thơm ngon, nồng độ vừa phải.',
                 'image_url' => fake()->imageUrl(),
                 'is_active' => true,
@@ -29,7 +28,6 @@ class DishSeeder extends Seeder
             ],
             [
                 'name' => 'Nước cam ép 320ml',
-                'slug' => Str::slug('Nước cam ép 320ml'),
                 'description' => 'Nước cam ép tươi mát, giàu vitamin C, giải khát tuyệt vời.',
                 'image_url' => fake()->imageUrl(),
                 'is_active' => true,
@@ -41,7 +39,6 @@ class DishSeeder extends Seeder
             ],
             [
                 'name' => 'Bia Heiniken',
-                'slug' => Str::slug('Bia Heiniken'),
                 'description' => 'Bia Heiniken mát lạnh, hương vị đặc trưng, thích hợp cho các bữa tiệc.',
                 'image_url' => fake()->imageUrl(),
                 'is_active' => true,
@@ -53,7 +50,6 @@ class DishSeeder extends Seeder
             ],
             [
                 'name' => 'Mực hấp sốt Thái',
-                'slug' => Str::slug('Mực hấp sốt Thái'),
                 'description' => 'Mực tươi hấp với sốt Thái cay nồng, đậm đà hương vị biển.',
                 'image_url' => fake()->imageUrl(),
                 'is_active' => true,
@@ -65,7 +61,6 @@ class DishSeeder extends Seeder
             ],
             [
                 'name' => 'Nộm dê rau má',
-                'slug' => Str::slug('Nộm dê rau má'),
                 'description' => 'Nộm dê rau má tươi ngon, kết hợp giữa thịt dê mềm và rau má thanh mát.',
                 'image_url' => fake()->imageUrl(),
                 'is_active' => true,
@@ -77,7 +72,6 @@ class DishSeeder extends Seeder
             ],
             [
                 'name' => 'Chân gà sốt Thái chua cay',
-                'slug' => Str::slug('Chân gà sốt Thái chua cay'),
                 'description' => 'Chân gà sốt Thái chua cay, giòn sần sật, hương vị đậm đà, thích hợp làm món nhậu.',
                 'image_url' => fake()->imageUrl(),
                 'is_active' => true,

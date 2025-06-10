@@ -17,7 +17,6 @@ class ComboSeeder extends Seeder
         Combo::insert([
             [
                 'name' => 'Bàn Tiệc Tự Do',
-                'slug' => Str::slug('Bàn Tiệc Tự Do'),
                 'description' => 'Thỏa sức lựa chọn các món ăn yêu thích từ thực đơn đa dạng của chúng tôi.',
                 'original_total_price' => 1200000.00,
                 'selling_price' => 999000.00,
@@ -26,7 +25,6 @@ class ComboSeeder extends Seeder
             ],
             [
                 'name' => 'Gia Đình Vui Vẻ',
-                'slug' => Str::slug('Gia Đình Vui Vẻ'),
                 'description' => 'Combo hoàn hảo cho gia đình với các món ăn ngon miệng và tiết kiệm.',
                 'original_total_price' => 800000.00,
                 'selling_price' => 699000.00,
@@ -35,7 +33,6 @@ class ComboSeeder extends Seeder
             ],
             [
                 'name' => 'Gắp Là Dính',
-                'slug' => Str::slug('Gắp Là Dính'),
                 'description' => 'Thỏa sức lựa chọn các món ăn yêu thích từ thực đơn đa dạng của chúng tôi.',
                 'original_total_price' => 1200000.00,
                 'selling_price' => 999000.00,
@@ -44,7 +41,6 @@ class ComboSeeder extends Seeder
             ],
             [
                 'name' => 'Lẩu Thái Đặc Biệt',
-                'slug' => Str::slug('Lẩu Thái Đặc Biệt'),
                 'description' => 'Combo lẩu với nước dùng đậm đà, hải sản tươi ngon và rau củ tươi mát.',
                 'original_total_price' => 600000.00,
                 'selling_price' => 499000.00,

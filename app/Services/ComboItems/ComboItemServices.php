@@ -21,40 +21,6 @@ class ComboItemServices
         $this->comboRepository = $comboRepository;
         $this->dishRepository = $dishRepository;
     }
-    public function getListComboItems(array $params): ListAggregate
-    {
-        $pagination = $this->comboItemRepository->getComboItemList($params['limit'] ?? 10);
-        $data = [];
-        foreach ($pagination as $item) {
-
-            $comboId = $item->combo_id;
-
-            if (!isset($data[$comboId])) {
-                $data[$comboId] = [
-                    'combo_id' => $item->combo_id,
-                    'combo_name' => $item->combo->name ?? null,
-                    'items' => []
-                ];
-            }
-            $data[$comboId]['items'][] = [
-                'dish_id' => $item->dish_id,
-                'dish_name' => $item->dish->name ?? null,
-                'quantity' => $item->quantity,
-            ];
-        }
-
-        $groupedData = array_values($data);
-
-        $result = new ListAggregate($groupedData);
-        $result->setMeta(
-            page: $pagination->currentPage(),
-            perPage: $pagination->perPage(),
-            total: $pagination->total()
-        );
-
-        return $result;
-    }
-
     public function addItem(array $data): DataAggregate
     {
         $result = new DataAggregate();
@@ -86,12 +52,12 @@ class ComboItemServices
         $result->setResultSuccess(message: 'Thêm món vào combo thành công!');
         return $result;
     }
-    public function updateItemQuantity(string $comboSlug, string $dishSlug, int $quantity): DataAggregate
+    public function updateItemQuantity(array $data): DataAggregate
     {
         $result = new DataAggregate();
 
-        $combo = $this->comboRepository->getByConditions(['slug' => $comboSlug]);
-        $dish = $this->dishRepository->getByConditions(['slug' => $dishSlug]);
+        $combo = $this->comboRepository->getByConditions(['id' => $data['combo_id']]);
+        $dish = $this->dishRepository->getByConditions(['id' => $data['dish_id']]);
 
         if (!$combo || !$dish) {
             $result->setMessage('Combo hoặc món ăn không tồn tại');
@@ -109,7 +75,7 @@ class ComboItemServices
 
         $ok = $this->comboItemRepository->updateByConditions(
             ['id' => $comboItem->id],
-            ['quantity' => $quantity]
+            ['quantity' => $data['quantity']]
         );
 
         if (!$ok) {
@@ -121,11 +87,11 @@ class ComboItemServices
         return $result;
     }
 
-    public function forceDeleteComboItem($comboSlug, $dishSlug): DataAggregate
+    public function forceDeleteComboItem($comboId, $dishId): DataAggregate
     {
         $result = new DataAggregate();
-        $combo = $this->comboRepository->getByConditions(['slug' => $comboSlug]);
-        $dish = $this->dishRepository->getByConditions(['slug' => $dishSlug]);
+        $combo = $this->comboRepository->getByConditions(['id' => $comboId]);
+        $dish = $this->dishRepository->getByConditions(['id' => $dishId]);
 
         if (!$combo || !$dish) {
             $result->setMessage('Combo hoặc món ăn không tồn tại');

@@ -13,7 +13,6 @@ class Dish extends Model
     protected $fillable = [
         'category_id',      // ID của danh mục món ăn
         'name',             // Ví dụ: "Phở Bò Tái Chín", "Cơm Sườn Nướng Mật Ong"
-        'slug',             // Ví dụ: "pho-bo-tai-chin", "com-suon-nuong-mat-ong"
         'description',      // Ví dụ: "Nước dùng đậm đà, thịt bò tươi ngon, bánh phở mềm mại."
         'original_price',   // Ví dụ: 60000.00
         'selling_price',    // Ví dụ: 55000.00 (nếu có khuyến mãi)

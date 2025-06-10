@@ -11,7 +11,6 @@ class Combo extends Model
     protected $table = 'combos';
     protected $fillable = [
         'name',                 // Ví dụ: "Combo Gia Đình Vui Vẻ", "Set Lẩu Thái Đặc Biệt"
-        'slug',                 // Ví dụ: "combo-gia-dinh-vui-ve"
         'description',          // Ví dụ: "Bao gồm 2 món chính, 1 món khai vị và 4 đồ uống."
         'original_total_price', // Ví dụ: 550000.00 (tổng giá gốc các món lẻ)
         'selling_price',        // Ví dụ: 499000.00 (giá bán combo)

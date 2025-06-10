@@ -27,7 +27,6 @@ class CategoryController extends Controller
             'limit',
             'query',
             'name',
-            'slug',
             'image_url',
             'description',
             'is_active',
@@ -41,7 +40,6 @@ class CategoryController extends Controller
     {
         $data = $request->only([
             'name',
-            'slug',
             'image_url',
             'description',
             'is_active',
@@ -54,27 +52,26 @@ class CategoryController extends Controller
         }
         return $this->responseSuccess(message: $result->getMessage());
     }
-    public function getCategoryDetail(string $slug)
+    public function getCategoryDetail(int $id)
     {
-        $result = $this->categoryService->getCategoryDetail($slug);
+        $result = $this->categoryService->getCategoryDetail($id);
         if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage(), statusCode: 404);
         }
         $data = $result->getData();
         return $this->responseSuccess($data);
     }
-    public function updateCategory(UpdateCategoryRequest $request, string $slug)
+    public function updateCategory(UpdateCategoryRequest $request, int $id)
     {
         $data = $request->only([
             'name',
-            'slug',
             'image_url',
             'description',    
             'is_active',        
             'parent_id',       
         ]);
 
-        $category = $this->categoryRepository->getByConditions(['slug' => $slug]);
+        $category = $this->categoryRepository->getByConditions(['id' => $id]);
         if (!$category) {
             return $this->responseFail(message: 'Danh mục không tồn tại', statusCode: 404);
         }
@@ -92,7 +89,6 @@ class CategoryController extends Controller
             'limit',
             'query',
             'name',
-            'slug',
             'image_url',
             'description',
             'is_active',
@@ -102,29 +98,29 @@ class CategoryController extends Controller
         $data = $result->getResult();
         return $this->responseSuccess($data);
     }
-    public function softDeleteCategory(string $slug)
+    public function softDeleteCategory(int $id)
     {
-        $category = $this->categoryRepository->getByConditions(['slug' => $slug]);
+        $category = $this->categoryRepository->getByConditions(['id' => $id]);
         if (!$category) {
             return $this->responseFail(message: 'Danh mục không tồn tại', statusCode: 404);
         }
-        $result = $this->categoryService->softDeleteCategory($slug);
+        $result = $this->categoryService->softDeleteCategory($id);
         if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage());
         }
         return $this->responseSuccess(message: $result->getMessage());
     }
-    public function forceDeleteCategory($slug)
+    public function forceDeleteCategory($id)
     {
-        $result = $this->categoryService->forceDeleteCategory($slug);
+        $result = $this->categoryService->forceDeleteCategory($id);
         if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage());
         }
         return $this->responseSuccess(message: $result->getMessage());
     }
-    public function restoreCategory($slug)
+    public function restoreCategory($id)
     {
-        $result = $this->categoryService->restoreCategory($slug);
+        $result = $this->categoryService->restoreCategory($id);
         if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage());
         }

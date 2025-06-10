@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('post_categories', function (Blueprint $table) {
             $table->id()->comment('Mã danh mục bài viết');
             $table->string('category_name', 100)->unique()->comment('Tên danh mục');
-            $table->string('slug', 120)->unique()->nullable()->comment('Slug SEO');
             $table->text('description')->nullable()->comment('Mô tả');
             $table->boolean('is_visible')->default(true)->comment('Hiển thị');
             $table->timestamps();

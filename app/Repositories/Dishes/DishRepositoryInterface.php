@@ -11,6 +11,6 @@ interface DishRepositoryInterface
     public function updateByConditions(array $conditions, array $updateData): bool;
     public function getByConditions(array $conditions): ?Dish;
     public function getTrashDishList(array $filter = [], int $limit = 10): LengthAwarePaginator;
-    public function findOnlyTrashedBySlug($slug): ?Dish;
-    public function getDishesByCategorySlug(string $slug, array $filter = [], int $limit = 10): LengthAwarePaginator;
+    public function findOnlyTrashedById($id): ?Dish;
+    public function getDishesByCategoryId(int $id, array $filter = [], int $limit = 10): LengthAwarePaginator;
 }

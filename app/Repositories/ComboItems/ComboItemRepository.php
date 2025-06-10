@@ -8,11 +8,6 @@ use Illuminate\Database\Eloquent\Builder;
 
 class ComboItemRepository implements ComboItemRepositoryInterface
 {
-    public function getComboItemList(int $limit = 10): LengthAwarePaginator
-    {
-        $query = ComboItem::query();
-        return $query->orderBy('created_at', 'desc')->paginate($limit);
-    }
     public function updateByConditions(array $conditions, array $updateData): bool
     {
         $result = ComboItem::where($conditions)->update($updateData);

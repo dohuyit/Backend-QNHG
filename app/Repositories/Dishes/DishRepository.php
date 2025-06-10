@@ -73,14 +73,14 @@ class DishRepository implements DishRepositoryInterface
 
         return $query->orderBy('deleted_at', 'desc')->paginate($limit);
     }
-    public function findOnlyTrashedBySlug($slug): ?Dish
+    public function findOnlyTrashedById($id): ?Dish
     {
-        $result = Dish::onlyTrashed()->where('slug', $slug)->firstOrFail();
+        $result = Dish::onlyTrashed()->where('id', $id)->firstOrFail();
         return $result;
     }
-    public function getDishesByCategorySlug(string $slug, array $filter = [], int $limit = 10): LengthAwarePaginator
+    public function getDishesByCategoryId(int $id, array $filter = [], int $limit = 10): LengthAwarePaginator
     {
-        $category = Category::with('children')->where('slug', $slug)->first();
+        $category = Category::with('children')->where('id', $id)->first();
         if (!$category) {
             return new LengthAwarePaginator([], 0, $limit);
         }

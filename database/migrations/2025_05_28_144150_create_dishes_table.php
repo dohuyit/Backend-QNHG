@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id()->comment('Mã món ăn');
             $table->foreignId('category_id')->comment('Mã danh mục')->constrained('categories', 'id');
             $table->string('name', 255)->comment('Tên món ăn');
-            $table->string('slug', 255)->unique()->comment('Định danh URL');
             $table->text('description')->nullable()->comment('Mô tả món ăn');
             $table->decimal('original_price', 10, 2)->comment('Giá gốc');
             $table->decimal('selling_price', 10, 2)->comment('Giá bán');

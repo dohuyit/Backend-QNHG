@@ -19,20 +19,19 @@ class ComboServices
     public function getListCombos(array $params): ListAggregate
     {
         $filter = $params;
-        $limit = !empty($params['limit']) && $params['limit'] > 0 ? (int)$params['limit'] : 10;
+        $limit = !empty($params['limit']) && $params['limit'] > 0 ? (int) $params['limit'] : 10;
         $pagination = $this->comboRepository->getComboList(filter: $filter, limit: $limit);
 
         $data = [];
         foreach ($pagination->items() as $item) {
             $data[] = [
-                'id' => (string)$item->id,
+                'id' => (string) $item->id,
                 'name' => $item->name,
-                'slug' => $item->slug,
                 'image_url' => $item->image_url,
                 'description' => $item->description,
                 'original_total_price' => $item->original_total_price,
                 'selling_price' => $item->selling_price,
-                'is_active' => (bool)$item->is_active,
+                'is_active' => (bool) $item->is_active,
                 'created_at' => $item->created_at,
                 'updated_at' => $item->updated_at,
             ];
@@ -50,15 +49,9 @@ class ComboServices
     public function createCombo(array $data): DataAggregate
     {
         $result = new DataAggregate();
-        $slug = Str::slug($data['name'] ?? '');
-        $slugExists = $this->comboRepository->getByConditions(['slug' => $slug]);
-        if ($slugExists) {  
-            $result->setMessage(message: 'Tên combo đã tồn tại, vui lòng chọn tên khác!');
-            return $result;
-        }
+
         $listDataCreate = [
             'name' => $data['name'],
-            'slug' => $slug,
             'description' => $data['description'],
             'original_total_price' => $data['original_total_price'],
             'selling_price' => $data['selling_price'],
@@ -87,10 +80,11 @@ class ComboServices
         $result->setResultSuccess(message: 'Thêm mới thành công!');
         return $result;
     }
-    public function getComboDetail(string $slug): ?DataAggregate
+    public function getComboDetail(int $id): ?DataAggregate
     {
         $result = new DataAggregate();
-        $combo = $this->comboRepository->getByConditions(['slug' => $slug]);
+        $combo = $this->comboRepository->getByConditions(['id' => $id]);
+
         if (!$combo) {
             $result->setMessage('Không tìm thấy combo!');
             return $result;
@@ -98,15 +92,33 @@ class ComboServices
         $comboItems = $combo->items;
 
         $items = [];
-        foreach($comboItems as $item){
+        foreach ($comboItems as $item) {
+            $item->unsetRelation('combo');
+            $item->unsetRelation('dish');
+
             $items[] = [
                 'dish_name' => $item->dish->name ?? '',
+                'image_url' => $item->dish->image_url ?? '',
+                'selling_price' => $item->dish->selling_price ?? '',
                 'quantity' => $item->quantity,
             ];
         }
+        $comboData = [
+            'id' => $combo->id,
+            'name' => $combo->name,
+            'description' => $combo->description,
+            'original_total_price' => $combo->original_total_price,
+            'selling_price' => $combo->selling_price,
+            'image_url' => $combo->image_url,
+            'is_active' => $combo->is_active,
+            'created_at' => $combo->created_at,
+            'updated_at' => $combo->updated_at,
+            'deleted_at' => $combo->deleted_at,
+        ];
+
         $result->setResultSuccess([
-            'combo' => $combo,
-            'items' => $items,
+            'combo' => $comboData,
+            'items' => $items
         ]);
         return $result;
     }
@@ -114,16 +126,9 @@ class ComboServices
     public function updateCombo(array $data, $combo)
     {
         $result = new DataAggregate();
-        $slug = Str::slug($data['name'] ?? '');
-
-        if ($slug !== $combo->slug && $this->comboRepository->getByConditions(['slug' => $slug])) {
-            $result->setMessage(message: 'Tên combo đã tồn tại, vui lòng chọn tên khác!');
-            return $result;
-        }
 
         $listDataUpdate = [
             'name' => $data['name'],
-            'slug' => $slug,
             'description' => $data['description'],
             'original_total_price' => $data['original_total_price'],
             'selling_price' => $data['selling_price'],
@@ -152,7 +157,7 @@ class ComboServices
             $listDataUpdate['image_url'] = $path;
         }
 
-        $ok = $this->comboRepository->updateByConditions(['slug' => $combo->slug], $listDataUpdate);
+        $ok = $this->comboRepository->updateByConditions(['id' => $combo->id], $listDataUpdate);
         if (!$ok) {
             $result->setMessage('Cập nhật thất bại, vui lòng thử lại!');
             return $result;
@@ -163,20 +168,19 @@ class ComboServices
     public function listTrashedCombo(array $params): ListAggregate
     {
         $filter = $params;
-        $limit = !empty($params['limit']) && $params['limit'] > 0 ? (int)$params['limit'] : 10;
+        $limit = !empty($params['limit']) && $params['limit'] > 0 ? (int) $params['limit'] : 10;
         $pagination = $this->comboRepository->getTrashComboList(filter: $filter, limit: $limit);
 
         $data = [];
         foreach ($pagination->items() as $item) {
             $data[] = [
-                'id' => (string)$item->id,
+                'id' => (string) $item->id,
                 'name' => $item->name,
-                'slug' => $item->slug,
                 'image_url' => $item->image_url,
                 'description' => $item->description,
                 'original_total_price' => $item->original_total_price,
                 'selling_price' => $item->selling_price,
-                'is_active' => (bool)$item->is_active,
+                'is_active' => (bool) $item->is_active,
                 'created_at' => $item->created_at,
                 'updated_at' => $item->updated_at,
             ];
@@ -191,10 +195,10 @@ class ComboServices
 
         return $result;
     }
-    public function softDeleteCombo($slug): DataAggregate
+    public function softDeleteCombo($id): DataAggregate
     {
         $result = new DataAggregate();
-        $combo = $this->comboRepository->getByConditions(['slug' => $slug]);
+        $combo = $this->comboRepository->getByConditions(['id' => $id]);
 
         $ok = $combo->delete();
         if (!$ok) {
@@ -205,17 +209,17 @@ class ComboServices
         return $result;
     }
 
-    public function forceDeleteCombo($slug): DataAggregate
+    public function forceDeleteCombo($id): DataAggregate
     {
         $result = new DataAggregate();
-        $combo = $this->comboRepository->findOnlyTrashedBySlug(['slug' => $slug]);
-        // dd($combo);
+        $combo = $this->comboRepository->findOnlyTrashedById(['id' => $id]);
+
         if (!empty($combo->image_url)) {
             if (Storage::disk('public')->exists($combo->image_url)) {
                 Storage::disk('public')->delete($combo->image_url);
             }
         }
-        
+
         $ok = $combo->forceDelete();
         if (!$ok) {
             $result->setMessage('Xóa vĩnh viễn thất bại, vui lòng thử lại!');
@@ -224,10 +228,10 @@ class ComboServices
         $result->setResultSuccess(message: 'Xóa vĩnh viễn thành công!');
         return $result;
     }
-    public function restoreCombo(string $slug): DataAggregate
+    public function restoreCombo(int $id): DataAggregate
     {
         $result = new DataAggregate();
-        $combo = $this->comboRepository->findOnlyTrashedBySlug(['slug' => $slug]);
+        $combo = $this->comboRepository->findOnlyTrashedById(['id' => $id]);
         $ok = $combo->restore();
         if (!$ok) {
             $result->setMessage('Khôi phục thất bại, vui lòng thử lại!');

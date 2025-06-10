@@ -10,7 +10,6 @@ class PostCategory extends Model
 
     protected $fillable = [
         'category_name',
-        'slug',
         'description',
         'is_visible',
     ];

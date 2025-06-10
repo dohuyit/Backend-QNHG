@@ -22,7 +22,6 @@ class StoreComboItemRequest extends BaseFormRequest
     public function rules(): array
      {
         return [
-            'combo_id' => 'required|integer|exists:combos,id',
             'dish_id' => 'required|integer|exists:dishes,id',
             'quantity' => 'required|integer|min:1',
         ];
@@ -30,8 +29,6 @@ class StoreComboItemRequest extends BaseFormRequest
     public function messages(): array
      {
         return [
-            'combo_id.required' => 'Vui lòng chọn combo',
-            'combo_id.exists' => 'Combo không tồn tại!',
             'dish_id.required' => 'Vui lòng chọn món ăn!',
             'dish_id.exists' => 'Món ăn không tồn tại!',
             'quantity.required' => 'Vui lòng nhập số lượng!',

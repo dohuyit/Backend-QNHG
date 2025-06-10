@@ -49,9 +49,9 @@ class CategoryRepository implements CategoryRepositoryInterface
         return $query;
     }
 
-    public function findOnlyTrashedBySlug($slug): ?Category
+    public function findOnlyTrashedById($id): ?Category
     {
-        $result = Category::onlyTrashed()->where('slug', $slug)->firstOrFail();
+        $result = Category::onlyTrashed()->where('id', $id)->firstOrFail();
         return $result;
     }
 

@@ -31,7 +31,6 @@ class DishController extends Controller
             'query',
             'category_id',
             'name',
-            'slug',
             'image_url',
             'description',
             'original_price',
@@ -45,7 +44,7 @@ class DishController extends Controller
         $data = $result->getResult();
         return $this->responseSuccess($data);
     }
-     public function getDishesByCategory(Request $request, string $slug)
+     public function getDishesByCategory(Request $request, int $id)
     {
         $params = $request->only(
             'page',
@@ -53,7 +52,6 @@ class DishController extends Controller
             'query',
             'category_id',
             'name',
-            'slug',
             'image_url',
             'description',
             'original_price',
@@ -63,7 +61,7 @@ class DishController extends Controller
             'is_featured',
             'is_active'
         );
-        $result = $this->dishService->getDishByCategory($params, $slug);
+        $result = $this->dishService->getDishByCategory($params, $id);
         $data = $result->getResult();
         return $this->responseSuccess($data);
     }
@@ -73,7 +71,6 @@ class DishController extends Controller
         $data = $request->only([
             'category_id',
             'name',
-            'slug',
             'description',
             'original_price',
             'selling_price',
@@ -90,21 +87,20 @@ class DishController extends Controller
         }
         return $this->responseSuccess(message: $result->getMessage());
     }
-    public function getDishDetail(string $slug)
+    public function getDishDetail(int $id)
     {
-        $result = $this->dishService->getDishDetail($slug);
+        $result = $this->dishService->getDishDetail($id);
         if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage(), statusCode: 404);
         }
         $data = $result->getData();
         return $this->responseSuccess($data);
     }
-    public function updateDish(UpdateDishRequest $request, string $slug)
+    public function updateDish(UpdateDishRequest $request, int $id)
     {
         $data = $request->only([
             'category_id',
             'name',
-            'slug',
             'description',
             'original_price',
             'selling_price',
@@ -115,7 +111,7 @@ class DishController extends Controller
             'is_active'
         ]);
 
-        $dish = $this->dishRepository->getByConditions(['slug' => $slug]);
+        $dish = $this->dishRepository->getByConditions(['id' => $id]);
         if (!$dish) {
             return $this->responseFail(message: 'Món ăn không tồn tại', statusCode: 404);
         }
@@ -134,7 +130,6 @@ class DishController extends Controller
             'query',
             'category_id',
             'name',
-            'slug',
             'image_url',
             'description',
             'original_price',
@@ -148,29 +143,29 @@ class DishController extends Controller
         $data = $result->getResult();
         return $this->responseSuccess($data);
     }
-    public function softDeleteDish(string $slug)
+    public function softDeleteDish(int $id)
     {
-        $dish = $this->dishRepository->getByConditions(['slug' => $slug]);
+        $dish = $this->dishRepository->getByConditions(['id' => $id]);
         if (!$dish) {
             return $this->responseFail(message: 'Món ăn không tồn tại', statusCode: 404);
         }
-        $result = $this->dishService->softDeleteDish($slug);
+        $result = $this->dishService->softDeleteDish($id);
         if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage());
         }
         return $this->responseSuccess(message: $result->getMessage());
     }
-    public function forceDeleteDish(string $slug)
+    public function forceDeleteDish(int $id)
     {
-        $result = $this->dishService->forceDeleteDish($slug);
+        $result = $this->dishService->forceDeleteDish($id);
         if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage());
         }
         return $this->responseSuccess(message: $result->getMessage());
     }
-    public function restoreDish($slug)
+    public function restoreDish($id)
     {
-        $result = $this->dishService->restoreDish($slug);
+        $result = $this->dishService->restoreDish($id);
         if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage());
         }

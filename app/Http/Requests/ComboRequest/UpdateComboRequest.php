@@ -21,8 +21,9 @@ class UpdateComboRequest extends BaseFormRequest
      */
     public function rules()
     {
+        $comboId = $this->route('id');
         return [
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:255|unique:combos,name,' . $comboId,
             'image_url' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'description' => 'nullable|string',
             'original_total_price' => 'required|numeric|min:0',
@@ -36,6 +37,7 @@ class UpdateComboRequest extends BaseFormRequest
             'name.required' => 'Vui lòng nhập tên combo.',
             'name.string' => 'Tên combo phải là chuỗi.',
             'name.max' => 'Tên combo không được vượt quá 255 ký tự.',
+            'name.unique' => 'Tên combo đã tồn tại.',
 
             'image_url.image' => 'Ảnh phải là tệp hình ảnh.',
             'image_url.mimes' => 'Ảnh phải có định dạng jpeg, png, jpg hoặc webp.',

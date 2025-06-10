@@ -22,7 +22,7 @@ class StoreDishRequest extends BaseFormRequest
     public function rules()
     {
         return [
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:255|unique:dishes,name',
             'image_url' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'description' => 'nullable|string',
             'category_id' => 'required|integer|exists:categories,id',
@@ -40,6 +40,7 @@ class StoreDishRequest extends BaseFormRequest
             'name.required' => 'Vui lòng nhập tên món ăn.',
             'name.string' => 'Tên món ăn phải là chuỗi.',
             'name.max' => 'Tên món ăn không được vượt quá 255 ký tự.',
+            'name.unique' => 'Tên món ăn đã tồn tại.',
 
             'image_url.image' => 'Ảnh phải là tệp hình ảnh.',
             'image_url.mimes' => 'Ảnh phải có định dạng jpeg, png, jpg hoặc webp.',

@@ -11,5 +11,5 @@ interface ComboRepositoryInterface
     public function updateByConditions(array $conditions, array $updateData): bool;
     public function getByConditions(array $conditions): ?Combo;
     public function getTrashComboList(array $filter = [], int $limit = 10): LengthAwarePaginator;
-    public function findOnlyTrashedBySlug($slug): ?Combo;
+    public function findOnlyTrashedById($id): ?Combo;
 }

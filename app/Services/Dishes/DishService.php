@@ -29,7 +29,6 @@ class DishService
                 'category_id' => $item->category_id,
                 'category_name' => $item->category ? $item->category->name : '',
                 'name' => $item->name,
-                'slug' => $item->slug,
                 'image_url' => $item->image_url,
                 'description' => $item->description,
                 'original_price' => $item->original_price,
@@ -55,17 +54,10 @@ class DishService
     public function createDish(array $data): DataAggregate
     {
         $result = new DataAggregate();
-        $slug = Str::slug($data['name'] ?? '');
 
-        $slugExists = $this->dishRepository->getByConditions(['slug' => $slug]);
-        if ($slugExists) {  
-            $result->setMessage(message: 'Tên món ăn đã tồn tại, vui lòng chọn tên khác!');
-            return $result;
-        }
         $listDataCreate = [
             'category_id' => $data['category_id'],
             'name' => $data['name'],
-            'slug' => $slug,
             'description' => $data['description'],
             'original_price' => $data['original_price'],
             'selling_price' => $data['selling_price'],
@@ -95,11 +87,11 @@ class DishService
         return $result;
     }
 
-    public function getDishDetail(string $slug): DataAggregate
+    public function getDishDetail(int $id): DataAggregate
     {
         $result = new DataAggregate();
 
-        $dish = $this->dishRepository->getByConditions(['slug' => $slug, 'is_active' => true]);
+        $dish = $this->dishRepository->getByConditions(['id' => $id, 'is_active' => true]);
 
         if (!$dish) {
             $result->setMessage(message: 'Món ăn không tồn tại');
@@ -118,16 +110,10 @@ class DishService
     public function updateDish(array $data, $dish): DataAggregate
     {
         $result = new DataAggregate();
-        $slug = Str::slug($data['name'] ?? '');
-
-        if ($slug !== $dish->slug && $this->dishRepository->getByConditions(['slug' => $slug])) {
-            $result->setMessage(message: 'Tên món ăn đã tồn tại, vui lòng chọn tên khác!');
-            return $result;
-        }
+    
         $listDataUpdate = [
             'category_id' => $data['category_id'],
             'name' => $data['name'],
-            'slug' => $slug,
             'description' => $data['description'],
             'original_price' => $data['original_price'],
             'selling_price' => $data['selling_price'],
@@ -162,7 +148,7 @@ class DishService
             $listDataUpdate['image_url'] = $path;
         }
 
-        $ok = $this->dishRepository->updateByConditions( ['slug' => $dish->slug], $listDataUpdate);
+        $ok = $this->dishRepository->updateByConditions( ['id' => $dish->id], $listDataUpdate);
         if (!$ok) {
             $result->setMessage(message: 'Cập nhật thất bại, vui lòng thử lại!');
             return $result;
@@ -183,7 +169,6 @@ class DishService
                 'category_id' => $item->category_id,
                 'category_name' => $item->category ? $item->category->name : '',
                 'name' => $item->name,
-                'slug' => $item->slug,
                 'image_url' => $item->image_url,
                 'description' => $item->description,
                 'original_price' => $item->original_price,
@@ -206,10 +191,10 @@ class DishService
 
         return $result;
     }
-    public function softDeleteDish(string $slug): DataAggregate
+    public function softDeleteDish(int $id): DataAggregate
     {
         $result = new DataAggregate();
-        $dish = $this->dishRepository->getByConditions(['slug' => $slug]);
+        $dish = $this->dishRepository->getByConditions(['id' => $id]);
         $ok = $dish->delete();
         if (!$ok) {
             $result->setMessage(message: 'Xóa thất bại, vui lòng thử lại!');
@@ -218,10 +203,10 @@ class DishService
         $result->setResultSuccess(message: 'Xóa thành công!');
         return $result;
     }
-    public function forceDeleteDish(string $slug): DataAggregate
+    public function forceDeleteDish(int $id): DataAggregate
     {
         $result = new DataAggregate();
-        $dish = $this->dishRepository->findOnlyTrashedBySlug($slug);
+        $dish = $this->dishRepository->findOnlyTrashedById($id);
 
         if (!empty($dish->image_url)){
             if (Storage::disk('public')->exists($dish->image_url)) {
@@ -237,10 +222,10 @@ class DishService
         $result->setResultSuccess(message: 'Xóa vĩnh viễn thành công!');
         return $result;
     }
-    public function restoreDish(string $slug): DataAggregate
+    public function restoreDish(int $id): DataAggregate
     {
         $result = new DataAggregate();
-        $dish = $this->dishRepository->findOnlyTrashedBySlug($slug);
+        $dish = $this->dishRepository->findOnlyTrashedById($id);
         $ok = $dish->restore();
         if (!$ok) {
             $result->setMessage(message: 'Khôi phục thất bại, vui lòng thử lại!');
@@ -249,11 +234,11 @@ class DishService
         $result->setResultSuccess(message: 'Khôi phục thành công!');
         return $result;
     }
-    public function getDishByCategory(array $params, string $slug): ListAggregate
+    public function getDishByCategory(array $params, int $id): ListAggregate
     {
         $filter = $params;
         $limit = !empty($params['limit']) && $params['limit'] > 0 ? (int)$params['limit'] : 10;
-        $pagination = $this->dishRepository->getDishesByCategorySlug($slug, $filter, $limit);
+        $pagination = $this->dishRepository->getDishesByCategoryId($id, $filter, $limit);
 
         $data = [];
         foreach ($pagination->items() as $item){
@@ -262,7 +247,6 @@ class DishService
                 'category_id' => $item->category_id,
                 'category_name' => $item->category ? $item->category->name : '',
                 'name' => $item->name,
-                'slug' => $item->slug,
                 'description' => $item->description,
                 'original_price' => $item->original_price,
                 'selling_price' => $item->selling_price,
