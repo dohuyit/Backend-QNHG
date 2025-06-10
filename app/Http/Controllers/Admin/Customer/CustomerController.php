@@ -40,7 +40,6 @@ class CustomerController extends Controller
             'city_id',
             'district_id',
             'ward_id',
-            'notes',
             'status',
         );
         $result = $this->customerService->getListCustomers($params);
@@ -68,6 +67,7 @@ class CustomerController extends Controller
      */
     public function updateCustomer(UpdateCustomerRequest $request, string $id)
     {
+        dd($request->all());
         $data = $request->only([
             'full_name',
             'avatar',
@@ -80,7 +80,6 @@ class CustomerController extends Controller
             'city_id',
             'district_id',
             'ward_id',
-            'tags',
             'status_customer',
             'email_verified_at',
         ]);
@@ -112,7 +111,6 @@ class CustomerController extends Controller
             'city_id',
             'district_id',
             'ward_id',
-            'notes',
             'status',
         );
         $result = $this->customerService->listTrashedCustomer($params);

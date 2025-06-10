@@ -36,7 +36,6 @@ class UpdateCustomerRequest extends BaseFormRequest
             'city_id'        => 'required|string|max:10',
             'district_id'    => 'required|string|max:10',
             'ward_id'        => 'required|string|max:10',
-            'tags'           => 'nullable|string|max:255',
             'notes'          => 'nullable|string',
             'status_customer'         => 'required|in:active,inactive,pending_activation,block',
         ];
@@ -75,9 +74,6 @@ class UpdateCustomerRequest extends BaseFormRequest
 
             'ward_id.required'      => 'Vui lòng chọn phường/xã.',
             'ward_id.max'           => 'Mã phường/xã không được vượt quá 10 ký tự.',
-
-            'tags.max'              => 'Thẻ tag không được vượt quá 255 ký tự.',
-            'notes.string'          => 'Ghi chú phải là chuỗi ký tự.',
 
             'status_customer.required'       => 'Vui lòng chọn trạng thái khách hàng.',
             'status_customer.in'             => 'Trạng thái không hợp lệ. Giá trị cho phép: active, inactive.',
