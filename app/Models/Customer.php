@@ -28,8 +28,7 @@ class Customer extends Model
         'district_id',
         'ward_id',
         'tags',
-        'notes',
-        'status',
+        'status_customer',
         'remember_token',
     ];
 }

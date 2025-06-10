@@ -42,8 +42,7 @@ class CustomerService
                 'district_id' => $item->district_id ?? null,
                 'ward_id' => $item->ward_id ?? null,
                 'tags' => $item->tags ? ConvertHelper::convertStringToJson($item->tags) : [],
-                'notes' => $item->notes ?? null,
-                'status' => $item->status ?? null,
+                'status_customer' => $item->status_customer ?? null,
                 'email_verified_at' => $item->email_verified_at,
                 'created_at' => $item->created_at->toDateTimeString(),
                 'updated_at' => $item->updated_at->toDateTimeString(),
@@ -60,51 +59,10 @@ class CustomerService
         return $result;
     }
 
-    public function createCustomer(array $data): DataAggregate
-    {
-        $result = new DataAggregate;
-        $listDataCreate = [
-            'full_name' => $data['full_name'],
-            'phone_number' => $data['phone_number'],
-            'email' => $data['email'] ?? null,
-            'password' => isset($data['password']) ? bcrypt($data['password']) : null,
-            'address' => $data['address'] ?? null,
-            'date_of_birth' => $data['date_of_birth'] ?? null,
-            'gender' => $data['gender'] ?? null,
-            'city_id' => $data['city_id'] ?? null,
-            'district_id' => $data['district_id'] ?? null,
-            'ward_id' => $data['ward_id'] ?? null,
-            'status' => $data['status'] ?? 'active',
-            'notes' => $data['notes'] ?? null,
-        ];
-
-        if (! empty($data['tags'])) {
-            $listDataCreate['tags'] = ConvertHelper::convertStringToJson($data['tags']);
-        }
-
-        if (!empty($data['avatar'])) {
-            $file = $data['avatar'];
-            $extension = $file->getClientOriginalExtension();
-            $filename = 'customer' . uniqid() . '.' . $extension;
-
-            $path = Storage::disk('public')->putFileAs('customers', $file, $filename);
-            $listDataCreate['avatar'] = $path;
-        }
-
-        $ok = $this->customerRepository->createData($listDataCreate);
-        if (!$ok) {
-            $result->setMessage('Thêm mới thất bại, vui lòng thử lại!');
-            return $result;
-        }
-
-        $result->setResultSuccess(message: 'Thêm khách hàng mới thành công!');
-        return $result;
-    }
-
     public function getCustomerDetail(string $id): DataAggregate
     {
         $result = new DataAggregate;
-        $customer = $this->customerRepository->getByConditions(['id' => $id, 'status' => 'active']);
+        $customer = $this->customerRepository->getByConditions(['id' => $id, 'status_customer' => 'active']);
         if (! $customer) {
             $result->setResultError(message: 'Khách hàng bạn tìm không hợp lệ hoặc đã bị khóa');
             return $result;
@@ -118,8 +76,8 @@ class CustomerService
     {
         $result = new DataAggregate;
         $listDataUpdate = [
-            'full_name' => $data['full_name'],
-            'phone_number' => $data['phone_number'],
+            'full_name' => $data['full_name'] ?? null,
+            'phone_number' => $data['phone_number'] ?? null,
             'email' => $data['email'] ?? null,
             'password' => isset($data['password']) ? bcrypt($data['password']) : null,
             'address' => $data['address'] ?? null,
@@ -128,8 +86,7 @@ class CustomerService
             'city_id' => $data['city_id'] ?? null,
             'district_id' => $data['district_id'] ?? null,
             'ward_id' => $data['ward_id'] ?? null,
-            'status' => $data['status'] ?? 'active',
-            'notes' => $data['notes'] ?? null,
+            'status_customer' => $data['status_customer'] ?? 'active',
         ];
 
         if (! empty($data['tags'])) {
@@ -158,7 +115,7 @@ class CustomerService
             $listDataUpdate['avatar'] = $path;
         }
 
-        $ok = $this->customerRepository->updateByConditions(['slug' => $customer->slug], $listDataUpdate);
+        $ok = $this->customerRepository->updateByConditions(['id' => $customer->id], $listDataUpdate);
 
         if (!$ok) {
             $result->setMessage('Cập nhật thất bại, vui lòng thử lại!');
@@ -179,7 +136,6 @@ class CustomerService
         $data = [];
         foreach ($pagination->items() as $item) {
             $data[] = [
-                'id' => (string) $item->id,
                 'full_name' => $item->full_name ?? null,
                 'avatar' => $item->avatar ?? null,
                 'phone_number' => $item->phone_number ?? null,
@@ -191,8 +147,7 @@ class CustomerService
                 'district_id' => $item->district_id ?? null,
                 'ward_id' => $item->ward_id ?? null,
                 'tags' => $item->tags ? ConvertHelper::convertStringToJson($item->tags) : [],
-                'notes' => $item->notes ?? null,
-                'status' => $item->status ?? null,
+                'status_customer' => $item->status_customer ?? null,
                 'email_verified_at' => $item->email_verified_at,
                 'created_at' => $item->created_at->toDateTimeString(),
                 'updated_at' => $item->updated_at->toDateTimeString(),
