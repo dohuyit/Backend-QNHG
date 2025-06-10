@@ -13,7 +13,7 @@ abstract class Controller
      */
     public function responseSuccess(array $data = [], string $message = '', array $headers = [])
     {
-        return ResponseHelper::responseSuccess(data: $data, statusCode: 200, headers: $headers);
+        return ResponseHelper::responseSuccess(data: $data, message: $message, statusCode: 200, headers: $headers);
     }
 
     /**

@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\Customer\CustomerController;
 use App\Http\Controllers\Admin\User\UserController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\Auth\AuthController;
 
 Route::prefix('admin')->group(function () {
     // # branchs
@@ -49,4 +50,8 @@ Route::prefix('admin')->group(function () {
     Route::get('users/{id}/delete', [UserController::class, 'deleteUser']);
     Route::post('users/{id}/block', [UserController::class, 'blockUser']);
     Route::post('users/{id}/unblock', [UserController::class, 'unblockUser']);
+
+    ##resetpass
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+    Route::post('/reset-password/{id}', [AuthController::class, 'resetPassword']);
 });
