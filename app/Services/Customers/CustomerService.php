@@ -41,7 +41,6 @@ class CustomerService
                 'city_id' => $item->city_id ?? null,
                 'district_id' => $item->district_id ?? null,
                 'ward_id' => $item->ward_id ?? null,
-                'tags' => $item->tags ? ConvertHelper::convertStringToJson($item->tags) : [],
                 'status_customer' => $item->status_customer ?? null,
                 'email_verified_at' => $item->email_verified_at,
                 'created_at' => $item->created_at->toDateTimeString(),
@@ -62,7 +61,7 @@ class CustomerService
     public function getCustomerDetail(string $id): DataAggregate
     {
         $result = new DataAggregate;
-        $customer = $this->customerRepository->getByConditions(['id' => $id, 'status_customer' => 'active']);
+        $customer = $this->customerRepository->getByConditions(['id' => $id]);
         if (! $customer) {
             $result->setResultError(message: 'Khách hàng bạn tìm không hợp lệ hoặc đã bị khóa');
             return $result;
@@ -89,9 +88,6 @@ class CustomerService
             'status_customer' => $data['status_customer'] ?? 'active',
         ];
 
-        if (! empty($data['tags'])) {
-            $listDataUpdate['tags'] = ConvertHelper::convertStringToJson($data['tags']);
-        }
         if (!empty($data['avatar'])) {
             if (!empty($customer->avatar) && $customer->avatar !== $data['avatar']) {
                 $oldImagePath = storage_path('app/public/' . $customer->avatar);
@@ -146,7 +142,6 @@ class CustomerService
                 'city_id' => $item->city_id ?? null,
                 'district_id' => $item->district_id ?? null,
                 'ward_id' => $item->ward_id ?? null,
-                'tags' => $item->tags ? ConvertHelper::convertStringToJson($item->tags) : [],
                 'status_customer' => $item->status_customer ?? null,
                 'email_verified_at' => $item->email_verified_at,
                 'created_at' => $item->created_at->toDateTimeString(),

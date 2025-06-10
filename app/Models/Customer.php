@@ -27,7 +27,6 @@ class Customer extends Model
         'city_id',
         'district_id',
         'ward_id',
-        'tags',
         'status_customer',
         'remember_token',
     ];
