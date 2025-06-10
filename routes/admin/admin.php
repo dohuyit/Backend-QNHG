@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Admin\TableAreaController;
+use App\Http\Controllers\Admin\TableArea\TableAreaController;
 use App\Http\Controllers\Admin\TableAreaTemplateController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\Customer\CustomerController;
@@ -36,4 +36,12 @@ Route::prefix('admin')->group(function () {
     Route::get('users/{id}/delete', [UserController::class, 'deleteUser']);
     Route::post('users/{id}/block', [UserController::class, 'blockUser']);
     Route::post('users/{id}/unblock', [UserController::class, 'unblockUser']);
+
+    ## table areas
+    Route::get('table-areas/list', [TableAreaController::class, 'index']);
+    Route::get('table-areas/{id}/detail', [TableAreaController::class, 'show']);
+    Route::post('table-areas/create', [TableAreaController::class, 'store']);
+    Route::post('table-areas/{id}/update', [TableAreaController::class, 'update']);
+    Route::delete('table-areas/{id}/delete', [TableAreaController::class, 'destroy']);
+
 });
