@@ -27,7 +27,6 @@ class UserService
             'full_name'     => $data['full_name'],
             'email'         => $data['email'],
             'phone_number'  => $data['phone_number'],
-            'branch_id'     => $data['branch_id'] ?? null,
             'status'        => $data['status'] ?? User::STATUS_ACTIVE,
             'email_verified_at' => $data['email_verified_at'] ?? null,
             'last_login'    => $data['last_login'] ?? null,
@@ -64,7 +63,6 @@ class UserService
             'full_name'     => $data['full_name'] ?? $user->full_name,
             'email'         => $data['email'] ?? $user->email,
             'phone_number'  => $data['phone_number'] ?? $user->phone_number,
-            'branch_id'     => $data['branch_id'] ?? $user->branch_id,
             'status'        => $data['status'] ?? $user->status,
         ];
 
@@ -107,8 +105,6 @@ class UserService
                 'email' => $item->email,
                 'phone_number' => $item->phone_number,
                 'status' => $item->status,
-                'branch_id' => $item->branch_id,
-                'branch_name' => optional($item->branch)->name,
                 'last_login' => $item->last_login,
                 'created_at' => $item->created_at,
                 'updated_at' => $item->updated_at,
@@ -133,22 +129,6 @@ class UserService
             $result->setResultError(
                 message: 'Dữ liệu không hợp lệ',
                 errors: ['user_id' => ['Người dùng không tồn tại.']]
-            );
-            return $result;
-        }
-
-        if (!$this->userRepository->existsById($user->branch_id)) {
-            $result->setResultError(
-                message: 'Chi nhánh liên kết không tồn tại.',
-                errors: ['branch_id' => ['Chi nhánh liên kết không hợp lệ.']]
-            );
-            return $result;
-        }
-
-        if ($user->branch_id !== $currentUser->branch_id) {
-            $result->setResultError(
-                message: 'Dữ liệu không hợp lệ',
-                errors: ['user_id' => ['Bạn không có quyền xóa người dùng này.']]
             );
             return $result;
         }

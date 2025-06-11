@@ -14,8 +14,4 @@ interface UserRepositoryInterface
     public function getTrashUserList(array $filter = [], int $limit = 10): LengthAwarePaginator;
     public function findById(int $id): ?User;
     public function deleteById(int $id): bool;
-    public function existsById(int $branchId): bool;
-
-
-
 }
