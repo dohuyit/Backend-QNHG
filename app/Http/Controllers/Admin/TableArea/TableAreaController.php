@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Admin\TableArea;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\TableAreaRequest\TableAreaRequest;
+use App\Models\TableArea;
 use App\Repositories\TableArea\TableAreaRepositoryInterface;
 use App\Services\TableArea\TableAreaService;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 
 class TableAreaController extends Controller
 {
@@ -22,7 +22,7 @@ class TableAreaController extends Controller
         $this->tableAreaRepository = $tableAreaRepository;
     }
 
-    public function index(Request $request): JsonResponse
+    public function getListTableArea(Request $request)
     {
         $params = $request->only(
             'page',
@@ -34,28 +34,21 @@ class TableAreaController extends Controller
             'status'
         );
         $result = $this->tableAreaService->getListTableAreas($params);
-        return response()->json([
-            'status' => 'success',
-            'data' => $result
-        ]);
+        $data = $result->getResult();
+        return $this->responseSuccess($data);
     }
 
-    public function show($id): JsonResponse
+    public function getTableAreaDetail($id)
     {
-        $tableArea = $this->tableAreaService->getTableAreaDetail($id);
-        if (!$tableArea) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Khu vực bàn không tồn tại'
-            ], 404);
+        $result = $this->tableAreaService->getTableAreaDetail($id);
+        if (!$result->isSuccessCode()) {
+            return $this->responseFail(message: 'Khu vực bàn không tồn tại', statusCode: 404);
         }
-        return response()->json([
-            'status' => 'success',
-            'data' => $tableArea
-        ]);
+        $data = $result->getData();
+        return $this->responseSuccess($data);
     }
 
-    public function store(TableAreaRequest $request): JsonResponse
+    public function createTableArea(TableAreaRequest $request)
     {
         $data = $request->only([
             'name',
@@ -64,15 +57,14 @@ class TableAreaController extends Controller
             'status'
         ]);
 
-        $tableArea = $this->tableAreaService->createTableArea($data);
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Tạo khu vực bàn thành công',
-            'data' => $tableArea
-        ], 201);
+        $result = $this->tableAreaService->createTableArea($data);
+        if (!$result->isSuccessCode()) {
+            return $this->responseFail(message: $result->getMessage());
+        }
+        return $this->responseSuccess($result->getData(), message: $result->getMessage());
     }
 
-    public function update(TableAreaRequest $request, $id): JsonResponse
+    public function updateTableArea(TableAreaRequest $request, $id)
     {
         $data = $request->only([
             'name',
@@ -83,33 +75,23 @@ class TableAreaController extends Controller
 
         $tableArea = $this->tableAreaRepository->findById($id);
         if (!$tableArea) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Khu vực bàn không tồn tại'
-            ], 404);
+            return $this->responseFail(message: 'Khu vực bàn không tồn tại', statusCode: 404);
         }
 
-        $this->tableAreaService->updateTableArea($id, $data);
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Cập nhật khu vực bàn thành công'
-        ]);
+        $result = $this->tableAreaService->updateTableArea($data, $tableArea);
+        if (!$result->isSuccessCode()) {
+            return $this->responseFail(message: $result->getMessage());
+        }
+        return $this->responseSuccess(message: $result->getMessage());
     }
 
-    public function destroy($id): JsonResponse
+    public function destroy($id)
     {
-        $tableArea = $this->tableAreaRepository->findById($id);
-        if (!$tableArea) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Khu vực bàn không tồn tại'
-            ], 404);
+        $result = $this->tableAreaService->deleteTableArea($id);
+        if (!$result->isSuccessCode()) {
+            return $this->responseFail(message: 'Khu vực bàn không tồn tại', statusCode: 404);
         }
-
-        $this->tableAreaService->deleteTableArea($id);
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Xóa khu vực bàn thành công'
-        ]);
+        return $this->responseSuccess(message: 'Xóa khu vực bàn thành công');
     }
+
 }

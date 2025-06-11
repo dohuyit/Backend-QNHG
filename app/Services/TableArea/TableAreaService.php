@@ -2,146 +2,127 @@
 
 namespace App\Services\TableArea;
 
-use App\Repositories\TableArea\TableAreaRepositoryInterface;
+use App\Common\DataAggregate;
 use App\Common\ListAggregate;
-use App\Helpers\ResponseHelper;
-use App\Helpers\ErrorHelper;
+use App\Helpers\ConvertHelper;
+use App\Models\TableArea;
+use App\Repositories\TableArea\TableAreaRepositoryInterface;
+use Carbon\Carbon;
 
 class TableAreaService
 {
-    protected $tableAreaRepository;
+    protected TableAreaRepositoryInterface $tableAreaRepository;
 
     public function __construct(TableAreaRepositoryInterface $tableAreaRepository)
     {
         $this->tableAreaRepository = $tableAreaRepository;
     }
 
-    public function getListTableAreas($params)
+    public function getListTableAreas(array $params): ListAggregate
     {
-        $page = $params['page'] ?? 1;
-        $limit = $params['limit'] ?? 10;
+        $filter = $params;
+        $limit = !empty($params['limit']) && $params['limit'] > 0 ? (int) $params['limit'] : 10;
 
-        $query = $this->tableAreaRepository->getList($params);
-        $total = $query->total();
-        $items = $query->items();
+        $pagination = $this->tableAreaRepository->getTableAreaList(filter: $filter, limit: $limit);
 
-        $listAggregate = new ListAggregate($items);
-        $listAggregate->setMeta($page, $limit, $total);
-
-        return ResponseHelper::responseSuccess(
-            $listAggregate->getResult(),
-            'Lấy danh sách khu vực bàn thành công'
-        );
-    }
-
-    public function getTableAreaDetail($id)
-    {
-        try {
-            $tableArea = $this->tableAreaRepository->findById($id);
-            if (!$tableArea) {
-                return ResponseHelper::responseFail(
-                    ErrorHelper::FAILED,
-                    [],
-                    'Khu vực bàn không tồn tại',
-                    404
-                );
-            }
-
-            return ResponseHelper::responseSuccess(
-                $tableArea->toArray(),
-                'Lấy thông tin khu vực bàn thành công'
-            );
-        } catch (\Exception $e) {
-            return ResponseHelper::responseFail(
-                ErrorHelper::FAILED,
-                [],
-                'Lấy thông tin khu vực bàn thất bại: ' . $e->getMessage(),
-                500
-            );
+        $data = [];
+        foreach ($pagination->items() as $item) {
+            $data[] = [
+                'id' => (string) $item->id,
+                'name' => $item->name ?? null,
+                'slug' => $item->slug ?? null,
+                'description' => $item->description ?? null,
+                'capacity' => $item->capacity ?? null,
+                'status' => $item->status ?? null,
+                'created_at' => $item->created_at->toDateTimeString(),
+                'updated_at' => $item->updated_at->toDateTimeString(),
+            ];
         }
+
+        $result = new ListAggregate($data);
+        $result->setMeta(
+            page: $pagination->currentPage(),
+            perPage: $pagination->perPage(),
+            total: $pagination->total()
+        );
+
+        return $result;
     }
 
-    public function createTableArea(array $data)
+    public function getTableAreaDetail(string $id): DataAggregate
     {
+        $result = new DataAggregate;
+        $tableArea = $this->tableAreaRepository->findById($id);
+        if (!$tableArea) {
+            $result->setResultError(message: 'Khu vực bàn không tồn tại hoặc đã bị khóa');
+            return $result;
+        }
+
+        $result->setResultSuccess(data: ['table_area' => $tableArea]);
+        return $result;
+    }
+
+    public function createTableArea(array $data): DataAggregate
+    {
+        $result = new DataAggregate;
         try {
             $tableArea = $this->tableAreaRepository->create($data);
-            return ResponseHelper::responseSuccess(
-                $tableArea->toArray(),
-                'Tạo khu vực thành công',
-                201
+            $result->setResultSuccess(
+                data: ['table_area' => $tableArea],
+                message: 'Tạo khu vực bàn thành công'
             );
         } catch (\Illuminate\Database\QueryException $e) {
-            // Kiểm tra mã lỗi Duplicate entry
             if ($e->getCode() == 23000) {
-                return ResponseHelper::responseFail(
-                    ErrorHelper::FAILED,
-                    [],
-                    'Tên khu vực đã tồn tại',
-                    409
-                );
+                $result->setResultError(message: 'Tên khu vực đã tồn tại');
+            } else {
+                $result->setResultError(message: 'Tạo khu vực bàn thất bại: ' . $e->getMessage());
             }
-
-            return ResponseHelper::responseFail(
-                ErrorHelper::FAILED,
-                [],
-                'Tạo khu vực thất bại: ' . $e->getMessage(),
-                500
-            );
         }
+        return $result;
     }
 
-    public function updateTableArea($id, array $data)
+    public function updateTableArea(array $data, TableArea $tableArea): DataAggregate
     {
-        try {
-            $tableArea = $this->tableAreaRepository->findById($id);
-            if (!$tableArea) {
-                return ResponseHelper::responseFail(
-                    ErrorHelper::FAILED,
-                    [],
-                    'Khu vực bàn không tồn tại',
-                    404
-                );
-            }
+        $result = new DataAggregate;
+        $listDataUpdate = [
+            'name' => $data['name'] ?? null,
+            'description' => $data['description'] ?? null,
+            'capacity' => $data['capacity'] ?? null,
+            'status' => $data['status'] ?? 'active',
+        ];
 
-            $this->tableAreaRepository->update($id, $data);
-            return ResponseHelper::responseSuccess(
-                null,
-                'Cập nhật khu vực bàn thành công'
-            );
-        } catch (\Exception $e) {
-            return ResponseHelper::responseFail(
-                ErrorHelper::FAILED,
-                [],
-                'Cập nhật khu vực bàn thất bại: ' . $e->getMessage()
-            );
+        $ok = $this->tableAreaRepository->updateByConditions(
+            conditions: ['id' => $tableArea->id],
+            updateData: $listDataUpdate
+        );
+
+        if (!$ok) {
+            $result->setResultError(message: 'Cập nhật thất bại, vui lòng thử lại!');
+            return $result;
         }
+
+        $result->setResultSuccess(message: 'Cập nhật khu vực bàn thành công!');
+        return $result;
     }
 
-    public function deleteTableArea($id)
+    public function deleteTableArea($id): DataAggregate
     {
-        try {
-            $tableArea = $this->tableAreaRepository->findById($id);
-            if (!$tableArea) {
-                return ResponseHelper::responseFail(
-                    ErrorHelper::FAILED,
-                    [],
-                    'Khu vực bàn không tồn tại',
-                    404
-                );
-            }
+        $result = new DataAggregate;
+        $tableArea = $this->tableAreaRepository->findById($id);
 
-            $this->tableAreaRepository->delete($id);
-            return ResponseHelper::responseSuccess(
-                null,
-                'Xóa khu vực bàn thành công'
-            );
-        } catch (\Exception $e) {
-            return ResponseHelper::responseFail(
-                ErrorHelper::FAILED,
-                [],
-                'Xóa khu vực bàn thất bại: ' . $e->getMessage()
-            );
+        if (!$tableArea) {
+            $result->setResultError(message: 'Khu vực bàn không tồn tại');
+            return $result;
         }
+
+        $ok = $tableArea->delete();
+        if (!$ok) {
+            $result->setResultError(message: 'Xóa thất bại, vui lòng thử lại!');
+            return $result;
+        }
+
+        $result->setResultSuccess(message: 'Xóa khu vực bàn thành công!');
+        return $result;
     }
 
 

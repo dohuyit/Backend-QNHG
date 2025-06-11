@@ -3,6 +3,8 @@
 namespace App\Repositories\TableArea;
 
 use App\Models\TableArea;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
 class TableAreaRepository implements TableAreaRepositoryInterface
@@ -14,34 +16,43 @@ class TableAreaRepository implements TableAreaRepositoryInterface
         $this->model = $model;
     }
 
-    public function getList($params)
+    public function updateByConditions(array $conditions, array $updateData): bool
     {
-        $query = $this->model->query();
+        $result = TableArea::where($conditions)->update($updateData);
+        return (bool) $result;
+    }
 
-        if (isset($params['query'])) {
-            $query->where(function ($q) use ($params) {
-                $q->where('name', 'like', '%' . $params['query'] . '%')
-                    ->orWhere('slug', 'like', '%' . $params['query'] . '%');
-            });
+
+    public function getTableAreaList(array $filter = [], int $limit = 10): LengthAwarePaginator
+    {
+        $query = TableArea::query();
+
+        if (!empty($filter)) {
+            $query = $this->filterTableAreaList($query, $filter);
         }
 
-        if (isset($params['name'])) {
-            $query->where('name', 'like', '%' . $params['name'] . '%');
+        return $query->orderBy('created_at', 'desc')->paginate($limit);
+    }
+
+    private function filterTableAreaList(Builder $query, array $filter = []): Builder
+    {
+        if ($val = $filter['name'] ?? null) {
+            $query->where('name', 'like', '%' . $val . '%');
         }
 
-        if (isset($params['slug'])) {
-            $query->where('slug', 'like', '%' . $params['slug'] . '%');
+        if ($val = $filter['slug'] ?? null) {
+            $query->where('slug', 'like', '%' . $val . '%');
         }
 
-        if (isset($params['status'])) {
-            $query->where('status', $params['status']);
+        if ($val = $filter['status'] ?? null) {
+            $query->where('status', $val);
         }
 
-        if (isset($params['capacity'])) {
-            $query->where('capacity', $params['capacity']);
+        if ($val = $filter['capacity'] ?? null) {
+            $query->where('capacity', $val);
         }
 
-        return $query->paginate($params['limit'] ?? 10);
+        return $query;
     }
 
     public function findById($id)
@@ -54,63 +65,5 @@ class TableAreaRepository implements TableAreaRepositoryInterface
         return $this->model->create($data);
     }
 
-    public function update($id, array $data)
-    {
-        $tableArea = $this->findById($id);
-        $tableArea->update($data);
-        return $tableArea;
-    }
 
-    public function delete($id)
-    {
-        return $this->model->destroy($id);
-    }
-
-    public function getTrashedList($params)
-    {
-        $query = $this->model->onlyTrashed();
-
-        if (isset($params['query'])) {
-            $query->where(function ($q) use ($params) {
-                $q->where('name', 'like', '%' . $params['query'] . '%')
-                    ->orWhere('slug', 'like', '%' . $params['query'] . '%');
-            });
-        }
-
-        if (isset($params['name'])) {
-            $query->where('name', 'like', '%' . $params['name'] . '%');
-        }
-
-        if (isset($params['slug'])) {
-            $query->where('slug', 'like', '%' . $params['slug'] . '%');
-        }
-
-        if (isset($params['status'])) {
-            $query->where('status', $params['status']);
-        }
-
-        if (isset($params['capacity'])) {
-            $query->where('capacity', $params['capacity']);
-        }
-
-        return $query->paginate($params['limit'] ?? 10);
-    }
-
-    public function softDelete($id)
-    {
-        $tableArea = $this->findById($id);
-        return $tableArea->delete();
-    }
-
-    public function forceDelete($id)
-    {
-        $tableArea = $this->model->withTrashed()->findOrFail($id);
-        return $tableArea->forceDelete();
-    }
-
-    public function restore($id)
-    {
-        $tableArea = $this->model->withTrashed()->findOrFail($id);
-        return $tableArea->restore();
-    }
 }

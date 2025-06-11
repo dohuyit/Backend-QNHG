@@ -35,12 +35,7 @@ class TableAreaRequest extends BaseFormRequest
                 'string',
                 Rule::in(['active', 'inactive'])
             ],
-            'image_url' => [
-                'nullable',
-                'string',
-                'max:255',
-                'url'
-            ],
+            
 
         ];
 
@@ -77,7 +72,7 @@ class TableAreaRequest extends BaseFormRequest
             'capacity.max' => 'Sức chứa không được vượt quá 1000 người',
             'status.required' => 'Trạng thái là bắt buộc',
             'status.in' => 'Trạng thái không hợp lệ',
-            
+
         ];
     }
 }

@@ -2,15 +2,16 @@
 
 namespace App\Repositories\TableArea;
 
+use App\Models\TableArea;
+use Illuminate\Pagination\LengthAwarePaginator;
+
 interface TableAreaRepositoryInterface
 {
-    public function getList($params);
+    public function updateByConditions(array $conditions, array $updateData): bool;
+
+
+    public function getTableAreaList(array $filter = [], int $limit = 10): LengthAwarePaginator;
+
     public function findById($id);
-    public function create(array $data);
-    public function update($id, array $data);
-    public function delete($id);
-    public function getTrashedList($params);
-    public function softDelete($id);
-    public function forceDelete($id);
-    public function restore($id);
+     public function create(array $data);
 }

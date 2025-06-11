@@ -38,10 +38,10 @@ Route::prefix('admin')->group(function () {
     Route::post('users/{id}/unblock', [UserController::class, 'unblockUser']);
 
     ## table areas
-    Route::get('table-areas/list', [TableAreaController::class, 'index']);
-    Route::get('table-areas/{id}/detail', [TableAreaController::class, 'show']);
-    Route::post('table-areas/create', [TableAreaController::class, 'store']);
-    Route::post('table-areas/{id}/update', [TableAreaController::class, 'update']);
+    Route::get('table-areas/list', [TableAreaController::class, 'getListTableArea']);
+    Route::get('table-areas/{id}/detail', [TableAreaController::class, 'getTableAreaDetail']);
+    Route::post('table-areas/create', [TableAreaController::class, 'createTableArea']);
+    Route::post('table-areas/{id}/update', [TableAreaController::class, 'updateTableArea']);
     Route::delete('table-areas/{id}/delete', [TableAreaController::class, 'destroy']);
 
 });

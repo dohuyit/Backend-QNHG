@@ -75,5 +75,5 @@ class CategoryRepository implements CategoryRepositoryInterface
 
         return $query->orderBy('deleted_at', 'desc')->paginate($limit);
     }
-    
+
 }
