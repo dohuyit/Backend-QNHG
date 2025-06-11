@@ -74,6 +74,7 @@ class CustomerService
     public function updateCustomer(array $data, Customer $customer): DataAggregate
     {
         $result = new DataAggregate;
+
         $listDataUpdate = [
             'full_name' => $data['full_name'] ?? null,
             'phone_number' => $data['phone_number'] ?? null,
@@ -88,26 +89,27 @@ class CustomerService
             'status_customer' => $data['status_customer'] ?? 'active',
         ];
 
-        if (!empty($data['avatar'])) {
-            if (!empty($customer->avatar) && $customer->avatar !== $data['avatar']) {
-                $oldImagePath = storage_path('app/public/' . $customer->avatar);
-
-                if (file_exists($oldImagePath)) {
-                    unlink($oldImagePath);
-                }
+        if (array_key_exists('avatar', $data) && empty($data['avatar'])) {
+            if (!empty($customer->avatar) && Storage::disk('public')->exists($customer->avatar)) {
+                Storage::disk('public')->delete($customer->avatar);
             }
-            $file = $data['avatar'];
+            $listDataUpdate['avatar'] = null;
+        }
 
-            // Xóa ảnh cũ nếu tồn tại
+        // Trường hợp FE upload file mới
+        if (!empty($data['avatar']) && $data['avatar'] instanceof \Illuminate\Http\UploadedFile) {
+            // Xóa avatar cũ nếu tồn tại
             if (!empty($customer->avatar) && Storage::disk('public')->exists($customer->avatar)) {
                 Storage::disk('public')->delete($customer->avatar);
             }
 
+            $file = $data['avatar'];
             $extension = $file->getClientOriginalExtension();
             $filename = 'customer_' . uniqid() . '.' . $extension;
 
-            // Lưu ảnh mới
+            // Lưu ảnh mới vào storage/app/public/customers
             $path = Storage::disk('public')->putFileAs('customers', $file, $filename);
+
             $listDataUpdate['avatar'] = $path;
         }
 
@@ -119,9 +121,9 @@ class CustomerService
         }
 
         $result->setResultSuccess(message: 'Cập nhật thông tin khách hàng thành công!');
-
         return $result;
     }
+
 
     public function listTrashedCustomer(array $params): ListAggregate
     {
