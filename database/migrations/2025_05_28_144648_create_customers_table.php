@@ -33,10 +33,7 @@ return new class extends Migration
             $table->string('district_id', 10)->nullable()->comment('ID Quận/Huyện từ API địa giới hành chính');
             $table->string('ward_id', 10)->nullable()->comment('ID Phường/Xã từ API địa giới hành chính');
 
-            $table->json('tags')->nullable()->comment('Các tag cho khách hàng (VD: ["khách VIP", "dị ứng hải sản"])');
-            $table->text('notes')->nullable()->comment('Ghi chú nội bộ');
-
-            $table->enum('status', ['active', 'inactive', 'pending_activation', 'blocked'])->default('active')->comment('Trạng thái tài khoản');
+            $table->enum('status_customer', ['active', 'inactive', 'pending_activation', 'blocked'])->default('active')->comment('Trạng thái tài khoản');
             $table->rememberToken()->comment('Token ghi nhớ đăng nhập');
             $table->softDeletes()->comment('Xoá mềm');
             $table->timestamps();

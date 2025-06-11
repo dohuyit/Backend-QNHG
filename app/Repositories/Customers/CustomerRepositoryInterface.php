@@ -9,8 +9,6 @@ interface CustomerRepositoryInterface
 {
     public function updateByConditions(array $conditions, array $updateData): bool;
 
-    public function createData(array $data): bool;
-
     public function getByConditions(array $conditions): ?Customer;
 
     public function getCustomerList(array $filter = [], int $limit = 10): LengthAwarePaginator;

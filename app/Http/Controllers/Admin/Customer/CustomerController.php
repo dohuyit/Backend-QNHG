@@ -40,44 +40,12 @@ class CustomerController extends Controller
             'city_id',
             'district_id',
             'ward_id',
-            'notes',
             'status',
         );
         $result = $this->customerService->getListCustomers($params);
         $data = $result->getResult();
 
         return $this->responseSuccess($data);
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function createCustomer(StoreCustomerRequest $request)
-    {
-        $data = $request->only([
-            'full_name',
-            'avatar',
-            'phone_number',
-            'email',
-            'password',
-            'address',
-            'date_of_birth',
-            'gender',
-            'city_id',
-            'district_id',
-            'ward_id',
-            'tags',
-            'notes',
-            'status',
-            'email_verified_at',
-        ]);
-
-        $result = $this->customerService->createCustomer($data);
-        if (! $result->isSuccessCode()) {
-            return $this->responseFail(message: $result->getMessage());
-        }
-
-        return $this->responseSuccess(message: $result->getMessage());
     }
 
     /**
@@ -99,6 +67,7 @@ class CustomerController extends Controller
      */
     public function updateCustomer(UpdateCustomerRequest $request, string $id)
     {
+        dd($request->all());
         $data = $request->only([
             'full_name',
             'avatar',
@@ -111,15 +80,13 @@ class CustomerController extends Controller
             'city_id',
             'district_id',
             'ward_id',
-            'tags',
-            'notes',
-            'status',
+            'status_customer',
             'email_verified_at',
         ]);
 
         $branch = $this->customerRepository->getByConditions(['id' => $id]);
         if (! $branch) {
-            return $this->responseFail(message: 'Chi nhánh không tồn tại', statusCode: 404);
+            return $this->responseFail(message: 'Khách hàng không tồn tại', statusCode: 404);
         }
 
         $result = $this->customerService->updateCustomer($data, $branch);
@@ -144,7 +111,6 @@ class CustomerController extends Controller
             'city_id',
             'district_id',
             'ward_id',
-            'notes',
             'status',
         );
         $result = $this->customerService->listTrashedCustomer($params);

@@ -3,18 +3,18 @@
 use App\Http\Controllers\Admin\TableAreaController;
 use App\Http\Controllers\Admin\TableAreaTemplateController;
 use App\Http\Controllers\Admin\CategoryController;
-use App\Http\Controllers\Admin\ComboController;
-use App\Http\Controllers\Admin\ComboItemController;
 use App\Http\Controllers\Admin\Customer\CustomerController;
-use App\Http\Controllers\Admin\DishController;
 use App\Http\Controllers\Admin\User\UserController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\Auth\AuthController;
+use App\Http\Controllers\Admin\ComboController;
+use App\Http\Controllers\Admin\DishController;
 
 Route::prefix('admin')->group(function () {
     // # branchs
     Route::get('customers/list', [CustomerController::class, 'getListCustomers']);
     Route::get('customers/{id}/detail', [CustomerController::class, 'getCustomerDetail']);
-    Route::post('customers/create', [CustomerController::class, 'createCustomer']);
+   
     Route::post('customers/{id}/update', [CustomerController::class, 'updateCustomer']);
     Route::get('customers/trash', [CustomerController::class, 'listTrashedCustomer']);
     Route::delete('customers/{id}/soft/delete', [CustomerController::class, 'softDeleteCustomer']);
@@ -35,16 +35,15 @@ Route::prefix('admin')->group(function () {
     Route::post('table-areas/create-for-all-branches', [TableAreaController::class, 'createTableAreaForAllBranches']);
     Route::get('table-areas/{slug}/detail', [TableAreaController::class, 'getTableAreaDetail']);
     Route::delete('table-areas/{slug}/delete/{branchId}', [TableAreaController::class, 'deleteTableAreaForBranch']);
-    
     ## categories
     Route::get('categories/list', [CategoryController::class, 'getListCategories']);
-    Route::get('categories/{id}/detail', [CategoryController::class, 'getCategoryDetail']);
+    Route::get('categories/{slug}/detail', [CategoryController::class, 'getCategoryDetail']);
     Route::post('categories/create', [CategoryController::class, 'createCategory']);
-    Route::post('categories/{id}/update', [CategoryController::class, 'updateCategory']);
+    Route::post('categories/{slug}/update', [CategoryController::class, 'updateCategory']);
     Route::get('categories/trash', [CategoryController::class, 'listTrashedCategory']);
-    Route::delete('categories/{id}/soft/delete', [CategoryController::class, 'softDeleteCategory']);
-    Route::delete('categories/{id}/force/delete', [CategoryController::class, 'forceDeleteCategory']);
-    Route::post('categories/{id}/restore', [CategoryController::class, 'restoreCategory']);
+    Route::delete('categories/{slug}/soft/delete', [CategoryController::class, 'softDeleteCategory']);
+    Route::delete('categories/{slug}/force/delete', [CategoryController::class, 'forceDeleteCategory']);
+    Route::post('categories/{slug}/restore', [CategoryController::class, 'restoreCategory']);
 
     ##users
     Route::post('users/create', [UserController::class, 'createUser']);
@@ -53,6 +52,10 @@ Route::prefix('admin')->group(function () {
     Route::get('users/{id}/delete', [UserController::class, 'deleteUser']);
     Route::post('users/{id}/block', [UserController::class, 'blockUser']);
     Route::post('users/{id}/unblock', [UserController::class, 'unblockUser']);
+
+    ##resetpass
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+    Route::post('/reset-password/{id}', [AuthController::class, 'resetPassword']);
 
     // dishes
     Route::get('dishes/list', [DishController::class, 'getListDishes']);
@@ -78,5 +81,6 @@ Route::prefix('admin')->group(function () {
     Route::post('combos/{id}/add-items', [ComboController::class, 'addItemToCombo']);
     Route::post('combos/{comboId}/{dishId}/update-quantity', [ComboController::class, 'updateItemQuantity']);
     Route::delete('combos/{comboId}/{dishId}/force/delete', [ComboController::class, 'forceDeleteComboItem']);
+
 
 });

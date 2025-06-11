@@ -81,8 +81,4 @@ class  UserRepository implements UserRepositoryInterface
     {
         return User::destroy($id) > 0;
     }
-    public function existsById(int $branchId): bool
-    {
-        return Branch::where('id', $branchId)->exists();
-    }
 }
