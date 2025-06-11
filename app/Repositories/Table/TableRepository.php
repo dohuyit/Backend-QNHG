@@ -35,9 +35,7 @@ class TableRepository implements TableRepositoryInterface
 
     private function filterTableList(Builder $query, array $filter = []): Builder
     {
-        if ($val = $filter['name'] ?? null) {
-            $query->where('name', 'like', '%' . $val . '%');
-        }
+       
 
         if ($val = $filter['slug'] ?? null) {
             $query->where('slug', 'like', '%' . $val . '%');

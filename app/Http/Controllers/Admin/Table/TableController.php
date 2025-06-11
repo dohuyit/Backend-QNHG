@@ -28,10 +28,13 @@ class TableController extends Controller
             'page',
             'limit',
             'query',
-            'name',
+            'table_number',
             'description',
             'capacity',
+            'min_guests',
+            'max_guests',
             'status',
+            'is_active',
             'table_area_id'
         );
         $result = $this->tableService->getListTables($params);
@@ -52,10 +55,14 @@ class TableController extends Controller
     public function createTable(TableRequest $request)
     {
         $data = $request->only([
-            'name',
+            'table_number',
             'description',
             'capacity',
+            'min_guests',
+            'max_guests',
+            'tags',
             'status',
+            'is_active',
             'table_area_id'
         ]);
 
@@ -69,10 +76,14 @@ class TableController extends Controller
     public function updateTable(TableRequest $request, $id)
     {
         $data = $request->only([
-            'name',
+            'table_number',
             'description',
             'capacity',
+            'min_guests',
+            'max_guests',
+            'tags',
             'status',
+            'is_active',
             'table_area_id'
         ]);
 

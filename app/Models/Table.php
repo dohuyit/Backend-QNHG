@@ -7,7 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class Table extends Model
 {
     protected $table = 'tables';
-
+    protected $casts = [
+        'tags' => 'array',
+    ];
     protected $fillable = [
         'table_area_id',    // ID của khu vực bàn
         'table_number',     // Ví dụ: "A10", "VIP02", "Bar-05"
