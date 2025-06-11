@@ -30,7 +30,6 @@ class UserController extends Controller
             'full_name',
             'email',
             'phone_number',
-            'branch_id',
             'status',
         ]);
 

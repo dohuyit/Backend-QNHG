@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\Customer\CustomerController;
 use App\Http\Controllers\Admin\User\UserController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\Auth\AuthController;
 
 Route::prefix('admin')->group(function () {
     // # branchs
@@ -44,4 +45,7 @@ Route::prefix('admin')->group(function () {
     Route::post('table-areas/{id}/update', [TableAreaController::class, 'updateTableArea']);
     Route::delete('table-areas/{id}/delete', [TableAreaController::class, 'destroy']);
 
+    ##resetpass
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+    Route::post('/reset-password/{id}', [AuthController::class, 'resetPassword']);
 });
