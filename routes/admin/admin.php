@@ -1,12 +1,13 @@
 <?php
 
-use App\Http\Controllers\Admin\TableArea\TableAreaController;
-use App\Http\Controllers\Admin\TableAreaTemplateController;
-use App\Http\Controllers\Admin\CategoryController;
-use App\Http\Controllers\Admin\Customer\CustomerController;
-use App\Http\Controllers\Admin\User\UserController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\Auth\AuthController;
+use App\Http\Controllers\Admin\User\UserController;
+use App\Http\Controllers\Admin\Table\TableController;
+use App\Http\Controllers\Admin\Customer\CustomerController;
+use App\Http\Controllers\Admin\TableAreaTemplateController;
+use App\Http\Controllers\Admin\TableArea\TableAreaController;
 
 Route::prefix('admin')->group(function () {
     // # branchs
@@ -44,6 +45,14 @@ Route::prefix('admin')->group(function () {
     Route::post('table-areas/create', [TableAreaController::class, 'createTableArea']);
     Route::post('table-areas/{id}/update', [TableAreaController::class, 'updateTableArea']);
     Route::delete('table-areas/{id}/delete', [TableAreaController::class, 'destroy']);
+
+    ## tables
+    Route::get('tables/list', [TableController::class, 'getListTables']);
+    Route::get('tables/{id}/detail', [TableController::class, 'getTableDetail']);
+    Route::post('tables/create', [TableController::class, 'createTable']);
+    Route::post('tables/{id}/update', [TableController::class, 'updateTable']);
+    Route::delete('tables/{id}/delete', [TableController::class, 'destroyTable']);
+
 
     ##resetpass
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);

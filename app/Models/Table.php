@@ -19,4 +19,8 @@ class Table extends Model
         'status',           // Ví dụ: 'available', 'occupied', 'reserved', 'cleaning', 'out_of_service'
         'is_active',        // Ví dụ: true, false
     ];
+    public function tableArea()
+    {
+        return $this->belongsTo(TableArea::class);
+    }
 }
