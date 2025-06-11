@@ -7,6 +7,8 @@ use App\Http\Controllers\Admin\Customer\CustomerController;
 use App\Http\Controllers\Admin\User\UserController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\Auth\AuthController;
+use App\Http\Controllers\Admin\ComboController;
+use App\Http\Controllers\Admin\DishController;
 
 Route::prefix('admin')->group(function () {
     // # branchs
@@ -54,4 +56,31 @@ Route::prefix('admin')->group(function () {
     ##resetpass
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
     Route::post('/reset-password/{id}', [AuthController::class, 'resetPassword']);
+
+    // dishes
+    Route::get('dishes/list', [DishController::class, 'getListDishes']);
+    Route::get('dishes/{id}/detail', [DishController::class, 'getDishDetail']); 
+    Route::get('dishes/category/{id}', [DishController::class, 'getDishesByCategory']);
+    Route::post('dishes/create', [DishController::class, 'createDish']); 
+    Route::post('dishes/{id}/update', [DishController::class, 'updateDish']);
+    Route::get('dishes/trash', [DishController::class, 'listTrashedDish']);
+    Route::delete('dishes/{id}/soft/delete', [DishController::class, 'softDeleteDish']);
+    Route::delete('dishes/{id}/force/delete', [DishController::class, 'forceDeleteDish']);
+    Route::post('dishes/{id}/restore', [DishController::class, 'restoreDish']);
+
+    // combos
+    Route::get('combos/list', [ComboController::class, 'getListCombos']);
+    Route::get('combos/{id}/detail', [ComboController::class, 'getComboDetail']);
+    Route::post('combos/create', [ComboController::class, 'createCombo']);
+    Route::post('combos/{id}/update', [ComboController::class, 'updateCombo']);
+    Route::get('combos/trash', [ComboController::class, 'listTrashedCombo']);
+    Route::delete('combos/{id}/soft/delete', [ComboController::class, 'softDeleteCombo']);
+    Route::delete('combos/{id}/force/delete', [ComboController::class, 'forceDeleteCombo']);
+    Route::post('combos/{id}/restore', [ComboController::class, 'restoreCombo']);
+
+    Route::post('combos/{id}/add-items', [ComboController::class, 'addItemToCombo']);
+    Route::post('combos/{comboId}/{dishId}/update-quantity', [ComboController::class, 'updateItemQuantity']);
+    Route::delete('combos/{comboId}/{dishId}/force/delete', [ComboController::class, 'forceDeleteComboItem']);
+
+
 });

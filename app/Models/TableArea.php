@@ -12,7 +12,6 @@ class TableArea extends Model
 
     protected $fillable = [
         'name',              // Tên khu vực bàn
-        'slug',              // Slug cho khu vực bàn
         'description',       // Mô tả khu vực bàn
         'capacity',          // Sức chứa tối đa của khu vực bàn
         'status',            // Trạng thái khu vực bàn (active, inactive)

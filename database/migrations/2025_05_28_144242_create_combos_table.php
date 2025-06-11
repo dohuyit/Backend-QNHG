@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('combos', function (Blueprint $table) {
             $table->id()->comment('Mã combo');
             $table->string('name', 255)->comment('Tên combo');
-            $table->string('slug', 255)->unique()->comment('Định danh URL');
             $table->text('description')->nullable()->comment('Mô tả combo');
             $table->decimal('original_total_price', 10, 2)->comment('Tổng giá gốc các món');
             $table->decimal('selling_price', 10, 2)->comment('Giá bán combo');

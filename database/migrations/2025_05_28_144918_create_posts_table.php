@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('posts', function (Blueprint $table) {
             $table->id()->comment('Mã bài viết');
             $table->string('title', 255)->comment('Tiêu đề');
-            $table->string('slug', 255)->unique()->comment('Slug SEO');
             $table->text('content')->comment('Nội dung');
             $table->string('thumbnail_url', 255)->nullable()->comment('Ảnh đại diện');
             $table->json('tags')->nullable()->comment('Các tag cho bài viết (VD: ["tin tức", "khuyến mãi", "ẩm thực"])');

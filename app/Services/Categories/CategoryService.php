@@ -4,9 +4,9 @@ namespace App\Services\Categories;
 
 use App\Common\DataAggregate;
 use App\Common\ListAggregate;
-use App\Helpers\ConvertHelper;
 use App\Models\Category;
 use App\Repositories\Categories\CategoryRepositoryInterface;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 class CategoryService
 { 
@@ -27,7 +27,6 @@ class CategoryService
             $data[] = [
                 'id' => (string)$item->id,
                 'name' => $item->name,
-                'slug' => $item->slug,
                 'description' => $item->description,
                 'image_url' => $item->image_url,
                 'is_active' => (bool)$item->is_active,
@@ -49,12 +48,10 @@ class CategoryService
     public function createCategory(array $data): DataAggregate
     {
         $result = new DataAggregate();
-        $slug = Str::slug($data['name'] ?? '');
+
         $listDataCreate = [
             'name' => $data['name'],
-            'slug' => $slug,
             'description' => $data['description'],
-            'image_url' => $data['image_url'] ?? null,
             'is_active' => $data['is_active'],
             'parent_id' => $data['parent_id'],
         ];
@@ -62,10 +59,9 @@ class CategoryService
         if (!empty($data['image_url'])) {
             $file = $data['image_url'];
             $extension = $file->getClientOriginalExtension();
-
             $filename = 'category_' . uniqid() . '.' . $extension;
 
-            $path = $file->storeAs('categories', $filename, 'public');
+            $path = Storage::disk('public')->putFileAs('categories', $file, $filename);
             $listDataCreate['image_url'] = $path;
         }
 
@@ -77,11 +73,11 @@ class CategoryService
         $result->setResultSuccess(message: 'Thêm mới thành công!');
         return $result;
     }
-    public function getCategoryDetail(string $slug): DataAggregate
+    public function getCategoryDetail(int $id): DataAggregate
     {
         $result = new DataAggregate();
 
-        $category = $this->categoryRepository->getByConditions(['slug' => $slug, 'is_active' => true]);
+        $category = $this->categoryRepository->getByConditions(['id' => $id, 'is_active' => true]);
 
         if (!$category) {
             $result->setResultError(message: 'Danh mục không tồn tại');
@@ -94,12 +90,10 @@ class CategoryService
     public function updateCategory(array $data, Category $category): DataAggregate
     {
         $result = new DataAggregate();
-        $slug = Str::slug($data['name'] ?? '');
+
         $listDataUpdate = [
             'name' => $data['name'],
-            'slug' => $slug,
-            'description' => $data['description'],
-            'image_url' => $data['image_url'] ?? $category->image_url,
+            'description' => $data['description'],            
             'is_active' => $data['is_active'],
             'parent_id' => $data['parent_id'],
         ];
@@ -115,18 +109,20 @@ class CategoryService
             }
 
             $file = $data['image_url'];
-            $extension = $file->getClientOriginalExtension();
 
+            if(!empty($category->image_url) && Storage::disk('public')->exists($category->image_url)) {
+                Storage::disk('public')->delete($category->image_url);
+            }
+
+            $extension = $file->getClientOriginalExtension();
             $filename = 'category_' . uniqid() . '.' . $extension;
 
-            $path = $file->storeAs('categories', $filename, 'public');
+            $path = Storage::disk('public')->putFileAs('categories', $file, $filename);
             $listDataUpdate['image_url'] = $path;
             
-        }else{
-            $listDataUpdate['image_url'] = $category->image_url;
         }
 
-        $ok = $this->categoryRepository->updateByConditions(['slug' => $category->slug], $listDataUpdate);
+        $ok = $this->categoryRepository->updateByConditions(['id' => $category->id], $listDataUpdate);
         if (!$ok) {
             $result->setMessage(message: 'Cập nhật thất bại, vui lòng thử lại!');
             return $result;
@@ -134,7 +130,6 @@ class CategoryService
         $result->setResultSuccess(message: 'Cập nhật thành công!');
         return $result;
     }
-
     public function listTrashedCategory(array $params): ListAggregate
     {
         $filter = $params;
@@ -145,7 +140,6 @@ class CategoryService
         foreach ($pagination->items() as $item) {
             $data[] = [
                 'id' => (string)$item->id,
-                'slug' => $item->slug,
                 'name' => $item->name,
                 'description' => $item->description,
                 'image_url' => $item->image_url,
@@ -165,11 +159,10 @@ class CategoryService
 
         return $result;
     }
-
-    public function softDeleteCategory($slug): DataAggregate
+    public function softDeleteCategory($id): DataAggregate
     {
         $result = new DataAggregate();
-        $category = $this->categoryRepository->getByConditions(['slug' => $slug]);
+        $category = $this->categoryRepository->getByConditions(['id' => $id]);
         $ok = $category->delete();
         if (!$ok) {
             $result->setMessage(message: 'Xóa thất bại, vui lòng thử lại!');
@@ -179,14 +172,15 @@ class CategoryService
         return $result;
     }
 
-    public function forceDeleteCategory($slug): DataAggregate
+    public function forceDeleteCategory($id): DataAggregate
     {
         $result = new DataAggregate();
-        $category = $this->categoryRepository->findOnlyTrashedBySlug($slug);
+        $category = $this->categoryRepository->findOnlyTrashedById($id);
 
-        $oldImagePath = storage_path('app/public/' . $category->image_url);
-        if (file_exists($oldImagePath)) {
-            unlink($oldImagePath);
+        if (!empty($category->image_url)) {
+            if(Storage::disk('public')->exists($category->image_url)){
+                Storage::disk('public')->delete($category->image_url);
+            }
         }
 
         $ok = $category->forceDelete();
@@ -198,10 +192,10 @@ class CategoryService
         return $result;
     }
 
-    public function restoreCategory($slug): DataAggregate
+    public function restoreCategory($id): DataAggregate
     {
         $result = new DataAggregate();
-        $category = $this->categoryRepository->findOnlyTrashedBySlug($slug);
+        $category = $this->categoryRepository->findOnlyTrashedById($id);
         $ok = $category->restore();
         if (!$ok) {
             $result->setMessage(message: 'Khôi phục thất bại, vui lòng thử lại!');

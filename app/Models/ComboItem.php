@@ -10,7 +10,15 @@ class ComboItem extends Model
 
     protected $fillable = [
         'combo_id',         // ID của combo
-        'menu_item_id',     // ID của món ăn trong combo
+        'dish_id',     // ID của món ăn trong combo
         'quantity',         // Ví dụ: 1, 2
     ];
+    public function combo()
+    {
+        return $this->belongsTo(Combo::class, 'combo_id');
+    }
+    public function dish()
+    {
+        return $this->belongsTo(Dish::class, 'dish_id');
+    }
 }
