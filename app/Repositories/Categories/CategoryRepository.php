@@ -19,8 +19,6 @@ class CategoryRepository implements CategoryRepositoryInterface
         $result = Category::create($data);
         return (bool)$result;
     }
-
-
     public function getByConditions(array $conditions): ?Category
     {
         $result = Category::where($conditions)->first();
@@ -44,14 +42,6 @@ class CategoryRepository implements CategoryRepositoryInterface
             $query->where('name', 'like', '%' . $val . '%');
         }
 
-        if ($val = $filter['city_id'] ?? null) {
-            $query->where('city_id', $val);
-        }
-
-        if ($val = $filter['district_id'] ?? null) {
-            $query->where('district_id', $val);
-        }
-
         if ($val = $filter['status'] ?? null) {
             $query->where('status', $val);
         }
@@ -59,9 +49,9 @@ class CategoryRepository implements CategoryRepositoryInterface
         return $query;
     }
 
-    public function findOnlyTrashedBySlug($slug): ?Category
+    public function findOnlyTrashedById($id): ?Category
     {
-        $result = Category::onlyTrashed()->where('slug', $slug)->firstOrFail();
+        $result = Category::onlyTrashed()->where('id', $id)->firstOrFail();
         return $result;
     }
 

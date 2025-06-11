@@ -10,7 +10,6 @@ class Role extends Model
 
     protected $fillable = [
         'role_name',        // Ví dụ: "Admin", "Quản lý chi nhánh", "Thu ngân", "Phục vụ", "Bếp"
-        'slug',             // Ví dụ: "admin", "branch-manager"
         'description',      // Ví dụ: "Có toàn quyền quản trị hệ thống."
     ];
 }

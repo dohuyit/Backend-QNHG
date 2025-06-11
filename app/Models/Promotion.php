@@ -10,7 +10,6 @@ class Promotion extends Model
 
     protected $fillable = [
         'name',                     // Ví dụ: "Giảm giá 20% Thứ Tư Vui Vẻ"
-        'slug',                     // Ví dụ: "giam-gia-20-thu-tu-vui-ve"
         'description',              // Ví dụ: "Áp dụng cho tất cả hóa đơn vào Thứ Tư hàng tuần."
         'type',                     // 'percentage', 'fixed'
         'discount_value',           // Ví dụ: 20 (cho type percentage) hoặc 50000 (cho type fixed)

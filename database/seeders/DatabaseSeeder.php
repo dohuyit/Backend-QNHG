@@ -20,6 +20,9 @@ class DatabaseSeeder extends Seeder
             CategorySeeder::class,
             CustomerSeeder::class,
             TableSeeder::class,
+            DishSeeder::class,
+            ComboSeeder::class,
+            ComboItemSeeder::class,
         ]);
     }
 }
