@@ -1,12 +1,12 @@
 <?php
 
-use App\Http\Controllers\Admin\TableAreaController;
-use App\Http\Controllers\Admin\TableAreaTemplateController;
-use App\Http\Controllers\Admin\CategoryController;
-use App\Http\Controllers\Admin\Customer\CustomerController;
-use App\Http\Controllers\Admin\User\UserController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\Auth\AuthController;
+use App\Http\Controllers\Admin\User\UserController;
+use App\Http\Controllers\Admin\Table\TableController;
+use App\Http\Controllers\Admin\Customer\CustomerController;
+use App\Http\Controllers\Admin\TableArea\TableAreaController;
 use App\Http\Controllers\Admin\ComboController;
 use App\Http\Controllers\Admin\DishController;
 
@@ -14,27 +14,14 @@ Route::prefix('admin')->group(function () {
     // # branchs
     Route::get('customers/list', [CustomerController::class, 'getListCustomers']);
     Route::get('customers/{id}/detail', [CustomerController::class, 'getCustomerDetail']);
-   
+
     Route::post('customers/{id}/update', [CustomerController::class, 'updateCustomer']);
     Route::get('customers/trash', [CustomerController::class, 'listTrashedCustomer']);
     Route::delete('customers/{id}/soft/delete', [CustomerController::class, 'softDeleteCustomer']);
     Route::delete('customers/{id}/force/delete', [CustomerController::class, 'forceDeleteCustomer']);
     Route::post('customers/{id}/restore', [CustomerController::class, 'restoreCustomer']);
 
-    // # table areas templates
-    Route::get('table-areas-templates/list', [TableAreaTemplateController::class, 'getListTableAreasTemplate']);
-    Route::get('table-areas-templates/{slug}/detail', [TableAreaTemplateController::class, 'getTableAreaTemplateDetail']);
-    Route::post('table-areas-templates/create', [TableAreaTemplateController::class, 'createTableAreaTemplate']);
-    Route::post('table-areas-templates/{slug}/update', [TableAreaTemplateController::class, 'updateTableAreaTemplate']);
-    Route::delete('table-areas-templates/{slug}/delete', [TableAreaTemplateController::class, 'deleteTableAreaTemplate']);
 
-    // # table areas
-    Route::get('table-areas/list/{branchId}', [TableAreaController::class, 'getTableAreasByBranch']);
-    Route::post('table-areas/create/{branchId}', [TableAreaController::class, 'createTableAreaForBranch']);
-    Route::post('table-areas/{slug}/update/{branchId}', [TableAreaController::class, 'updateTableAreaForBranch']);
-    Route::post('table-areas/create-for-all-branches', [TableAreaController::class, 'createTableAreaForAllBranches']);
-    Route::get('table-areas/{slug}/detail', [TableAreaController::class, 'getTableAreaDetail']);
-    Route::delete('table-areas/{slug}/delete/{branchId}', [TableAreaController::class, 'deleteTableAreaForBranch']);
     ## categories
     Route::get('categories/list', [CategoryController::class, 'getListCategories']);
     Route::get('categories/{slug}/detail', [CategoryController::class, 'getCategoryDetail']);
@@ -52,6 +39,21 @@ Route::prefix('admin')->group(function () {
     Route::get('users/{id}/delete', [UserController::class, 'deleteUser']);
     Route::post('users/{id}/block', [UserController::class, 'blockUser']);
     Route::post('users/{id}/unblock', [UserController::class, 'unblockUser']);
+
+    ## table areas
+    Route::get('table-areas/list', [TableAreaController::class, 'getListTableArea']);
+    Route::get('table-areas/{id}/detail', [TableAreaController::class, 'getTableAreaDetail']);
+    Route::post('table-areas/create', [TableAreaController::class, 'createTableArea']);
+    Route::post('table-areas/{id}/update', [TableAreaController::class, 'updateTableArea']);
+    Route::delete('table-areas/{id}/delete', [TableAreaController::class, 'destroy']);
+
+    ## tables
+    Route::get('tables/list', [TableController::class, 'getListTables']);
+    Route::get('tables/{id}/detail', [TableController::class, 'getTableDetail']);
+    Route::post('tables/create', [TableController::class, 'createTable']);
+    Route::post('tables/{id}/update', [TableController::class, 'updateTable']);
+    Route::delete('tables/{id}/delete', [TableController::class, 'destroyTable']);
+
 
     ##resetpass
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);

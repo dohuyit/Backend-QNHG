@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             TableAreaSeeder::class,
             CategorySeeder::class,
             CustomerSeeder::class,
+            TableSeeder::class,
             DishSeeder::class,
             ComboSeeder::class,
             ComboItemSeeder::class,
