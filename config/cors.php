@@ -21,7 +21,6 @@ return [
 
     // CHỈ định cụ thể origin của React app thay vì dùng '*'
     'allowed_origins' => [
-        'http://localhost:3000',     // nếu bạn dùng React với Create React App
         'http://localhost:5173',     // nếu bạn dùng Vite
     ],
 

@@ -67,7 +67,6 @@ class CustomerController extends Controller
      */
     public function updateCustomer(UpdateCustomerRequest $request, string $id)
     {
-        dd($request->all());
         $data = $request->only([
             'full_name',
             'avatar',
