@@ -21,6 +21,8 @@ class RepoServiceProvider extends ServiceProvider
         $this->app->bind(\App\Repositories\Dishes\DishRepositoryInterface::class, \App\Repositories\Dishes\DishRepository::class);
         $this->app->bind(\App\Repositories\Combos\ComboRepositoryInterface::class, \App\Repositories\Combos\ComboRepository::class);
         $this->app->bind(\App\Repositories\ComboItems\ComboItemRepositoryInterface::class, \App\Repositories\ComboItems\ComboItemRepository::class);
+        $this->app->bind(\App\Repositories\Reservations\ReservationRepositoryInterface::class, \App\Repositories\Reservations\ReservationRepository::class);
+
     }
 
     /**

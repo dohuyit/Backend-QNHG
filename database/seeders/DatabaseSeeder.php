@@ -16,13 +16,14 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
         $this->call([
-            TableAreaSeeder::class,
-            CategorySeeder::class,
-            CustomerSeeder::class,
-            TableSeeder::class,
-            DishSeeder::class,
-            ComboSeeder::class,
-            ComboItemSeeder::class,
+            // TableAreaSeeder::class,
+            // CategorySeeder::class,
+            // CustomerSeeder::class,
+            // TableSeeder::class,
+            // DishSeeder::class,
+            // ComboSeeder::class,
+            // ComboItemSeeder::class,
+            ReservationSeeder::class
         ]);
     }
 }

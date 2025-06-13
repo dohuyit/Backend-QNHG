@@ -1,14 +1,15 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\Category\CategoryController;
 use App\Http\Controllers\Admin\Auth\AuthController;
 use App\Http\Controllers\Admin\User\UserController;
 use App\Http\Controllers\Admin\Table\TableController;
 use App\Http\Controllers\Admin\Customer\CustomerController;
 use App\Http\Controllers\Admin\TableArea\TableAreaController;
-use App\Http\Controllers\Admin\ComboController;
-use App\Http\Controllers\Admin\DishController;
+use App\Http\Controllers\Admin\Combo\ComboController;
+use App\Http\Controllers\Admin\Dish\DishController;
+use App\Http\Controllers\Admin\Reservation\ReservationController;
 
 Route::prefix('admin')->group(function () {
     // # branchs
@@ -83,6 +84,18 @@ Route::prefix('admin')->group(function () {
     Route::post('combos/{id}/add-items', [ComboController::class, 'addItemToCombo']);
     Route::post('combos/{comboId}/{dishId}/update-quantity', [ComboController::class, 'updateItemQuantity']);
     Route::delete('combos/{comboId}/{dishId}/force/delete', [ComboController::class, 'forceDeleteComboItem']);
+
+    // Reservation
+    Route::get('reservations/list', [ReservationController::class, 'getListReservations']);
+    Route::get('reservations/{id}/detail', [ReservationController::class, 'getReservationDetail']);
+    Route::post('reservations/create', [ReservationController::class, 'createReservation']);
+    Route::post('reservations/{id}/update', [ReservationController::class, 'updateReservation']);
+    Route::get('reservations/trash', [ReservationController::class, 'listTrashedReservation']);
+    Route::delete('reservations/{id}/soft/delete', [ReservationController::class, 'softDeleteReservation']);
+    Route::delete('reservations/{id}/force/delete', [ReservationController::class, 'forceDeleteReservation']);
+    Route::post('reservations/{id}/restore', [ReservationController::class, 'restoreReservation']);
+
+    
 
 
 });
