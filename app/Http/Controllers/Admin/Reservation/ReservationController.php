@@ -15,7 +15,7 @@ class ReservationController extends Controller
     protected ReservationRepositoryInterface $reservationRepository;
     public function __construct(
         ReservationService $reservationService,
-        ReservationRepositoryInterface $reservationRepository
+        ReservationRepositoryInterface $reservationRepository,
     ) {
         $this->reservationService = $reservationService;
         $this->reservationRepository = $reservationRepository;
@@ -133,8 +133,8 @@ class ReservationController extends Controller
     }
     public function softDeleteReservation(int $id)
     {
-        $dish = $this->reservationRepository->getByConditions(['id' => $id]);
-        if (!$dish) {
+        $reservation = $this->reservationRepository->getByConditions(['id' => $id]);
+        if (!$reservation) {
             return $this->responseFail(message: 'Đơn đặt bàn không tồn tại', statusCode: 404);
         }
         $result = $this->reservationService->softDeleteReservation($id);

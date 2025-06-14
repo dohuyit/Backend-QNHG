@@ -4,12 +4,8 @@ namespace App\Services\Reservations;
 
 use App\Common\DataAggregate;
 use App\Common\ListAggregate;
-use App\Models\Category;
 use App\Models\Reservation;
-use App\Repositories\Categories\CategoryRepositoryInterface;
 use App\Repositories\Reservations\ReservationRepositoryInterface;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class ReservationService
 {
@@ -35,13 +31,13 @@ class ReservationService
                 'customer_email' => $item->customer_email,
                 'reservation_time' => $item->reservation_time,
                 'number_of_guests' => $item->number_of_guests,
-                'table_id' => $item->table_id,   
-                'notes' => $item->notes,          
-                'status' => $item->status,          
-                'user_id' => $item->user_id,   
-                'confirmed_at' => $item->confirmed_at,   
-                'cancelled_at' => $item->cancelled_at,   
-                'completed_at' => $item->completed_at,   
+                'table_id' => $item->table_id,
+                'notes' => $item->notes,
+                'status' => $item->status,
+                'user_id' => $item->user_id,
+                'confirmed_at' => $item->confirmed_at,
+                'cancelled_at' => $item->cancelled_at,
+                'completed_at' => $item->completed_at,
                 'created_at' => $item->created_at,
                 'updated_at' => $item->updated_at,
             ];
@@ -61,19 +57,19 @@ class ReservationService
         $result = new DataAggregate();
 
         $listDataCreate = [
-            'customer_id' => $data['customer_id'] ,
+            'customer_id' => $data['customer_id'],
             'customer_name' => $data['customer_name'],
             'customer_phone' => $data['customer_phone'],
             'customer_email' => $data['customer_email'],
             'reservation_time' => $data['reservation_time'],
             'number_of_guests' => $data['number_of_guests'],
-            'table_id' => $data['table_id'] ,
-            'notes' => $data['notes'] ,
+            'table_id' => $data['table_id'],
+            'notes' => $data['notes'],
             'status' => $data['status'] ?? 'pending',
             'user_id' => $data['user_id'],
         ];
 
-        $ok = $this->reservationRepository->createData($listDataCreate);
+        $ok  = $this->reservationRepository->createData($listDataCreate);
         if (!$ok) {
             $result->setMessage(message: 'Thêm mới thất bại, vui lòng thử lại!');
             return $result;
@@ -86,8 +82,7 @@ class ReservationService
         $result = new DataAggregate();
 
         $reservation  = $this->reservationRepository->getByConditions(['id' => $id]);
-
-        if (!$reservation ) {
+        if (!$reservation) {
             $result->setResultError(message: 'Đơn đặt bàn không tồn tại');
             return $result;
         }
@@ -100,14 +95,14 @@ class ReservationService
         $result = new DataAggregate();
 
         $listDataUpdate = [
-            'customer_id' => $data['customer_id'] ,
+            'customer_id' => $data['customer_id'],
             'customer_name' => $data['customer_name'],
             'customer_phone' => $data['customer_phone'],
             'customer_email' => $data['customer_email'],
             'reservation_time' => $data['reservation_time'],
             'number_of_guests' => $data['number_of_guests'],
-            'table_id' => $data['table_id'] ,
-            'notes' => $data['notes'] ,
+            'table_id' => $data['table_id'],
+            'notes' => $data['notes'],
             'status' => $data['status'] ?? $reservation->status,
             'user_id' => $data['user_id'],
         ];
@@ -149,13 +144,13 @@ class ReservationService
                 'customer_email' => $item->customer_email,
                 'reservation_time' => $item->reservation_time,
                 'number_of_guests' => $item->number_of_guests,
-                'table_id' => $item->table_id,   
-                'notes' => $item->notes,          
-                'status' => $item->status,          
-                'user_id' => $item->user_id,   
-                'confirmed_at' => $item->confirmed_at,   
-                'cancelled_at' => $item->cancelled_at,   
-                'completed_at' => $item->completed_at,   
+                'table_id' => $item->table_id,
+                'notes' => $item->notes,
+                'status' => $item->status,
+                'user_id' => $item->user_id,
+                'confirmed_at' => $item->confirmed_at,
+                'cancelled_at' => $item->cancelled_at,
+                'completed_at' => $item->completed_at,
                 'created_at' => $item->created_at,
                 'updated_at' => $item->updated_at,
             ];
@@ -187,7 +182,7 @@ class ReservationService
     {
         $result = new DataAggregate();
         $reservation  = $this->reservationRepository->findOnlyTrashedById($id);
-        
+
         $ok = $reservation->forceDelete();
 
         if (!$ok) {

@@ -13,10 +13,10 @@ class ReservationRepository implements ReservationRepositoryInterface
         return (bool)$result;
     }
 
-    public function createData(array $data): bool
+    public function createData(array $data): ?Reservation
     {
         $result = Reservation::create($data);
-        return (bool)$result;
+        return $result;
     }
     public function getByConditions(array $conditions): ?Reservation
     {
