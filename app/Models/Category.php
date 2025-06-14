@@ -12,7 +12,6 @@ class Category extends Model
 
     protected $fillable = [
         'name',             // Ví dụ: "Món Khai Vị", "Món Chính", "Tráng Miệng", "Đồ Uống"
-        'slug',             // Ví dụ: "mon-khai-vi", "mon-chinh"
         'description',      // Ví dụ: "Các món ăn nhẹ nhàng để bắt đầu bữa tiệc."
         'image_url',        // Ví dụ: "/images/categories/khai-vi.jpg"
         'is_active',        // Ví dụ: true, false
@@ -26,5 +25,16 @@ class Category extends Model
     public function children(){
         return $this->hasMany(Category::class, 'parent_id');
     }
+    public function getAllChildrenIds(){
+        $ids = [$this->id];
+        foreach($this->children as $child) {
+            $ids = array_merge($ids, $child->getAllChildrenIds());
+        }
+        return $ids;
+    }
+    public function dishes(){
+        return $this->hasMany(Dish::class, 'category_id');
+    }
+
 
 }

@@ -37,7 +37,7 @@ class UpdateCustomerRequest extends BaseFormRequest
             'district_id'    => 'required|string|max:10',
             'ward_id'        => 'required|string|max:10',
             'notes'          => 'nullable|string',
-            'status_customer'         => 'required|in:active,inactive,pending_activation,block',
+            'status_customer'         => 'required|in:active,inactive,blocked',
         ];
     }
 
@@ -76,7 +76,7 @@ class UpdateCustomerRequest extends BaseFormRequest
             'ward_id.max'           => 'Mã phường/xã không được vượt quá 10 ký tự.',
 
             'status_customer.required'       => 'Vui lòng chọn trạng thái khách hàng.',
-            'status_customer.in'             => 'Trạng thái không hợp lệ. Giá trị cho phép: active, inactive.',
+            'status_customer.in'             => 'Trạng thái không hợp lệ. Giá trị cho phép: active, inactive, blocked.',
         ];
     }
 }

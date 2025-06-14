@@ -11,5 +11,5 @@ interface CategoryRepositoryInterface
     public function getByConditions(array $conditions): ?Category;
     public function getCategoryList(array $filter = [], int $limit = 10): LengthAwarePaginator;
     public function getTrashCategoryList(array $filter = [], int $limit = 10): LengthAwarePaginator;
-    public function findOnlyTrashedBySlug($slug): ?Category;
+    public function findOnlyTrashedById($id): ?Category;
 }

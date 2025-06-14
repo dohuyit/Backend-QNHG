@@ -24,7 +24,7 @@ class CustomerFactory extends Factory
             'city_id' => str_pad((string) rand(1, 99), 2, '0', STR_PAD_LEFT),
             'district_id' => str_pad((string) rand(1, 999), 3, '0', STR_PAD_LEFT),
             'ward_id' => str_pad((string) rand(1, 99999), 5, '0', STR_PAD_LEFT),
-            'status_customer' => $this->faker->randomElement(['active', 'inactive', 'pending_activation', 'blocked']),
+            'status_customer' => $this->faker->randomElement(['active', 'inactive',  'blocked']),
             'remember_token' => Str::random(10),
             'created_at' => now(),
             'updated_at' => now(),

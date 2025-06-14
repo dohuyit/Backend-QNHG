@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('permissions', function (Blueprint $table) {
             $table->id()->comment('Mã quyền hạn');
             $table->string('permission_name', 100)->unique()->comment('Tên định danh quyền');
-            $table->string('slug', 120)->unique()->nullable()->comment('Slug cho quyền hạn');
             $table->foreignId('permission_group_id')->comment('Mã nhóm quyền')->constrained('permission_groups', 'id');
             $table->text('description')->nullable()->comment('Mô tả quyền hạn');
             $table->timestamps();

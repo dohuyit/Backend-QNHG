@@ -21,6 +21,9 @@ class DatabaseSeeder extends Seeder
             CustomerSeeder::class,
             TableSeeder::class,
             OrderSeeder::class,
+            DishSeeder::class,
+            ComboSeeder::class,
+            ComboItemSeeder::class,
         ]);
     }
 }
