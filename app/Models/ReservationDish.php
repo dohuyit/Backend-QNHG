@@ -10,8 +10,12 @@ class ReservationDish extends Model
 
     protected $fillable = [
         'reservation_id',
-        'menu_item_id',
+        'dish_id',
         'quantity',
         'note',                 // Ghi chú cho món ăn cụ thể trong đặt bàn
     ];
+    public function dish()
+    {
+        return $this->belongsTo(Dish::class, 'dish_id');
+    }
 }

@@ -9,7 +9,7 @@ use App\Repositories\Combos\ComboRepositoryInterface;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
-class ComboServices
+class ComboService
 {
     protected ComboRepositoryInterface $comboRepository;
     public function __construct(ComboRepositoryInterface $comboRepository)

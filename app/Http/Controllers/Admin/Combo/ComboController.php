@@ -1,5 +1,5 @@
 <?php
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\Admin\Combo;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ComboItemRequest\StoreComboItemRequest;
@@ -8,22 +8,22 @@ use App\Http\Requests\ComboRequest\StoreComboRequest;
 use App\Http\Requests\ComboRequest\UpdateComboRequest;
 use App\Repositories\ComboItems\ComboItemRepositoryInterface;
 use App\Repositories\Combos\ComboRepositoryInterface;
-use App\Services\ComboItems\ComboItemServices;
-use App\Services\Combos\ComboServices;
+use App\Services\ComboItems\ComboItemService;
+use App\Services\Combos\ComboService;
 use Faker\Provider\Base;
 use Illuminate\Http\Request;
 use Illuminate\Contracts\Cache\Store;
 
 class ComboController extends Controller
 {
-    protected ComboServices $comboService;
+    protected ComboService $comboService;
     protected ComboRepositoryInterface $comboRepository;
-    protected ComboItemServices $comboItemService;
+    protected ComboItemService $comboItemService;
     protected ComboItemRepositoryInterface $comboItemRepository;
     public function __construct(
-        ComboServices $comboService,
+        ComboService $comboService,
         ComboRepositoryInterface $comboRepository,
-        ComboItemServices $comboItemService,
+        ComboItemService $comboItemService,
         ComboItemRepositoryInterface $comboItemRepository,
     ) {
         $this->comboService = $comboService;

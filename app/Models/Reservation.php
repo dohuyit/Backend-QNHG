@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Reservation extends Model
 {
+    use SoftDeletes;
+    use HasFactory;
     protected $table = 'reservations';
 
     protected $fillable = [
@@ -16,7 +20,6 @@ class Reservation extends Model
         'reservation_time',     // Ví dụ: "2025-06-15 19:30:00"
         'number_of_guests',     // Ví dụ: 4
         'table_id',             // ID bàn được chỉ định (nếu có)
-        'promotion_id',         // ID khuyến mãi áp dụng (nếu có)
         'notes',                // Ví dụ: "Xin bàn gần cửa sổ, không hút thuốc."
         'status',               // 'pending', 'confirmed', 'cancelled', 'completed', 'no_show', 'seated'
         'user_id',              // ID nhân viên tạo/xác nhận đặt bàn
@@ -24,4 +27,14 @@ class Reservation extends Model
         'cancelled_at',
         'completed_at',
     ];
+     public function customer()
+    {
+        return $this->belongsTo(Customer::class);
+    }
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'created_by_user_id');
+    }
+
+    
 }
