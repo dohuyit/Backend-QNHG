@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\User\UserController;
 use App\Http\Controllers\Admin\Table\TableController;
 use App\Http\Controllers\Admin\Customer\CustomerController;
 use App\Http\Controllers\Admin\TableArea\TableAreaController;
+use App\Http\Controllers\Admin\Order\OrderController;
 use App\Http\Controllers\Admin\ComboController;
 use App\Http\Controllers\Admin\DishController;
 
@@ -59,6 +60,19 @@ Route::prefix('admin')->group(function () {
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
     Route::post('/reset-password/{id}', [AuthController::class, 'resetPassword']);
 
+    ##order
+    Route::get('orders/list', [OrderController::class, 'getListOrders']);
+    Route::get('orders/{id}/detail', [OrderController::class, 'getOrderDetail']);
+    Route::post('orders/create', [OrderController::class, 'createOrder']);
+    Route::post('orders/{id}/update', [OrderController::class, 'updateOrder']);
+    Route::post('orders/items/{orderItemId}/status', [OrderController::class, 'updateItemStatus']);
+    Route::post('orders/{orderId}/split', [OrderController::class, 'splitOrder']);
+    Route::post('orders/merge', [OrderController::class, 'mergeOrders']);
+    Route::get('orders/items/{orderItemId}/history', [OrderController::class, 'getOrderItemHistory']);
+    Route::get('orders/track/{orderCode}', [OrderController::class, 'trackOrder']);
+    Route::post('orders/{orderId}/items', [OrderController::class, 'addOrderItem']);
+    Route::put('orders/{orderId}/items/{itemId}', [OrderController::class, 'updateOrderItem']);
+    Route::delete('orders/{orderId}/items/{itemId}', [OrderController::class, 'deleteOrderItem']);
     // dishes
     Route::get('dishes/list', [DishController::class, 'getListDishes']);
     Route::get('dishes/{id}/detail', [DishController::class, 'getDishDetail']); 
