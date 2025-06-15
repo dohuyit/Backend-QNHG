@@ -10,8 +10,6 @@ use App\Http\Controllers\Admin\TableArea\TableAreaController;
 use App\Http\Controllers\Admin\Combo\ComboController;
 use App\Http\Controllers\Admin\Dish\DishController;
 use App\Http\Controllers\Admin\Order\OrderController;
-use App\Http\Controllers\Admin\ComboController;
-use App\Http\Controllers\Admin\DishController;
 use App\Http\Controllers\Admin\Reservation\ReservationController;
 
 Route::prefix('admin')->group(function () {
@@ -78,9 +76,9 @@ Route::prefix('admin')->group(function () {
     Route::delete('orders/{orderId}/items/{itemId}', [OrderController::class, 'deleteOrderItem']);
     // dishes
     Route::get('dishes/list', [DishController::class, 'getListDishes']);
-    Route::get('dishes/{id}/detail', [DishController::class, 'getDishDetail']); 
+    Route::get('dishes/{id}/detail', [DishController::class, 'getDishDetail']);
     Route::get('dishes/category/{id}', [DishController::class, 'getDishesByCategory']);
-    Route::post('dishes/create', [DishController::class, 'createDish']); 
+    Route::post('dishes/create', [DishController::class, 'createDish']);
     Route::post('dishes/{id}/update', [DishController::class, 'updateDish']);
     Route::get('dishes/trash', [DishController::class, 'listTrashedDish']);
     Route::delete('dishes/{id}/soft/delete', [DishController::class, 'softDeleteDish']);
@@ -110,11 +108,4 @@ Route::prefix('admin')->group(function () {
     Route::delete('reservations/{id}/soft/delete', [ReservationController::class, 'softDeleteReservation']);
     Route::delete('reservations/{id}/force/delete', [ReservationController::class, 'forceDeleteReservation']);
     Route::post('reservations/{id}/restore', [ReservationController::class, 'restoreReservation']);
-
-
-
-
-    
-
-
 });
