@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('role_permissions', function (Blueprint $table) {
             $table->id()->comment('ID liên kết quyền và vai trò');
-            $table->foreignId('role_id')->comment('Mã vai trò')->constrained('roles', 'id')->onDelete('cascade');
-            $table->foreignId('permission_id')->comment('Mã quyền hạn')->constrained('permissions', 'id')->onDelete('cascade');
+            $table->foreignId('role_id')->comment('Mã vai trò')->constrained('roles', 'id')->onDelete('restrict');
+            $table->foreignId('permission_id')->comment('Mã quyền hạn')->constrained('permissions', 'id')->onDelete('restrict');
             $table->timestamps();
             $table->unique(['role_id', 'permission_id'], 'uq_role_permission');
             $table->comment('Liên kết giữa vai trò và các quyền hạn');

@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('permission_groups', function (Blueprint $table) {
             $table->id()->comment('Mã nhóm quyền');
             $table->string('group_name', 100)->unique()->comment('Tên nhóm quyền');
-            $table->string('slug', 120)->unique()->nullable()->comment('Slug cho nhóm quyền');
             $table->text('description')->nullable()->comment('Mô tả nhóm quyền');
             $table->timestamps();
             $table->softDeletes()->comment('Thêm trường xóa mềm');

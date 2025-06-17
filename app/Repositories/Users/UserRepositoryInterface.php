@@ -12,6 +12,5 @@ interface UserRepositoryInterface
     public function updateByConditions(array $conditions, array $updateData): bool;
     public function getUserList(array $filter = [], int $limit = 10): LengthAwarePaginator;
     public function getTrashUserList(array $filter = [], int $limit = 10): LengthAwarePaginator;
-    public function findById(int $id): ?User;
-    public function deleteById(int $id): bool;
+    public function delete(User $user): bool;
 }
