@@ -1,22 +1,17 @@
 <?php
 
 use App\Http\Controllers\Admin\Role\RoleController;
-use App\Http\Controllers\Admin\TableAreaController;
-use App\Http\Controllers\Admin\TableAreaTemplateController;
-use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\TableArea\TableAreaController;
+use App\Http\Controllers\Admin\Table\TableController;
+use App\Http\Controllers\Admin\Category\CategoryController;;
 use App\Http\Controllers\Admin\Customer\CustomerController;
 use App\Http\Controllers\Admin\User\UserController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Admin\Category\CategoryController;
 use App\Http\Controllers\Admin\Auth\AuthController;
 use App\Http\Controllers\Admin\PermissionGroup\PermissionGroupController;
 use App\Http\Controllers\Admin\Permission\PermissionController;
 use App\Http\Controllers\Admin\UserRole\UserRoleController;
 use App\Http\Controllers\Admin\RolePermission\RolePermissionController;
-use App\Http\Controllers\Admin\User\UserController;
-use App\Http\Controllers\Admin\Table\TableController;
-use App\Http\Controllers\Admin\Customer\CustomerController;
-use App\Http\Controllers\Admin\TableArea\TableAreaController;
 use App\Http\Controllers\Admin\Combo\ComboController;
 use App\Http\Controllers\Admin\Dish\DishController;
 use App\Http\Controllers\Admin\Order\OrderController;
