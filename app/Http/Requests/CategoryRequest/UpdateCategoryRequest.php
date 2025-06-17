@@ -22,9 +22,11 @@ class UpdateCategoryRequest extends BaseFormRequest
      */
     public function rules()
     {
+        $categoryId = $this->route('id');
+
         return [
             'parent_id' => 'nullable|exists:categories,id',
-            'name' => 'required|string|max:100',
+            'name' => 'required|string|max:100|unique:categories,name,' . $categoryId,
             'image_url' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'description' => 'nullable|string',
             'is_active' => 'required|boolean',
@@ -37,6 +39,7 @@ class UpdateCategoryRequest extends BaseFormRequest
             'parent_id.exists' => 'Danh mục cha không tồn tại.',
             'name.required' => 'Vui lòng nhập tên danh mục.',
             'name.max' => 'Tên danh mục không được vượt quá 100 ký tự.',
+            'name.unique' => 'Tên danh mục đã tồn tại.',
             'image_url.image' => 'Ảnh phải là tệp hình ảnh.',
             'image_url.mimes' => 'Ảnh phải có định dạng jpeg, png, jpg hoặc webp.',
             'image_url.max' => 'Ảnh không được vượt quá 2MB.',

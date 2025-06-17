@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id()->comment('Mã combo riêng của người dùng');
             $table->foreignId('user_id')->comment('Mã người dùng tạo')->constrained('users', 'id')->onDelete('cascade');
             $table->string('combo_name', 255)->comment('Tên combo người dùng đặt');
-            $table->string('slug', 255)->unique()->nullable()->comment('Slug cho combo riêng');
             $table->text('description')->nullable()->comment('Mô tả combo riêng');
             $table->decimal('price', 10, 2)->nullable()->comment('Giá combo riêng');
             $table->boolean('is_active')->default(true)->comment('Trạng thái sử dụng');

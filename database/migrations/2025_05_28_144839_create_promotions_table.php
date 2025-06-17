@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('promotions', function (Blueprint $table) {
             $table->id()->comment('Mã khuyến mãi');
             $table->string('name', 150)->comment('Tên khuyến mãi');
-            $table->string('slug', 170)->unique()->nullable()->comment('Slug cho khuyến mãi');
             $table->text('description')->nullable()->comment('Mô tả');
             $table->enum('type', ['percentage', 'fixed'])->comment('Loại hình');
             $table->decimal('discount_value', 10, 2)->comment('Giá trị giảm giá');

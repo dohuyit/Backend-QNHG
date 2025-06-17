@@ -7,7 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class Table extends Model
 {
     protected $table = 'tables';
-
+    protected $casts = [
+        'tags' => 'array',
+    ];
     protected $fillable = [
         'table_area_id',    // ID của khu vực bàn
         'table_number',     // Ví dụ: "A10", "VIP02", "Bar-05"
@@ -19,4 +21,8 @@ class Table extends Model
         'status',           // Ví dụ: 'available', 'occupied', 'reserved', 'cleaning', 'out_of_service'
         'is_active',        // Ví dụ: true, false
     ];
+    public function tableArea()
+    {
+        return $this->belongsTo(TableArea::class);
+    }
 }

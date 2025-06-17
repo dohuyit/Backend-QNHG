@@ -7,37 +7,33 @@ use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\Customer\CustomerController;
 use App\Http\Controllers\Admin\User\UserController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\Category\CategoryController;
 use App\Http\Controllers\Admin\Auth\AuthController;
 use App\Http\Controllers\Admin\PermissionGroup\PermissionGroupController;
 use App\Http\Controllers\Admin\Permission\PermissionController;
 use App\Http\Controllers\Admin\UserRole\UserRoleController;
 use App\Http\Controllers\Admin\RolePermission\RolePermissionController;
+use App\Http\Controllers\Admin\User\UserController;
+use App\Http\Controllers\Admin\Table\TableController;
+use App\Http\Controllers\Admin\Customer\CustomerController;
+use App\Http\Controllers\Admin\TableArea\TableAreaController;
+use App\Http\Controllers\Admin\Combo\ComboController;
+use App\Http\Controllers\Admin\Dish\DishController;
+use App\Http\Controllers\Admin\Order\OrderController;
+use App\Http\Controllers\Admin\Reservation\ReservationController;
 
 Route::prefix('admin')->group(function () {
     // # branchs
     Route::get('customers/list', [CustomerController::class, 'getListCustomers']);
     Route::get('customers/{id}/detail', [CustomerController::class, 'getCustomerDetail']);
-    Route::post('customers/create', [CustomerController::class, 'createCustomer']);
+
     Route::post('customers/{id}/update', [CustomerController::class, 'updateCustomer']);
     Route::get('customers/trash', [CustomerController::class, 'listTrashedCustomer']);
     Route::delete('customers/{id}/soft/delete', [CustomerController::class, 'softDeleteCustomer']);
     Route::delete('customers/{id}/force/delete', [CustomerController::class, 'forceDeleteCustomer']);
     Route::post('customers/{id}/restore', [CustomerController::class, 'restoreCustomer']);
 
-    // # table areas templates
-    Route::get('table-areas-templates/list', [TableAreaTemplateController::class, 'getListTableAreasTemplate']);
-    Route::get('table-areas-templates/{slug}/detail', [TableAreaTemplateController::class, 'getTableAreaTemplateDetail']);
-    Route::post('table-areas-templates/create', [TableAreaTemplateController::class, 'createTableAreaTemplate']);
-    Route::post('table-areas-templates/{slug}/update', [TableAreaTemplateController::class, 'updateTableAreaTemplate']);
-    Route::delete('table-areas-templates/{slug}/delete', [TableAreaTemplateController::class, 'deleteTableAreaTemplate']);
 
-    // # table areas
-    Route::get('table-areas/list/{branchId}', [TableAreaController::class, 'getTableAreasByBranch']);
-    Route::post('table-areas/create/{branchId}', [TableAreaController::class, 'createTableAreaForBranch']);
-    Route::post('table-areas/{slug}/update/{branchId}', [TableAreaController::class, 'updateTableAreaForBranch']);
-    Route::post('table-areas/create-for-all-branches', [TableAreaController::class, 'createTableAreaForAllBranches']);
-    Route::get('table-areas/{slug}/detail', [TableAreaController::class, 'getTableAreaDetail']);
-    Route::delete('table-areas/{slug}/delete/{branchId}', [TableAreaController::class, 'deleteTableAreaForBranch']);
     ## categories
     Route::get('categories/list', [CategoryController::class, 'getListCategories']);
     Route::get('categories/{slug}/detail', [CategoryController::class, 'getCategoryDetail']);
@@ -55,6 +51,21 @@ Route::prefix('admin')->group(function () {
     Route::post('users/{id}/delete', [UserController::class, 'deleteUser']);
     Route::post('users/{id}/block', [UserController::class, 'blockUser']);
     Route::post('users/{id}/unblock', [UserController::class, 'unblockUser']);
+
+    ## table areas
+    Route::get('table-areas/list', [TableAreaController::class, 'getListTableArea']);
+    Route::get('table-areas/{id}/detail', [TableAreaController::class, 'getTableAreaDetail']);
+    Route::post('table-areas/create', [TableAreaController::class, 'createTableArea']);
+    Route::post('table-areas/{id}/update', [TableAreaController::class, 'updateTableArea']);
+    Route::delete('table-areas/{id}/delete', [TableAreaController::class, 'destroy']);
+
+    ## tables
+    Route::get('tables/list', [TableController::class, 'getListTables']);
+    Route::get('tables/{id}/detail', [TableController::class, 'getTableDetail']);
+    Route::post('tables/create', [TableController::class, 'createTable']);
+    Route::post('tables/{id}/update', [TableController::class, 'updateTable']);
+    Route::delete('tables/{id}/delete', [TableController::class, 'destroyTable']);
+
 
     ##resetpass
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
@@ -92,4 +103,52 @@ Route::prefix('admin')->group(function () {
     Route::get('role/permissions/list', [RolePermissionController::class, 'getRolePermissionList']);
     Route::post('role/permissions/{id}/delete', [RolePermissionController::class, 'deleteRolePermission']);
 
+
+    ##order
+    Route::get('orders/list', [OrderController::class, 'getListOrders']);
+    Route::get('orders/{id}/detail', [OrderController::class, 'getOrderDetail']);
+    Route::post('orders/create', [OrderController::class, 'createOrder']);
+    Route::post('orders/{id}/update', [OrderController::class, 'updateOrder']);
+    Route::post('orders/items/{orderItemId}/status', [OrderController::class, 'updateItemStatus']);
+    Route::post('orders/{orderId}/split', [OrderController::class, 'splitOrder']);
+    Route::post('orders/merge', [OrderController::class, 'mergeOrders']);
+    Route::get('orders/items/{orderItemId}/history', [OrderController::class, 'getOrderItemHistory']);
+    Route::get('orders/track/{orderCode}', [OrderController::class, 'trackOrder']);
+    Route::post('orders/{orderId}/items', [OrderController::class, 'addOrderItem']);
+    Route::put('orders/{orderId}/items/{itemId}', [OrderController::class, 'updateOrderItem']);
+    Route::delete('orders/{orderId}/items/{itemId}', [OrderController::class, 'deleteOrderItem']);
+    // dishes
+    Route::get('dishes/list', [DishController::class, 'getListDishes']);
+    Route::get('dishes/{id}/detail', [DishController::class, 'getDishDetail']);
+    Route::get('dishes/category/{id}', [DishController::class, 'getDishesByCategory']);
+    Route::post('dishes/create', [DishController::class, 'createDish']);
+    Route::post('dishes/{id}/update', [DishController::class, 'updateDish']);
+    Route::get('dishes/trash', [DishController::class, 'listTrashedDish']);
+    Route::delete('dishes/{id}/soft/delete', [DishController::class, 'softDeleteDish']);
+    Route::delete('dishes/{id}/force/delete', [DishController::class, 'forceDeleteDish']);
+    Route::post('dishes/{id}/restore', [DishController::class, 'restoreDish']);
+
+    // combos
+    Route::get('combos/list', [ComboController::class, 'getListCombos']);
+    Route::get('combos/{id}/detail', [ComboController::class, 'getComboDetail']);
+    Route::post('combos/create', [ComboController::class, 'createCombo']);
+    Route::post('combos/{id}/update', [ComboController::class, 'updateCombo']);
+    Route::get('combos/trash', [ComboController::class, 'listTrashedCombo']);
+    Route::delete('combos/{id}/soft/delete', [ComboController::class, 'softDeleteCombo']);
+    Route::delete('combos/{id}/force/delete', [ComboController::class, 'forceDeleteCombo']);
+    Route::post('combos/{id}/restore', [ComboController::class, 'restoreCombo']);
+
+    Route::post('combos/{id}/add-items', [ComboController::class, 'addItemToCombo']);
+    Route::post('combos/{comboId}/{dishId}/update-quantity', [ComboController::class, 'updateItemQuantity']);
+    Route::delete('combos/{comboId}/{dishId}/force/delete', [ComboController::class, 'forceDeleteComboItem']);
+
+    // Reservation
+    Route::get('reservations/list', [ReservationController::class, 'getListReservations']);
+    Route::get('reservations/{id}/detail', [ReservationController::class, 'getReservationDetail']);
+    Route::post('reservations/create', [ReservationController::class, 'createReservation']);
+    Route::post('reservations/{id}/update', [ReservationController::class, 'updateReservation']);
+    Route::get('reservations/trash', [ReservationController::class, 'listTrashedReservation']);
+    Route::delete('reservations/{id}/soft/delete', [ReservationController::class, 'softDeleteReservation']);
+    Route::delete('reservations/{id}/force/delete', [ReservationController::class, 'forceDeleteReservation']);
+    Route::post('reservations/{id}/restore', [ReservationController::class, 'restoreReservation']);
 });

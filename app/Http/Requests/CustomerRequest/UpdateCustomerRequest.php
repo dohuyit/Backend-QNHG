@@ -19,74 +19,64 @@ class UpdateCustomerRequest extends BaseFormRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
-    public function rules(): array
+    public function rules()
     {
         return [
-            'city_id' => 'required|integer',
-            'district_id' => 'required|integer',
-            'name' => 'required|string|max:255',
-            'image_banner' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'full_name'      => 'required|string|max:255',
+            'avatar'         => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'phone_number' => [
                 'required',
                 'string',
                 'regex:/^(0|\+84)[0-9]{9}$/'
             ],
-            'opening_hours' => 'nullable|string|max:255',
-            'tags' => 'nullable|string|max:255',
-            'status' => 'required|string|in:active,inactive,pending_activation,block',
-            'is_main_branch' => 'required|boolean',
-            'capacity' => 'nullable|integer|min:0',
-            'area_size' => 'nullable|numeric|min:0',
-            'number_of_floors' => 'nullable|integer|min:1',
-            'url_map' => 'nullable|url|max:500',
-            'description' => 'nullable|string',
-            'main_description' => 'nullable|string',
+            'email'          => 'required|email|max:255|unique:customers,email',
+            'address'        => 'nullable|string|max:500',
+            'gender'         => 'nullable|in:male,female,other',
+            'date_of_birth'  => 'nullable|date|before:today',
+            'city_id'        => 'required|string|max:10',
+            'district_id'    => 'required|string|max:10',
+            'ward_id'        => 'required|string|max:10',
+            'notes'          => 'nullable|string',
+            'status_customer'         => 'required|in:active,inactive,blocked',
         ];
     }
 
-    public function messages(): array
+    public function messages()
     {
         return [
-            'city_id.required' => 'Vui lòng chọn tỉnh/thành phố.',
-            'city_id.integer' => 'ID tỉnh/thành phố phải là số.',
+            'full_name.required'    => 'Vui lòng nhập họ và tên.',
+            'full_name.max'         => 'Họ và tên không được vượt quá 255 ký tự.',
 
-            'district_id.required' => 'Vui lòng chọn quận/huyện.',
-            'district_id.integer' => 'ID quận/huyện phải là số.',
-
-            'name.required' => 'Vui lòng nhập tên chi nhánh.',
-            'name.max' => 'Tên chi nhánh không được vượt quá 255 ký tự.',
-
-            'image_banner.image' => 'Ảnh banner phải là tệp hình ảnh.',
-            'image_banner.mimes' => 'Ảnh banner phải có định dạng jpeg, png, jpg hoặc webp.',
-            'image_banner.max' => 'Ảnh banner không được vượt quá 2MB.',
+            'avatar.image'          => 'Ảnh đại diện phải là tệp hình ảnh.',
+            'avatar.mimes'          => 'Ảnh đại diện phải có định dạng jpeg, png, jpg hoặc webp.',
+            'avatar.max'            => 'Ảnh đại diện không được vượt quá 2MB.',
 
             'phone_number.required' => 'Vui lòng nhập số điện thoại.',
             'phone_number.regex' => 'Số điện thoại không hợp lệ. Vui lòng nhập đúng định dạng (ví dụ: 0912345678 hoặc +84912345678).',
 
+            'email.required'        => 'Vui lòng nhập email.',
+            'email.email'           => 'Email không hợp lệ.',
+            'email.max'             => 'Email không được vượt quá 255 ký tự.',
+            'email.unique'          => 'Email đã tồn tại.',
 
-            'opening_hours.max' => 'Giờ mở cửa không được vượt quá 255 ký tự.',
-            'tags.max' => 'Thẻ tag không được vượt quá 255 ký tự.',
+            'address.max'           => 'Địa chỉ không được vượt quá 500 ký tự.',
 
-            'status.required' => 'Vui lòng chọn trạng thái hoạt động của chi nhánh.',
-            'status.in' => 'Trạng thái không hợp lệ. Chỉ cho phép: active, inactive, temporarily_closed.',
+            'gender.in'             => 'Giới tính không hợp lệ. Giá trị cho phép: male, female, other.',
 
-            'is_main_branch.required' => 'Vui lòng xác định chi nhánh chính hay không.',
-            'is_main_branch.boolean' => 'Trường chi nhánh chính phải là true hoặc false.',
+            'date_of_birth.date'    => 'Ngày sinh không hợp lệ.',
+            'date_of_birth.before'  => 'Ngày sinh phải nhỏ hơn ngày hiện tại.',
 
-            'capacity.integer' => 'Sức chứa phải là số nguyên.',
-            'capacity.min' => 'Sức chứa không được nhỏ hơn 0.',
+            'city_id.required'      => 'Vui lòng chọn tỉnh/thành phố.',
+            'city_id.max'           => 'Mã tỉnh/thành phố không được vượt quá 10 ký tự.',
 
-            'area_size.numeric' => 'Diện tích phải là số.',
-            'area_size.min' => 'Diện tích không được nhỏ hơn 0.',
+            'district_id.required'  => 'Vui lòng chọn quận/huyện.',
+            'district_id.max'       => 'Mã quận/huyện không được vượt quá 10 ký tự.',
 
-            'number_of_floors.integer' => 'Số tầng phải là số nguyên.',
-            'number_of_floors.min' => 'Số tầng tối thiểu là 1.',
+            'ward_id.required'      => 'Vui lòng chọn phường/xã.',
+            'ward_id.max'           => 'Mã phường/xã không được vượt quá 10 ký tự.',
 
-            'url_map.url' => 'Đường dẫn bản đồ không hợp lệ.',
-            'url_map.max' => 'Đường dẫn bản đồ không được vượt quá 500 ký tự.',
-
-            'description.string' => 'Mô tả phải là chuỗi ký tự.',
-            'main_description.string' => 'Mô tả chính phải là chuỗi ký tự.',
+            'status_customer.required'       => 'Vui lòng chọn trạng thái khách hàng.',
+            'status_customer.in'             => 'Trạng thái không hợp lệ. Giá trị cho phép: active, inactive, blocked.',
         ];
     }
 }

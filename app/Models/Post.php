@@ -10,7 +10,6 @@ class Post extends Model
 
     protected $fillable = [
         'title',
-        'slug',
         'content',
         'thumbnail_url',
         'tags',                 // Ví dụ (JSON): ["thông báo", "món mới", "sự kiện"]
