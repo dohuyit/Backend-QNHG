@@ -50,7 +50,6 @@ class UserController extends Controller
             'full_name',
             'email',
             'phone_number',
-            'branch_id',
             'status',
         ]);
 
@@ -77,7 +76,6 @@ class UserController extends Controller
             'full_name',
             'phone_number',
             'status',
-            'branch_id'
         );
 
         $result = $this->userService->getListUsers($params);
@@ -86,13 +84,13 @@ class UserController extends Controller
     }
     public function deleteUser($id)
     {
-        $currentUser = User::find($id);
+        $user = $this->userRepository->getByConditions(['id' => $id]);
 
-        if (!$currentUser) {
+        if (!$user) {
             return $this->responseFail(message: 'Người dùng hiện tại không tồn tại.');
         }
 
-        $result = $this->userService->deleteUser($id, $currentUser);
+        $result = $this->userService->deleteUser($user);
 
         if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage(), errors: $result->getErrors());
@@ -107,7 +105,6 @@ class UserController extends Controller
             return $this->responseFail(message: 'Tài khoản không tồn tại', statusCode: 404);
         }
 
-        // Gọi service để thực hiện block
         $result = $this->userService->blockUser($user);
 
         if (!$result->isSuccessCode()) {
@@ -116,6 +113,7 @@ class UserController extends Controller
 
         return $this->responseSuccess(message: $result->getMessage());
     }
+
     public function unblockUser(string $id,Request $request)
     {
         $user = $this->userRepository->getByConditions(['id' => $id]);
@@ -123,7 +121,6 @@ class UserController extends Controller
             return $this->responseFail(message: 'Tài khoản không tồn tại', statusCode: 404);
         }
 
-        // Gọi service để mở khoá
         $result = $this->userService->unblockUser($user);
 
         if (!$result->isSuccessCode()) {

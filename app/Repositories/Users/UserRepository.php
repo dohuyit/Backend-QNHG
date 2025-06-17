@@ -26,7 +26,7 @@ class  UserRepository implements UserRepositoryInterface
     }
     public function getUserList(array $filter = [], int $limit = 10): LengthAwarePaginator
     {
-        $query = User::with('branch');
+        $query = User::query(); // đảm bảo query khởi tạo đúng
 
         if (!empty($filter)) {
             $query = $this->filterUserList($query, $filter);
@@ -34,6 +34,7 @@ class  UserRepository implements UserRepositoryInterface
 
         return $query->orderBy('created_at', 'desc')->paginate($limit);
     }
+
     private function filterUserList(Builder $query, array $filter = []): Builder
     {
         if ($val = $filter['username'] ?? null) {
@@ -56,29 +57,20 @@ class  UserRepository implements UserRepositoryInterface
             $query->where('status', $val);
         }
 
-        if ($val = $filter['branch_id'] ?? null) {
-            $query->where('branch_id', $val);
-        }
-
         return $query;
     }
+
     public function getTrashUserList(array $filter = [], int $limit = 10): LengthAwarePaginator
     {
-        $query = User::onlyTrashed()->with('branch');
-
         if (!empty($filter)) {
-            $query = $this->filterUserList($query, $filter);
+            $query = $this->filterUserList($filter);
         }
 
         return $query->orderBy('deleted_at', 'desc')->paginate($limit);
     }
-    public function findById(int $id): ?User
+    public function delete(User $user): bool
     {
-        return User::find($id);
+        return (bool) $user->delete();
     }
 
-    public function deleteById(int $id): bool
-    {
-        return User::destroy($id) > 0;
-    }
 }

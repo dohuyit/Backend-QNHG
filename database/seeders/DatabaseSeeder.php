@@ -24,6 +24,11 @@ class DatabaseSeeder extends Seeder
             ComboSeeder::class,
             ComboItemSeeder::class,
             ReservationSeeder::class,
+            PermissionGroupSeeder::class,
+            PermissionSeeder::class,
+            RoleSeeder::class,
+            RolePermissionSeeder::class,
+            UserRoleSeeder::class,
         ]);
     }
 }
