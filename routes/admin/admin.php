@@ -31,13 +31,13 @@ Route::prefix('admin')->group(function () {
 
     ## categories
     Route::get('categories/list', [CategoryController::class, 'getListCategories']);
-    Route::get('categories/{slug}/detail', [CategoryController::class, 'getCategoryDetail']);
+    Route::get('categories/{id}/detail', [CategoryController::class, 'getCategoryDetail']);
     Route::post('categories/create', [CategoryController::class, 'createCategory']);
-    Route::post('categories/{slug}/update', [CategoryController::class, 'updateCategory']);
+    Route::post('categories/{id}/update', [CategoryController::class, 'updateCategory']);
     Route::get('categories/trash', [CategoryController::class, 'listTrashedCategory']);
-    Route::delete('categories/{slug}/soft/delete', [CategoryController::class, 'softDeleteCategory']);
-    Route::delete('categories/{slug}/force/delete', [CategoryController::class, 'forceDeleteCategory']);
-    Route::post('categories/{slug}/restore', [CategoryController::class, 'restoreCategory']);
+    Route::delete('categories/{id}/soft/delete', [CategoryController::class, 'softDeleteCategory']);
+    Route::delete('categories/{id}/force/delete', [CategoryController::class, 'forceDeleteCategory']);
+    Route::post('categories/{id}/restore', [CategoryController::class, 'restoreCategory']);
 
     ##users
     Route::post('users/create', [UserController::class, 'createUser']);
@@ -112,6 +112,7 @@ Route::prefix('admin')->group(function () {
     Route::post('orders/{orderId}/items', [OrderController::class, 'addOrderItem']);
     Route::put('orders/{orderId}/items/{itemId}', [OrderController::class, 'updateOrderItem']);
     Route::delete('orders/{orderId}/items/{itemId}', [OrderController::class, 'deleteOrderItem']);
+    
     // dishes
     Route::get('dishes/list', [DishController::class, 'getListDishes']);
     Route::get('dishes/{id}/detail', [DishController::class, 'getDishDetail']);
