@@ -37,7 +37,7 @@ class UserRoleRepository implements UserRoleRepositoryInterface
         $query = UserRole::query()
             ->with(['user:id,username,email,status,phone_number', 'role:id,role_name,description']);
 
-        if (! empty($filter)) {
+        if (!empty($filter)) {
             $query = $this->filterUserRoleList($query, $filter);
         }
 
@@ -46,6 +46,17 @@ class UserRoleRepository implements UserRoleRepositoryInterface
 
     private function filterUserRoleList(Builder $query, array $filter = []): Builder
     {
+        if ($val = $filter['keyword'] ?? null) {
+            $query->whereHas('user', function ($q) use ($val) {
+                $q->where('username', 'like', '%' . $val . '%')
+                    ->orWhere('email', 'like', '%' . $val . '%')
+                    ->orWhere('phone_number', 'like', '%' . $val . '%');
+            })->orWhereHas('role', function ($q) use ($val) {
+                $q->where('role_name', 'like', '%' . $val . '%')
+                    ->orWhere('description', 'like', '%' . $val . '%');
+            });
+        }
+
         if ($val = $filter['user_id'] ?? null) {
             $query->where('user_id', $val);
         }

@@ -27,7 +27,7 @@ class PermissionGroupService
 
         $ok = $this->permissionGroupRepository->createData($createData);
 
-        if (! $ok) {
+        if (!$ok) {
             $result->setMessage('Thêm nhóm quyền thất bại!');
             return $result;
         }
@@ -47,7 +47,7 @@ class PermissionGroupService
 
         $ok = $this->permissionGroupRepository->updateByConditions(['id' => $group->id], $updateData);
 
-        if (! $ok) {
+        if (!$ok) {
             $result->setMessage('Cập nhật nhóm quyền thất bại!');
             return $result;
         }
@@ -59,7 +59,7 @@ class PermissionGroupService
     public function getListPermissionGroups(array $params): ListAggregate
     {
         $filter = $params;
-        $limit = !empty($params['limit']) && $params['limit'] > 0 ? (int) $params['limit'] : 10;
+        $limit = (int) ($params['perPage'] ?? $params['limit'] ?? 10);
 
         $pagination = $this->permissionGroupRepository->getPermissionGroupList(filter: $filter, limit: $limit);
 

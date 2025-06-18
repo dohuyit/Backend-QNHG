@@ -19,7 +19,8 @@ class UserRoleService
     public function getListUserRoles(array $params): ListAggregate
     {
         $filter = $params;
-        $limit = !empty($params['limit']) && $params['limit'] > 0 ? (int) $params['limit'] : 10;
+        $limit = (int) ($params['perPage'] ?? $params['limit'] ?? 10);
+
 
         $pagination = $this->userRoleRepository->getUserRoleList(filter: $filter, limit: $limit);
 
@@ -67,7 +68,7 @@ class UserRoleService
 
         $ok = $this->userRoleRepository->createData($createData);
 
-        if (! $ok) {
+        if (!$ok) {
             $result->setMessage('Gán vai trò cho người dùng thất bại!');
             return $result;
         }
@@ -87,7 +88,7 @@ class UserRoleService
 
         $ok = $this->userRoleRepository->updateByConditions(['id' => $userRole->id], $updateData);
 
-        if (! $ok) {
+        if (!$ok) {
             $result->setMessage('Cập nhật phân quyền người dùng thất bại!');
             return $result;
         }
@@ -102,7 +103,7 @@ class UserRoleService
 
         $ok = $this->userRoleRepository->delete($userRole);
 
-        if (! $ok) {
+        if (!$ok) {
             $result->setMessage('Xóa thất bại.');
             return $result;
         }
