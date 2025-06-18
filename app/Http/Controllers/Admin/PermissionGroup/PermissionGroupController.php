@@ -14,9 +14,10 @@ class PermissionGroupController extends Controller
 
     protected PermissionGroupRepositoryInterface $permissionGroupRepository;
 
-    public function __construct(PermissionGroupService $permissionGroupService,
-                                PermissionGroupRepositoryInterface $permissionGroupRepository)
-    {
+    public function __construct(
+        PermissionGroupService $permissionGroupService,
+        PermissionGroupRepositoryInterface $permissionGroupRepository
+    ) {
         $this->permissionGroupService = $permissionGroupService;
         $this->permissionGroupRepository = $permissionGroupRepository;
     }
@@ -27,7 +28,7 @@ class PermissionGroupController extends Controller
 
         $result = $this->permissionGroupService->createPermissionGroup($data);
 
-        if (! $result->isSuccessCode()) {
+        if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage());
         }
 
@@ -40,13 +41,13 @@ class PermissionGroupController extends Controller
 
         $group = $this->permissionGroupRepository->getByConditions(['id' => $id]);
 
-        if (! $group) {
+        if (!$group) {
             return $this->responseFail(message: 'Nhóm quyền không tồn tại', statusCode: 404);
         }
 
         $result = $this->permissionGroupService->updatePermissionGroup($data, $group);
 
-        if (! $result->isSuccessCode()) {
+        if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage());
         }
 
@@ -55,7 +56,8 @@ class PermissionGroupController extends Controller
 
     public function getPermissionGroupLists(Request $request)
     {
-        $params = $request->only('page', 'limit', 'group_name', 'description');
+        $params = $request->only('page', 'limit', 'perPage', 'group_name', 'description', 'keyword');
+
 
         $result = $this->permissionGroupService->getListPermissionGroups($params);
         $data = $result->getResult();
@@ -72,7 +74,7 @@ class PermissionGroupController extends Controller
         }
 
         $result = $this->permissionGroupService->deleteGroup($group);
-        if (! $result->isSuccessCode()) {
+        if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage());
         }
 

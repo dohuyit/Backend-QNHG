@@ -15,16 +15,18 @@ class RolePermissionController extends Controller
 
     protected RolePermissionRepositoryInterface $rolePermissionRepository;
 
-    public function __construct(RolePermissionService $rolePermissionService,
-                                RolePermissionRepositoryInterface $rolePermissionRepository)
-    {
+    public function __construct(
+        RolePermissionService $rolePermissionService,
+        RolePermissionRepositoryInterface $rolePermissionRepository
+    ) {
         $this->rolePermissionService = $rolePermissionService;
         $this->rolePermissionRepository = $rolePermissionRepository;
     }
 
     public function getRolePermissionList(Request $request)
     {
-        $params = $request->only('page', 'limit', 'role_id', 'permission_id');
+        $params = $request->only('page', 'limit', 'perPage', 'keyword', 'role_id', 'permission_id');
+
 
         $result = $this->rolePermissionService->getListRolePermissions($params);
         $data = $result->getResult();
@@ -38,7 +40,7 @@ class RolePermissionController extends Controller
 
         $result = $this->rolePermissionService->createRolePermission($data);
 
-        if (! $result->isSuccessCode()) {
+        if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage());
         }
 
@@ -51,13 +53,13 @@ class RolePermissionController extends Controller
 
         $rolePermission = $this->rolePermissionRepository->getByConditions(['id' => $id]);
 
-        if (! $rolePermission) {
+        if (!$rolePermission) {
             return $this->responseFail(message: 'Phân quyền vai trò không tồn tại', statusCode: 404);
         }
 
         $result = $this->rolePermissionService->updateRolePermission($data, $rolePermission);
 
-        if (! $result->isSuccessCode()) {
+        if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage());
         }
 
@@ -68,13 +70,13 @@ class RolePermissionController extends Controller
     {
         $rolePermission = $this->rolePermissionRepository->getByConditions(['id' => $id]);
 
-        if (! $rolePermission) {
+        if (!$rolePermission) {
             return $this->responseFail(message: 'Liên kết vai trò - quyền không tồn tại', statusCode: 404);
         }
 
         $result = $this->rolePermissionService->deleteRolePermission($rolePermission);
 
-        if (! $result->isSuccessCode()) {
+        if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage());
         }
 

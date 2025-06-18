@@ -7,7 +7,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 
-class  UserRepository implements UserRepositoryInterface
+class UserRepository implements UserRepositoryInterface
 {
     public function createData(array $data): bool
     {
@@ -22,7 +22,7 @@ class  UserRepository implements UserRepositoryInterface
     public function updateByConditions(array $conditions, array $updateData): bool
     {
         $result = User::where($conditions)->update($updateData);
-        return (bool)$result;
+        return (bool) $result;
     }
     public function getUserList(array $filter = [], int $limit = 10): LengthAwarePaginator
     {
@@ -37,6 +37,15 @@ class  UserRepository implements UserRepositoryInterface
 
     private function filterUserList(Builder $query, array $filter = []): Builder
     {
+        if ($val = $filter['keyword'] ?? $filter['query'] ?? null) {
+            $query->where(function ($q) use ($val) {
+                $q->where('username', 'like', '%' . $val . '%')
+                    ->orWhere('full_name', 'like', '%' . $val . '%')
+                    ->orWhere('email', 'like', '%' . $val . '%')
+                    ->orWhere('phone_number', 'like', '%' . $val . '%');
+            });
+        }
+
         if ($val = $filter['username'] ?? null) {
             $query->where('username', 'like', '%' . $val . '%');
         }

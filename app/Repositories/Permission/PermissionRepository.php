@@ -34,7 +34,7 @@ class PermissionRepository implements PermissionRepositoryInterface
                 'permission_groups.description as permission_group_description',
             ]);
 
-        if (! empty($filter)) {
+        if (!empty($filter)) {
             $query = $this->filterPermissionList($query, $filter);
         }
 
@@ -43,6 +43,15 @@ class PermissionRepository implements PermissionRepositoryInterface
 
     private function filterPermissionList(Builder $query, array $filter = []): Builder
     {
+        if ($val = $filter['keyword'] ?? null) {
+            $query->where(function ($q) use ($val) {
+                $q->where('permissions.permission_name', 'like', '%' . $val . '%')
+                    ->orWhere('permissions.description', 'like', '%' . $val . '%')
+                    ->orWhere('permission_groups.group_name', 'like', '%' . $val . '%')
+                    ->orWhere('permission_groups.description', 'like', '%' . $val . '%');
+            });
+        }
+
         if ($val = $filter['permission_name'] ?? null) {
             $query->where('permission_name', 'like', '%' . $val . '%');
         }

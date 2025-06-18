@@ -29,7 +29,7 @@ class UpdateCustomerRequest extends BaseFormRequest
                 'string',
                 'regex:/^(0|\+84)[0-9]{9}$/'
             ],
-            'email' => 'required|email|max:255|unique:customers,email,' . $this->route('id'),
+            'email'          => 'required|email|max:255|unique:customers,email',
             'address'        => 'nullable|string|max:500',
             'gender'         => 'nullable|in:male,female,other',
             'date_of_birth'  => 'nullable|date|before:today',
