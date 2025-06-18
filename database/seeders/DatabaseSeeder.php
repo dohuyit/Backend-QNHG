@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\TableArea;
 use Illuminate\Database\Seeder;
 use Database\Seeders\TableAreaSeeder;
 use App\Models\User;
@@ -14,10 +15,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::factory(10)->create();
         $this->call([
             CategorySeeder::class,
             CustomerSeeder::class,
+            TableAreaSeeder::class,
             TableSeeder::class,
             OrderSeeder::class,
             DishSeeder::class,
