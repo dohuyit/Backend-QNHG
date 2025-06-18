@@ -14,8 +14,8 @@ class PermissionGroupSeeder extends Seeder
     public function run(): void
     {
         $groups = [
-            ['group_name' => 'Quản lý người dùng', 'slug' => 'user-management', 'description' => 'Quản lý người dùng'],
-            ['group_name' => 'Quản lý vai trò', 'slug' => 'role-management', 'description' => 'Quản lý vai trò'],
+            ['group_name' => 'Quản lý người dùng', 'description' => 'Quản lý người dùng'],
+            ['group_name' => 'Quản lý vai trò', 'description' => 'Quản lý vai trò'],
         ];
 
         foreach ($groups as $group) {

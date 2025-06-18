@@ -14,9 +14,9 @@ class PermissionSeeder extends Seeder
     public function run(): void
     {
         $permissions = [
-            ['permission_name' => 'Xem người dùng', 'slug' => 'view-users', 'permission_group_id' => 1],
-            ['permission_name' => 'Thêm người dùng', 'slug' => 'create-users', 'permission_group_id' => 1],
-            ['permission_name' => 'Xem vai trò', 'slug' => 'view-roles', 'permission_group_id' => 2],
+            ['permission_name' => 'Xem người dùng', 'permission_group_id' => 1],
+            ['permission_name' => 'Thêm người dùng', 'permission_group_id' => 1],
+            ['permission_name' => 'Xem vai trò', 'permission_group_id' => 2],
         ];
 
         foreach ($permissions as $permission) {
