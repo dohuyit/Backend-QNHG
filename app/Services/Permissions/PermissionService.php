@@ -19,7 +19,8 @@ class PermissionService
     public function getListPermissions(array $params): ListAggregate
     {
         $filter = $params;
-        $limit = !empty($params['limit']) && $params['limit'] > 0 ? (int) $params['limit'] : 10;
+        $limit = (int) ($params['perPage'] ?? $params['limit'] ?? 10);
+
 
         $pagination = $this->permissionRepository->getPermissionList(filter: $filter, limit: $limit);
 
@@ -60,7 +61,7 @@ class PermissionService
 
         $ok = $this->permissionRepository->createData($createData);
 
-        if (! $ok) {
+        if (!$ok) {
             $result->setMessage('Thêm quyền thất bại!');
             return $result;
         }
@@ -81,7 +82,7 @@ class PermissionService
 
         $ok = $this->permissionRepository->updateByConditions(['id' => $permission->id], $updateData);
 
-        if (! $ok) {
+        if (!$ok) {
             $result->setMessage('Cập nhật quyền hạn thất bại!');
             return $result;
         }
@@ -95,7 +96,7 @@ class PermissionService
         $result = new DataAggregate;
 
         $ok = $this->permissionRepository->delete($permission);
-        if (! $ok) {
+        if (!$ok) {
             $result->setMessage('Xóa quyền hạn thất bại!');
             return $result;
         }
@@ -109,7 +110,7 @@ class PermissionService
         $result = new DataAggregate;
 
         $ok = $this->permissionRepository->restore($permission);
-        if (! $ok) {
+        if (!$ok) {
             $result->setMessage('Khôi phục quyền hạn thất bại!');
             return $result;
         }

@@ -3,7 +3,7 @@
 namespace App\Repositories\RolePermission;
 
 use App\Models\RolePermission;
-use Illuminate\Database\Query\Builder;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class RolePermissionRepository implements RolePermissionRepositoryInterface
@@ -45,6 +45,17 @@ class RolePermissionRepository implements RolePermissionRepositoryInterface
 
     private function filterRolePermissionList(Builder $query, array $filter): Builder
     {
+        if ($val = $filter['keyword'] ?? null) {
+            $query->where(function ($q) use ($val) {
+                $q->whereHas('role', function ($sub) use ($val) {
+                    $sub->where('role_name', 'like', '%' . $val . '%')
+                        ->orWhere('description', 'like', '%' . $val . '%');
+                })->orWhereHas('permission', function ($sub) use ($val) {
+                    $sub->where('permission_name', 'like', '%' . $val . '%')
+                        ->orWhere('description', 'like', '%' . $val . '%');
+                });
+            });
+        }
         if ($val = $filter['role_id'] ?? null) {
             $query->where('role_id', $val);
         }

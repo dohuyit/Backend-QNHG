@@ -13,10 +13,11 @@ use Illuminate\Http\Request;
 class UserController extends Controller
 {
     private UserService $userService;
-    protected UserRepositoryInterface  $userRepository;
-    public function __construct(UserService $userService,
-                                UserRepositoryInterface $userRepository)
-    {
+    protected UserRepositoryInterface $userRepository;
+    public function __construct(
+        UserService $userService,
+        UserRepositoryInterface $userRepository
+    ) {
         $this->userService = $userService;
         $this->userRepository = $userRepository;
     }
@@ -70,7 +71,8 @@ class UserController extends Controller
         $params = $request->only(
             'page',
             'limit',
-            'query',
+            'perPage',
+            'keyword',
             'username',
             'email',
             'full_name',
@@ -98,7 +100,7 @@ class UserController extends Controller
 
         return $this->responseSuccess(message: $result->getMessage());
     }
-    public function blockUser(string $id,Request $request)
+    public function blockUser(string $id, Request $request)
     {
         $user = $this->userRepository->getByConditions(['id' => $id]);
         if (!$user) {
@@ -114,7 +116,7 @@ class UserController extends Controller
         return $this->responseSuccess(message: $result->getMessage());
     }
 
-    public function unblockUser(string $id,Request $request)
+    public function unblockUser(string $id, Request $request)
     {
         $user = $this->userRepository->getByConditions(['id' => $id]);
         if (!$user) {
