@@ -120,12 +120,11 @@ class UserService
 
         return $result;
     }
-    public function deleteUser(int $id, User $currentUser): DataAggregate
+    public function deleteUser(User $user): DataAggregate
     {
         $result = new DataAggregate();
 
-        $user = $this->userRepository->findById($id);
-        if (!$user) {
+        if (! $user) {
             $result->setResultError(
                 message: 'Dữ liệu không hợp lệ',
                 errors: ['user_id' => ['Người dùng không tồn tại.']]
@@ -133,17 +132,20 @@ class UserService
             return $result;
         }
 
-        $deleted = $this->userRepository->deleteById($id);
-        if (!$deleted) {
-            $result->setResultError(
-                message: 'Xóa người dùng thất bại. Vui lòng thử lại.'
-            );
+        $updated = $this->userRepository->updateByConditions(
+            ['id' => $user->id],
+            ['status' => User::STATUS_INACTIVE]
+        );
+
+        if (! $updated) {
+            $result->setResultError(message: 'Cập nhật trạng thái người dùng thất bại.');
             return $result;
         }
 
-        $result->setResultSuccess(message: 'Xóa người dùng thành công!');
+        $result->setResultSuccess(message: 'Người dùng đã được chuyển sang trạng thái ngừng hoạt động!');
         return $result;
     }
+
     public function blockUser(User $user): DataAggregate
     {
         $result = new DataAggregate();
@@ -163,7 +165,11 @@ class UserService
             return $result;
         }
 
-        $result->setResultSuccess(['message' => 'Đã chuyển tài khoản về chế độ bị khoá']);
+        $result->setResultSuccess(
+            message: 'Đã chuyển tài khoản về chế độ bị khoá',
+            data: []
+        );
+
 
         return $result;
     }
@@ -186,7 +192,10 @@ class UserService
             return $result;
         }
 
-        $result->setResultSuccess(['message' => 'Đã chuyển tài khoản về chế độ bị khoá']);
+        $result->setResultSuccess(
+            message: 'Đã mở khóa tài khoản về hoạt động',
+            data: []
+        );
         return $result;
     }
 

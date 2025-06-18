@@ -8,7 +8,7 @@ use App\Repositories\ComboItems\ComboItemRepositoryInterface;
 use App\Repositories\Combos\ComboRepositoryInterface;
 use App\Repositories\Dishes\DishRepositoryInterface;
 
-class ComboItemServices
+class ComboItemService
 {
     protected ComboItemRepositoryInterface $comboItemRepository;
     protected ComboRepositoryInterface $comboRepository;

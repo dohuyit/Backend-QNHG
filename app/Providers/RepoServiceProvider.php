@@ -21,6 +21,13 @@ class RepoServiceProvider extends ServiceProvider
         $this->app->bind(\App\Repositories\Dishes\DishRepositoryInterface::class, \App\Repositories\Dishes\DishRepository::class);
         $this->app->bind(\App\Repositories\Combos\ComboRepositoryInterface::class, \App\Repositories\Combos\ComboRepository::class);
         $this->app->bind(\App\Repositories\ComboItems\ComboItemRepositoryInterface::class, \App\Repositories\ComboItems\ComboItemRepository::class);
+        $this->app->bind(\App\Repositories\Reservations\ReservationRepositoryInterface::class, \App\Repositories\Reservations\ReservationRepository::class);
+
+        $this->app->bind(\App\Repositories\Role\RoleRepositoryInterface::class, \App\Repositories\Role\RoleRepository::class);
+        $this->app->bind(\App\Repositories\PermissionGroup\PermissionGroupRepositoryInterface::class, \App\Repositories\PermissionGroup\PermissionGroupRepository::class);
+        $this->app->bind(\App\Repositories\Permission\PermissionRepositoryInterface::class, \App\Repositories\Permission\PermissionRepository::class);
+        $this->app->bind(\App\Repositories\UserRole\UserRoleRepositoryInterface::class, \App\Repositories\UserRole\UserRoleRepository::class);
+        $this->app->bind(\App\Repositories\RolePermission\RolePermissionRepositoryInterface::class, \App\Repositories\RolePermission\RolePermissionRepository::class);
     }
 
     /**
