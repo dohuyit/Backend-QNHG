@@ -13,27 +13,20 @@ class UpdateUserRequest extends BaseFormRequest
 
     public function rules()
     {
-        $userId = $this->route('id');
+        $userId = $this->route('id') ?? $this->input('id');
 
         return [
             'username' => 'required|string|max:50|unique:users,username,' . $userId,
             'password' => 'nullable|string|min:6',
-            'avatar' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            'full_name' => 'required|string|max:100',
-            'email' => 'required|email|unique:users,email,' . $userId,
-            'phone_number' => 'nullable|string|max:20|unique:users,phone_number,' . $userId,
-        ];
-    }
-
-    public function attributes(): array
-    {
-        return [
-            'username' => 'tên đăng nhập',
-            'password' => 'mật khẩu',
-            'avatar' => 'ảnh đại diện',
-            'full_name' => 'họ và tên',
-            'email' => 'email',
-            'phone_number' => 'số điện thoại',
+            'avatar' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'full_name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email,' . $userId,
+            'phone_number' => [
+                'required',
+                'string',
+                'regex:/^(0|\+84)[0-9]{9}$/',
+                'unique:users,phone_number,' . $userId,
+            ],
         ];
     }
 
@@ -43,7 +36,6 @@ class UpdateUserRequest extends BaseFormRequest
             'username.required' => 'Vui lòng nhập :attribute.',
             'username.string' => ':attribute phải là chuỗi ký tự.',
             'username.max' => ':attribute không được vượt quá :max ký tự.',
-            'username.unique' => ':attribute đã tồn tại.',
 
             'password.string' => ':attribute phải là chuỗi.',
             'password.min' => ':attribute phải có ít nhất :min ký tự.',
@@ -58,11 +50,10 @@ class UpdateUserRequest extends BaseFormRequest
 
             'email.required' => 'Vui lòng nhập :attribute.',
             'email.email' => ':attribute không đúng định dạng.',
-            'email.unique' => ':attribute đã được sử dụng.',
+            'email.max' => ':attribute không được vượt quá :max ký tự.',
 
-            'phone_number.string' => ':attribute phải là chuỗi ký tự.',
-            'phone_number.max' => ':attribute không được vượt quá :max ký tự.',
-            'phone_number.unique' => ':attribute đã được sử dụng.',
+            'phone_number.required' => 'Vui lòng nhập số điện thoại.',
+            'phone_number.regex' => 'Số điện thoại không hợp lệ. Vui lòng nhập đúng định dạng (ví dụ: 0912345678 hoặc +84912345678).',
         ];
     }
 }
