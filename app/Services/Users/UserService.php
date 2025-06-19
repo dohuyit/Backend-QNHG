@@ -105,6 +105,7 @@ class UserService
                 'email' => $item->email,
                 'phone_number' => $item->phone_number,
                 'status' => $item->status,
+                'avatar' => $item->avatar,
                 'last_login' => $item->last_login,
                 'created_at' => $item->created_at,
                 'updated_at' => $item->updated_at,
