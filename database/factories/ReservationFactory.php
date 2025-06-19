@@ -17,20 +17,20 @@ class ReservationFactory extends Factory
      *
      * @return array<string, mixed>
      */
-    
+
     public function definition(): array
     {
         return [
-            'customer_id' => Customer::inRandomOrder()->value('id'),
+            'customer_id' => Customer::factory(),
             'customer_name' => fake()->name,
             'customer_phone' => fake()->phoneNumber,
             'customer_email' => fake()->safeEmail,
             'reservation_time' => fake()->dateTimeBetween('+1 days', '+15 days'),
             'number_of_guests' => rand(1, 10),
-            'table_id' => Table::inRandomOrder()->value('id'),
+            'table_id' => Table::factory(),
             'notes' => fake()->optional()->sentence,
             'status' => fake()->randomElement(['pending', 'confirmed', 'cancelled', 'completed', 'no_show', 'seated']),
-            'user_id' => rand(1,3),
+            'user_id' => User::factory(),
             'confirmed_at' => fake()->optional()->dateTimeBetween('-1 days', 'now'),
             'cancelled_at' => null,
             'completed_at' => null,
