@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\TableArea;
 use Illuminate\Database\Seeder;
 use Database\Seeders\TableAreaSeeder;
 use App\Models\User;
@@ -25,6 +24,7 @@ class DatabaseSeeder extends Seeder
             ComboSeeder::class,
             ComboItemSeeder::class,
             ReservationSeeder::class,
+            UserSeeder::class,
             PermissionGroupSeeder::class,
             PermissionSeeder::class,
             RoleSeeder::class,

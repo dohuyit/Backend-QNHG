@@ -16,5 +16,4 @@ class TableArea extends Model
         'capacity',          // Sức chứa tối đa của khu vực bàn
         'status',            // Trạng thái khu vực bàn (active, inactive)
     ];
-    public $timestamps = true;
 }

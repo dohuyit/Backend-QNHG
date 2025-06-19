@@ -10,7 +10,7 @@ class TableAreaFactory extends Factory
     {
         return [
             'name' => 'Khu vực ' . $this->faker->unique()->word,
-            'description' => $this->faker->optional()->sentence,
+            'description' => "Mô tả cho khu vực",
             'status' => $this->faker->randomElement(['active', 'inactive']),
             'capacity' => $this->faker->numberBetween(5, 50),
             'created_at' => now(),
