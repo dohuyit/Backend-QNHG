@@ -21,7 +21,6 @@ return new class extends Migration
             $table->string('description', 255)->nullable()->comment('Mô tả vị trí cụ thể của bàn');
             $table->json('tags')->nullable()->comment('Các tag cho bàn (VD: ["gần cửa sổ", "yên tĩnh", "phòng VIP"])');
             $table->enum('status', ['available', 'occupied', 'reserved', 'cleaning', 'out_of_service'])->default('available')->comment('Trạng thái');
-            $table->boolean('is_active')->default(true)->comment('Có hoạt động không');
             $table->timestamps();
             $table->softDeletes()->comment('Thêm trường xóa mềm');
             $table->comment('Thông tin các bàn ăn trong nhà hàng');

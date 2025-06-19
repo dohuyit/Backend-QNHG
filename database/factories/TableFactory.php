@@ -21,7 +21,6 @@ class TableFactory extends Factory
             'description' => $this->faker->sentence(),
             'tags' => $this->faker->randomElements(['yên tĩnh', 'view đẹp', 'ghế sofa', 'gần cửa sổ', 'riêng tư'], rand(1, 3)),
             'status' => $this->faker->randomElement(['available', 'occupied', 'reserved', 'cleaning', 'out_of_service']),
-            'is_active' => $this->faker->boolean(90),
         ];
     }
 }
