@@ -83,6 +83,7 @@ class ReservationService
 
         $reservation  = $this->reservationRepository->getByConditions(['id' => $id]);
         if (!$reservation) {
+            $result = new DataAggregate();
             $result->setResultError(message: 'Đơn đặt bàn không tồn tại');
             return $result;
         }
@@ -205,5 +206,35 @@ class ReservationService
         }
         $result->setResultSuccess(message: 'Khôi phục thành công!');
         return $result;
+    }
+
+    public function confirmReservation(int $id, int $userId)
+    {
+        if (empty($userId)) {
+            $result = new DataAggregate();
+            $result->setResultError(message: 'Thiếu thông tin người xác nhận!');
+            return $result;
+        }
+        $reservation = $this->reservationRepository->getByConditions(['id' => $id]);
+        if (!$reservation) {
+            $result = new DataAggregate();
+            $result->setResultError(message: 'Đơn đặt bàn không tồn tại');
+            return $result;
+        }
+
+        $data = [
+            'status' => 'confirmed',
+            'confirmed_at' => now(),
+            'user_id' => $userId,
+        ];
+
+        $ok = $this->reservationRepository->confirmReservation($id, $userId);
+        if (!$ok) {
+            $result = new DataAggregate();
+            $result->setResultError(message: 'Xác nhận thất bại, vui lòng thử lại!');
+            return $result;
+        }
+
+        return $this->updateReservation($data, $reservation);
     }
 }

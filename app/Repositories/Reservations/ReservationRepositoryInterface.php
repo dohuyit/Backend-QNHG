@@ -3,6 +3,7 @@ namespace App\Repositories\Reservations;
 
 use App\Models\Reservation;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use App\Services\ServiceResult;
 
 interface ReservationRepositoryInterface
 {
@@ -12,4 +13,5 @@ interface ReservationRepositoryInterface
     public function getReservationList(array $filter = [], int $limit = 10): LengthAwarePaginator;
     public function getTrashReservationList(array $filter = [], int $limit = 10): LengthAwarePaginator;
     public function findOnlyTrashedById($id): ?Reservation;
+    public function confirmReservation(int $id, int $userId): bool;
 }
