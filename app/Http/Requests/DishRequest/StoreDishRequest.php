@@ -6,19 +6,11 @@ use App\Http\Requests\BaseFormRequest;
 
 class StoreDishRequest extends BaseFormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules()
     {
         return [
@@ -31,9 +23,10 @@ class StoreDishRequest extends BaseFormRequest
             'is_active' => 'required|boolean',
             'is_featured' => 'nullable|boolean',
             'tags' => 'nullable|string|max:255',
-            'unit' => 'nullable|string|max:50',
+            'unit' => 'nullable|in:bowl,plate,cup,glass,large_bowl,other',
         ];
     }
+
     public function messages()
     {
         return [
@@ -47,7 +40,6 @@ class StoreDishRequest extends BaseFormRequest
             'image_url.max' => 'Ảnh không được vượt quá 2MB.',
 
             'description.string' => 'Mô tả phải là chuỗi.',
-
 
             'category_id.required' => 'Vui lòng chọn danh mục cho món ăn.',
             'category_id.integer' => 'ID danh mục phải là số.',
@@ -69,8 +61,7 @@ class StoreDishRequest extends BaseFormRequest
             'tags.string' => 'Tags phải là chuỗi.',
             'tags.max' => 'Tags không được vượt quá 255 ký tự.',
 
-            'unit.string' => 'Đơn vị tính phải là chuỗi.',
-            'unit.max' => 'Đơn vị tính không được vượt quá 50 ký tự.',
+            'unit.in' => 'Đơn vị tính không hợp lệ!',
         ];
     }
 }

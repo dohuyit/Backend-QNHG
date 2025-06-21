@@ -33,9 +33,10 @@ class UpdateDishRequest extends BaseFormRequest
             'is_active' => 'required|boolean',
             'is_featured' => 'nullable|boolean',
             'tags' => 'nullable|string|max:255',
-            'unit' => 'nullable|string|max:50',
+            'unit' => 'nullable|in:bowl,plate,cup,glass,large_bowl,other',
         ];
     }
+
     public function messages()
     {
         return [
@@ -54,11 +55,9 @@ class UpdateDishRequest extends BaseFormRequest
             'category_id.integer' => 'ID danh mục phải là số.',
             'category_id.exists' => 'Danh mục không tồn tại.',
 
-            'original_price.required' => 'Vui lòng nhập giá gốc cho món ăn.',
             'original_price.numeric' => 'Giá gốc phải là số.',
             'original_price.min' => 'Giá gốc không được nhỏ hơn 0.',
 
-            'selling_price.required' => 'Vui lòng nhập giá bán cho món ăn.',
             'selling_price.numeric' => 'Giá bán phải là số.',
             'selling_price.min' => 'Giá bán không được nhỏ hơn 0.',
 
@@ -70,8 +69,7 @@ class UpdateDishRequest extends BaseFormRequest
             'tags.string' => 'Tags phải là chuỗi.',
             'tags.max' => 'Tags không được vượt quá 255 ký tự.',
 
-            'unit.string' => 'Đơn vị tính phải là chuỗi.',
-            'unit.max' => 'Đơn vị tính không được vượt quá 50 ký tự.',
+            'unit.in' => 'Đơn vị tính không hợp lệ.',
         ];
     }
 }
