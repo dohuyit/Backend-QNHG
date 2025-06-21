@@ -22,6 +22,13 @@ class UserRoleRepository implements UserRoleRepositoryInterface
             ->exists();
     }
 
+    public function isDuplicateUserRoleExceptId(int $userId, int $roleId, int $excludeId): bool
+    {
+        return UserRole::where('user_id', $userId)
+            ->where('role_id', $roleId)
+            ->where('id', '!=', $excludeId)
+            ->exists();
+    }
     public function getByConditions(array $conditions): ?UserRole
     {
         return UserRole::where($conditions)->first();

@@ -57,10 +57,13 @@ class UserRoleService
 
         $exists = $this->userRoleRepository->existsUserRole($data['user_id'], $data['role_id']);
         if ($exists) {
-            $result->setMessage('Người dùng đã được gán vai trò này.');
+            $result->setResultError(
+                message: 'FAILED',
+                errors: ['user_id' => ['Người dùng đã được gán vai trò này.']]
+            );
+
             return $result;
         }
-
         $createData = [
             'user_id' => $data['user_id'],
             'role_id' => $data['role_id'],
@@ -81,6 +84,19 @@ class UserRoleService
     {
         $result = new DataAggregate;
 
+        $exists = $this->userRoleRepository->isDuplicateUserRoleExceptId(
+            $data['user_id'],
+            $data['role_id'],
+            $userRole->id
+        );
+        if ($exists) {
+            $result->setResultError(
+                message: 'FAILED',
+                errors: ['user_id' => ['Người dùng đã được gán vai trò này.']]
+            );
+            return $result;
+        }
+
         $updateData = [
             'user_id' => $data['user_id'],
             'role_id' => $data['role_id'],
@@ -89,11 +105,11 @@ class UserRoleService
         $ok = $this->userRoleRepository->updateByConditions(['id' => $userRole->id], $updateData);
 
         if (!$ok) {
-            $result->setMessage('Cập nhật phân quyền người dùng thất bại!');
+            $result->setMessage('Cập nhật nhóm người dùng thất bại!');
             return $result;
         }
 
-        $result->setResultSuccess(message: 'Cập nhật phân quyền người dùng thành công!');
+        $result->setResultSuccess(message: 'Cập nhật nhóm người dùng thành công!');
         return $result;
     }
 
