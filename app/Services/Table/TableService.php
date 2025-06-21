@@ -88,7 +88,7 @@ class TableService
     {
         $result = new DataAggregate;
         $listDataUpdate = [
-            'name' => $data['name'] ?? null,
+            'table_number' => $data['table_number'] ?? null,
             'description' => $data['description'] ?? null,
             'capacity' => $data['capacity'] ?? null,
             'status' => $data['status'] ?? 'active',
