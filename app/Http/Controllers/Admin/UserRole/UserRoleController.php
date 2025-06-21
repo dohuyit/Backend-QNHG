@@ -41,9 +41,8 @@ class UserRoleController extends Controller
         $result = $this->userRoleService->createUserRole($data);
 
         if (!$result->isSuccessCode()) {
-            return $this->responseFail(message: $result->getMessage());
+            return $this->responseFail(message: $result->getMessage(), errors: $result->getErrors());
         }
-
         return $this->responseSuccess(message: $result->getMessage());
     }
 
@@ -54,13 +53,17 @@ class UserRoleController extends Controller
         $userRole = $this->userRoleRepository->getByConditions(['id' => $id]);
 
         if (!$userRole) {
-            return $this->responseFail(message: 'Phân quyền người dùng không tồn tại', statusCode: 404);
+            return $this->responseFail(message: 'Nhóm người dùng không tồn tại', statusCode: 404);
         }
 
         $result = $this->userRoleService->updateUserRole($data, $userRole);
 
         if (!$result->isSuccessCode()) {
-            return $this->responseFail(message: $result->getMessage());
+            return $this->responseFail(
+                message: $result->getMessage(),
+                errors: $result->getErrors(),
+                code: $result->getCode()
+            );
         }
 
         return $this->responseSuccess(message: $result->getMessage());
@@ -77,8 +80,12 @@ class UserRoleController extends Controller
         $result = $this->userRoleService->deleteUserRole($userRole);
 
         if (!$result->isSuccessCode()) {
-            return $this->responseFail(message: $result->getMessage());
+            return $this->responseFail(
+                message: $result->getMessage(),
+                errors: $result->getErrors()
+            );
         }
+
 
         return $this->responseSuccess(message: $result->getMessage());
     }

@@ -36,11 +36,11 @@ class DataAggregate
             $this->message = $message ?: __("error.$code");
         } catch (\Exception $e) {
             $this->code = ErrorHelper::SERVER_ERROR;
-            $this->message = __('error.'.ErrorHelper::SERVER_ERROR);
+            $this->message = __('error.' . ErrorHelper::SERVER_ERROR);
             Log::error('[ResultAggregate@setResultError] Error code not exist: ', [$e]);
         }
 
-        if (! empty($errors)) {
+        if (!empty($errors)) {
             $this->errors = $errors;
         }
     }
