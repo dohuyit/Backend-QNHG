@@ -34,7 +34,6 @@ class TableController extends Controller
             'min_guests',
             'max_guests',
             'status',
-            'is_active',
             'table_area_id'
         );
         $result = $this->tableService->getListTables($params);
@@ -62,7 +61,6 @@ class TableController extends Controller
             'max_guests',
             'tags',
             'status',
-            'is_active',
             'table_area_id'
         ]);
 
@@ -83,7 +81,6 @@ class TableController extends Controller
             'max_guests',
             'tags',
             'status',
-            'is_active',
             'table_area_id'
         ]);
 

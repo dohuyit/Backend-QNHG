@@ -29,7 +29,6 @@ class TableService
             $data[] = [
                 'id' => (string) $item->id,
                 'name' => $item->name ?? null,
-                'slug' => $item->slug ?? null,
                 'description' => $item->description ?? null,
                 'capacity' => $item->capacity ?? null,
                 'status' => $item->status ?? null,
@@ -37,7 +36,6 @@ class TableService
                 'table_area' => $item->tableArea ? [
                     'id' => (string) $item->tableArea->id,
                     'name' => $item->tableArea->name,
-                    'slug' => $item->tableArea->slug
                 ] : null,
                 'created_at' => $item->created_at->toDateTimeString(),
                 'updated_at' => $item->updated_at->toDateTimeString(),
@@ -90,7 +88,7 @@ class TableService
     {
         $result = new DataAggregate;
         $listDataUpdate = [
-            'name' => $data['name'] ?? null,
+            'table_number' => $data['table_number'] ?? null,
             'description' => $data['description'] ?? null,
             'capacity' => $data['capacity'] ?? null,
             'status' => $data['status'] ?? 'active',
