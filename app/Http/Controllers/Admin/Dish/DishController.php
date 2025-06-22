@@ -13,14 +13,14 @@ use Illuminate\Http\Request;
 
 class DishController extends Controller
 {
-   protected DishService $dishService;
-   protected DishRepositoryInterface $dishRepository;
+    protected DishService $dishService;
+    protected DishRepositoryInterface $dishRepository;
     public function __construct(
-         DishService $dishService,
-         DishRepositoryInterface $dishRepository
+        DishService $dishService,
+        DishRepositoryInterface $dishRepository
     ) {
-         $this->dishService = $dishService;
-         $this->dishRepository = $dishRepository;
+        $this->dishService = $dishService;
+        $this->dishRepository = $dishRepository;
     }
 
     public function getListDishes()
@@ -38,13 +38,13 @@ class DishController extends Controller
             'unit',
             'tags',
             'is_featured',
-            'is_active'
+            'status'
         );
         $result = $this->dishService->getListDishes($params);
         $data = $result->getResult();
         return $this->responseSuccess($data);
     }
-     public function getDishesByCategory(Request $request, int $id)
+    public function getDishesByCategory(Request $request, int $id)
     {
         $params = $request->only(
             'page',
@@ -59,14 +59,14 @@ class DishController extends Controller
             'unit',
             'tags',
             'is_featured',
-            'is_active'
+            'status'
         );
         $result = $this->dishService->getDishByCategory($params, $id);
         $data = $result->getResult();
         return $this->responseSuccess($data);
     }
 
-    public function createDish(StoreDishRequest $request)	
+    public function createDish(StoreDishRequest $request)
     {
         $data = $request->only([
             'category_id',
@@ -78,7 +78,7 @@ class DishController extends Controller
             'unit',
             'tags',
             'is_featured',
-            'is_active'
+            'status'
         ]);
 
         $result = $this->dishService->createDish($data);
@@ -108,7 +108,7 @@ class DishController extends Controller
             'unit',
             'tags',
             'is_featured',
-            'is_active'
+            'status'
         ]);
 
         $dish = $this->dishRepository->getByConditions(['id' => $id]);
@@ -137,7 +137,7 @@ class DishController extends Controller
             'unit',
             'tags',
             'is_featured',
-            'is_active'
+            'status'
         );
         $result = $this->dishService->listTrashedDish($params);
         $data = $result->getResult();

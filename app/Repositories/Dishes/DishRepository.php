@@ -20,8 +20,8 @@ class DishRepository implements DishRepositoryInterface
             $query->where('category_id', $val);
         }
 
-        if ($val = $filter['is_active'] ?? null) {
-            $query->where('is_active', $val);
+        if ($val = $filter['status'] ?? null) {
+            $query->where('status', $val);
         }
 
         if ($val = $filter['is_featured'] ?? null) {

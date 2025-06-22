@@ -20,7 +20,7 @@ class StoreDishRequest extends BaseFormRequest
             'category_id' => 'required|integer|exists:categories,id',
             'original_price' => 'required|numeric|min:0',
             'selling_price' => 'required|numeric|min:0',
-            'is_active' => 'required|boolean',
+            'status' => 'required|in:active,inactive',
             'is_featured' => 'nullable|boolean',
             'tags' => 'nullable|string|max:255',
             'unit' => 'nullable|in:bowl,plate,cup,glass,large_bowl,other',
@@ -53,8 +53,8 @@ class StoreDishRequest extends BaseFormRequest
             'selling_price.numeric' => 'Giá bán phải là số.',
             'selling_price.min' => 'Giá bán không được nhỏ hơn 0.',
 
-            'is_active.required' => 'Vui lòng chọn trạng thái hiển thị cho món ăn.',
-            'is_active.boolean' => 'Trạng thái hiển thị phải là true hoặc false.',
+            'status.required' => 'Vui lòng chọn trạng thái hiển thị cho món ăn.',
+            'status.in' => 'Trạng thái hiển thị không hợp lệ.',
 
             'is_featured.boolean' => 'Trạng thái nổi bật phải là true hoặc false.',
 
@@ -63,5 +63,17 @@ class StoreDishRequest extends BaseFormRequest
 
             'unit.in' => 'Đơn vị tính không hợp lệ!',
         ];
+    }
+
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $original = $this->input('original_price');
+            $selling = $this->input('selling_price');
+
+            if (is_numeric($original) && is_numeric($selling) && $selling <= $original) {
+                $validator->errors()->add('selling_price', 'Giá bán phải lớn hơn giá gốc.');
+            }
+        });
     }
 }
