@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('image_url', 255)->nullable()->comment('URL hình ảnh');
             $table->json('tags')->nullable()->comment('Các tag cho món ăn (VD: ["món chay", "cay", "best seller"])');
             $table->boolean('is_featured')->default(false)->comment('Món nổi bật');
-            $table->boolean('is_active')->default(true)->comment('Trạng thái hiển thị');
+            $table->enum('status', ['active', 'inactive'])->default('active')->comment('Trạng thái hiển thị (active/inactive)');
             $table->timestamps();
             $table->softDeletes()->comment('Thêm trường xóa mềm');
             $table->comment('Các món ăn trong thực đơn');

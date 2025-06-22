@@ -16,7 +16,7 @@ class Dish extends Model
         'description',      // Ví dụ: "Nước dùng đậm đà, thịt bò tươi ngon, bánh phở mềm mại."
         'original_price',   // Ví dụ: 60000.00
         'selling_price',    // Ví dụ: 55000.00 (nếu có khuyến mãi)
-        'unit',             // Ví dụ: "bát", "đĩa", "suất", "ly"
+        'unit',             // Ví dụ: enum "bát", "đĩa", "suất", "ly"
         'image_url',        // Ví dụ: "/images/menu_items/pho-bo.jpg"
         'tags',             // Ví dụ (JSON): ["best-seller", "món truyền thống", "cay nồng"]
         'is_featured',      // Ví dụ: true (món nổi bật)

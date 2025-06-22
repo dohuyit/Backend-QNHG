@@ -32,7 +32,6 @@ class TableService
                 'description' => $item->description ?? null,
                 'capacity' => $item->capacity ?? null,
                 'status' => $item->status ?? null,
-                'table_area_id' => $item->table_area_id ?? null,
                 'table_area' => $item->tableArea ? [
                     'id' => (string) $item->tableArea->id,
                     'name' => $item->tableArea->name,
