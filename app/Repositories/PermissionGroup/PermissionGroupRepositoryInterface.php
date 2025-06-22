@@ -11,6 +11,7 @@ interface PermissionGroupRepositoryInterface
     public function getByConditions(array $conditions): ?PermissionGroup;
     public function updateByConditions(array $conditions, array $updateData): bool;
     public function getPermissionGroupList(array $filter = [], int $limit = 10): LengthAwarePaginator;
-    public function delete(PermissionGroup $group): bool;
-    public function restore(PermissionGroup $group): bool;
+    public function isUsedInPermissions(int $groupId): bool;
+    public function forceDelete(PermissionGroup $group): bool;
+
 }

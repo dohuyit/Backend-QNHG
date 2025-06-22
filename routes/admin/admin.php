@@ -3,7 +3,8 @@
 use App\Http\Controllers\Admin\Role\RoleController;
 use App\Http\Controllers\Admin\TableArea\TableAreaController;
 use App\Http\Controllers\Admin\Table\TableController;
-use App\Http\Controllers\Admin\Category\CategoryController;;
+use App\Http\Controllers\Admin\Category\CategoryController;
+;
 use App\Http\Controllers\Admin\Customer\CustomerController;
 use App\Http\Controllers\Admin\User\UserController;
 use Illuminate\Support\Facades\Route;
@@ -77,14 +78,12 @@ Route::prefix('admin')->group(function () {
     Route::post('permission/groups/{id}/update', [PermissionGroupController::class, 'updatePermissionGroup']);
     Route::get('permission/groups/list', [PermissionGroupController::class, 'getPermissionGroupLists']);
     Route::post('permission/groups/{id}/delete', [PermissionGroupController::class, 'deletePermissionGroup']);
-    Route::post('permission/groups/{id}/restore', [PermissionGroupController::class, 'restorePermissionGroup']);
 
     ##Permission
     Route::post('permissions/create', [PermissionController::class, 'createPermission']);
     Route::post('permissions/{id}/update', [PermissionController::class, 'updatePermission']);
     Route::get('permissions/list', [PermissionController::class, 'getPermissionLists']);
     Route::post('permissions/{id}/delete', [PermissionController::class, 'deletePermission']);
-    Route::post('permissions/{id}/restore', [PermissionController::class, 'restorePermission']);
 
     ##UserRole
     Route::post('user/roles/create', [UserRoleController::class, 'createUserRole']);
@@ -112,7 +111,7 @@ Route::prefix('admin')->group(function () {
     Route::post('orders/{orderId}/items', [OrderController::class, 'addOrderItem']);
     Route::put('orders/{orderId}/items/{itemId}', [OrderController::class, 'updateOrderItem']);
     Route::delete('orders/{orderId}/items/{itemId}', [OrderController::class, 'deleteOrderItem']);
-    
+
     // dishes
     Route::get('dishes/list', [DishController::class, 'getListDishes']);
     Route::get('dishes/{id}/detail', [DishController::class, 'getDishDetail']);
