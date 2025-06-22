@@ -90,7 +90,11 @@ class RoleService
             $this->roleRepository->isUsedInUserRoles($role->id) ||
             $this->roleRepository->isUsedInRolePermissions($role->id)
         ) {
-            $result->setResultError(message: 'Không thể xóa vai trò vì đang được sử dụng.');
+            $result->setResultError(
+                'Không thể xóa vai trò vì đang được sử dụng.',
+                ['role_id' => ['Vai trò đang được sử dụng.']]
+            );
+
             return $result;
         }
 

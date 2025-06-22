@@ -76,25 +76,12 @@ class PermissionController extends Controller
         $result = $this->permissionService->deletePermission($permission);
 
         if (!$result->isSuccessCode()) {
-            return $this->responseFail(message: $result->getMessage());
+            return $this->responseFail(
+                message: $result->getMessage(),
+                errors: $result->getErrors()
+            );
         }
 
-        return $this->responseSuccess(message: $result->getMessage());
-    }
-
-    public function restorePermission(string $id)
-    {
-        $permission = $this->permissionRepository->getByConditions(['id' => $id]);
-
-        if (!$permission || !$permission->trashed()) {
-            return $this->responseFail(message: 'Quyền không tồn tại hoặc chưa bị xóa.');
-        }
-
-        $result = $this->permissionService->restorePermission($permission);
-
-        if (!$result->isSuccessCode()) {
-            return $this->responseFail(message: $result->getMessage());
-        }
 
         return $this->responseSuccess(message: $result->getMessage());
     }

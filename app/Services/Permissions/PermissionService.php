@@ -95,27 +95,22 @@ class PermissionService
     {
         $result = new DataAggregate;
 
-        $ok = $this->permissionRepository->delete($permission);
+        if ($this->permissionRepository->isUsedInRolePermissions($permission->id)) {
+            $result->setResultError(
+                'Không thể xóa quyền vì đang được gán cho vai trò.',
+                ['permission_id' => ['Quyền này đang được sử dụng.']]
+            );
+            return $result;
+        }
+
+        $ok = $this->permissionRepository->forceDelete($permission);
+        ;
         if (!$ok) {
             $result->setMessage('Xóa quyền hạn thất bại!');
             return $result;
         }
 
         $result->setResultSuccess(message: 'Xóa quyền hạn thành công!');
-        return $result;
-    }
-
-    public function restorePermission(Permission $permission): DataAggregate
-    {
-        $result = new DataAggregate;
-
-        $ok = $this->permissionRepository->restore($permission);
-        if (!$ok) {
-            $result->setMessage('Khôi phục quyền hạn thất bại!');
-            return $result;
-        }
-
-        $result->setResultSuccess(message: 'Khôi phục quyền hạn thành công!');
         return $result;
     }
 }

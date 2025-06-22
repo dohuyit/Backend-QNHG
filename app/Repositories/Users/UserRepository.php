@@ -24,6 +24,14 @@ class UserRepository implements UserRepositoryInterface
         $result = User::where($conditions)->update($updateData);
         return (bool) $result;
     }
+
+    public function isUserActive(int $userId): bool
+    {
+        return User::where('id', $userId)
+            ->where('status', User::STATUS_ACTIVE)
+            ->exists();
+    }
+
     public function getUserList(array $filter = [], int $limit = 10): LengthAwarePaginator
     {
         $query = User::query(); // đảm bảo query khởi tạo đúng
