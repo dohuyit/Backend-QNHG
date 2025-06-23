@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Order extends Model
 {
+    use HasFactory;
     protected $table = 'orders'; // Tên bảng trong cơ sở dữ liệu
 
     protected $fillable = [
@@ -26,10 +28,6 @@ class Order extends Model
         'delivery_contact_phone',
         'total_amount',         // Tổng tiền các món (trước giảm giá, phí)
         'final_amount',         // Tổng tiền cuối cùng (tham chiếu từ Bill)
-        'preparation_time_estimated_minutes',
-        'preparation_time_actual_minutes',
-        'pickup_time',
-        'delivery_dispatched_at',
         'delivered_at',
     ];
 

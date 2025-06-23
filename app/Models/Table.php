@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Table extends Model
 {
+    use HasFactory;
     protected $table = 'tables';
     protected $casts = [
         'tags' => 'array',
@@ -21,7 +23,6 @@ class Table extends Model
         'description',      // Ví dụ: "Bàn gần cửa sổ, view đẹp", "Bàn tròn lớn"
         'tags',             // Ví dụ (JSON): ["yên tĩnh", "view đẹp", "ghế sofa"]
         'status',           // Ví dụ: 'available', 'occupied', 'reserved', 'cleaning', 'out_of_service'
-        'is_active',        // Ví dụ: true, false
     ];
 
     public function tableArea(): BelongsTo

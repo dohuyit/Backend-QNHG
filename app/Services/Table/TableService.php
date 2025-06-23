@@ -20,7 +20,7 @@ class TableService
     public function getListTables(array $params): ListAggregate
     {
         $filter = $params;
-        $limit = !empty($params['limit']) && $params['limit'] > 0 ? (int) $params['limit'] : 10;
+        $limit = !empty($params['limit']) && $params['limit'] > 0 ? (int) $params['limit'] : 100000;
 
         $pagination = $this->tableRepository->getTableList(filter: $filter, limit: $limit);
 
@@ -29,15 +29,12 @@ class TableService
             $data[] = [
                 'id' => (string) $item->id,
                 'name' => $item->name ?? null,
-                'slug' => $item->slug ?? null,
                 'description' => $item->description ?? null,
                 'capacity' => $item->capacity ?? null,
                 'status' => $item->status ?? null,
-                'table_area_id' => $item->table_area_id ?? null,
                 'table_area' => $item->tableArea ? [
                     'id' => (string) $item->tableArea->id,
                     'name' => $item->tableArea->name,
-                    'slug' => $item->tableArea->slug
                 ] : null,
                 'created_at' => $item->created_at->toDateTimeString(),
                 'updated_at' => $item->updated_at->toDateTimeString(),
@@ -90,7 +87,7 @@ class TableService
     {
         $result = new DataAggregate;
         $listDataUpdate = [
-            'name' => $data['name'] ?? null,
+            'table_number' => $data['table_number'] ?? null,
             'description' => $data['description'] ?? null,
             'capacity' => $data['capacity'] ?? null,
             'status' => $data['status'] ?? 'active',

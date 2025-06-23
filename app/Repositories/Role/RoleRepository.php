@@ -29,7 +29,7 @@ class RoleRepository implements RoleRepositoryInterface
     {
         $query = Role::query();
 
-        if (! empty($filter)) {
+        if (!empty($filter)) {
             $query = $this->filterRoleList($query, $filter);
         }
 
@@ -38,6 +38,12 @@ class RoleRepository implements RoleRepositoryInterface
 
     private function filterRoleList(Builder $query, array $filter = []): Builder
     {
+        if ($val = $filter['keyword'] ?? null) {
+            $query->where(function ($q) use ($val) {
+                $q->where('role_name', 'like', '%' . $val . '%')
+                    ->orWhere('description', 'like', '%' . $val . '%');
+            });
+        }
         if ($val = $filter['role_name'] ?? null) {
             $query->where('role_name', 'like', '%' . $val . '%');
         }

@@ -12,13 +12,17 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+<<<<<<< HEAD
         // Seed user trước để dùng cho reservation, user_roles
         User::factory(10)->create();
 
+=======
+>>>>>>> df4734f6567b16ae396c30ff2e05b39350c4ba7e
         $this->call([
             // Nhóm các bảng không phụ thuộc
             CategorySeeder::class,
             CustomerSeeder::class,
+            TableAreaSeeder::class,
             TableSeeder::class,
             TableAreaSeeder::class, // nếu có
 
@@ -36,8 +40,12 @@ class DatabaseSeeder extends Seeder
 
             // Reservation cần user, table, customer (phổ biến)
             ReservationSeeder::class,
+<<<<<<< HEAD
 
             // Permissions
+=======
+            UserSeeder::class,
+>>>>>>> df4734f6567b16ae396c30ff2e05b39350c4ba7e
             PermissionGroupSeeder::class,
             PermissionSeeder::class,
 

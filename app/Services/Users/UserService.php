@@ -16,20 +16,20 @@ class UserService
         $this->userRepository = $userRepository;
     }
 
-    public  function createUser(array $data): DataAggregate
+    public function createUser(array $data): DataAggregate
     {
         $result = new DataAggregate();
         $avatarFile = $data['avatar'] ?? null;
 
-       $data = [
-            'username'      => $data['username'],
-            'password'      => bcrypt($data['password']),
-            'full_name'     => $data['full_name'],
-            'email'         => $data['email'],
-            'phone_number'  => $data['phone_number'],
-            'status'        => $data['status'] ?? User::STATUS_ACTIVE,
+        $data = [
+            'username' => $data['username'],
+            'password' => bcrypt($data['password']),
+            'full_name' => $data['full_name'],
+            'email' => $data['email'],
+            'phone_number' => $data['phone_number'],
+            'status' => $data['status'] ?? User::STATUS_ACTIVE,
             'email_verified_at' => $data['email_verified_at'] ?? null,
-            'last_login'    => $data['last_login'] ?? null,
+            'last_login' => $data['last_login'] ?? null,
         ];
         if ($avatarFile && $avatarFile->isValid()) {
             $extension = $avatarFile->getClientOriginalExtension();
@@ -59,11 +59,11 @@ class UserService
         }
 
         $updateData = [
-            'username'      => $data['username'] ?? $user->username,
-            'full_name'     => $data['full_name'] ?? $user->full_name,
-            'email'         => $data['email'] ?? $user->email,
-            'phone_number'  => $data['phone_number'] ?? $user->phone_number,
-            'status'        => $data['status'] ?? $user->status,
+            'username' => $data['username'] ?? $user->username,
+            'full_name' => $data['full_name'] ?? $user->full_name,
+            'email' => $data['email'] ?? $user->email,
+            'phone_number' => $data['phone_number'] ?? $user->phone_number,
+            'status' => $data['status'] ?? $user->status,
         ];
 
 
@@ -92,19 +92,20 @@ class UserService
     public function getListUsers(array $params): ListAggregate
     {
         $filter = $params;
-        $limit = !empty($params['limit']) && $params['limit'] > 0 ? (int)$params['limit'] : 10;
+        $limit = (int) ($params['perPage'] ?? $params['limit'] ?? 10);
 
         $pagination = $this->userRepository->getUserList(filter: $filter, limit: $limit);
 
         $data = [];
         foreach ($pagination->items() as $item) {
             $data[] = [
-                'id' => (string)$item->id,
+                'id' => (string) $item->id,
                 'username' => $item->username,
                 'full_name' => $item->full_name,
                 'email' => $item->email,
                 'phone_number' => $item->phone_number,
                 'status' => $item->status,
+                'avatar' => $item->avatar,
                 'last_login' => $item->last_login,
                 'created_at' => $item->created_at,
                 'updated_at' => $item->updated_at,
@@ -124,7 +125,7 @@ class UserService
     {
         $result = new DataAggregate();
 
-        if (! $user) {
+        if (!$user) {
             $result->setResultError(
                 message: 'Dữ liệu không hợp lệ',
                 errors: ['user_id' => ['Người dùng không tồn tại.']]
@@ -137,7 +138,7 @@ class UserService
             ['status' => User::STATUS_INACTIVE]
         );
 
-        if (! $updated) {
+        if (!$updated) {
             $result->setResultError(message: 'Cập nhật trạng thái người dùng thất bại.');
             return $result;
         }

@@ -19,7 +19,8 @@ class RolePermissionService
     public function getListRolePermissions(array $params): ListAggregate
     {
         $filter = $params;
-        $limit = !empty($params['limit']) && $params['limit'] > 0 ? (int) $params['limit'] : 10;
+        $limit = (int) ($params['perPage'] ?? $params['limit'] ?? 10);
+
 
         $pagination = $this->rolePermissionRepository->getRolePermissionList($filter, $limit);
 
@@ -68,7 +69,7 @@ class RolePermissionService
 
         $ok = $this->rolePermissionRepository->createData($data);
 
-        if (! $ok) {
+        if (!$ok) {
             $result->setMessage('Gán quyền cho vai trò thất bại!');
             return $result;
         }
@@ -88,7 +89,7 @@ class RolePermissionService
 
         $ok = $this->rolePermissionRepository->updateByConditions(['id' => $rolePermission->id], $updateData);
 
-        if (! $ok) {
+        if (!$ok) {
             $result->setMessage('Cập nhật phân quyền vai trò thất bại!');
             return $result;
         }
@@ -103,7 +104,7 @@ class RolePermissionService
 
         $deleted = $this->rolePermissionRepository->delete($rolePermission);
 
-        if (! $deleted) {
+        if (!$deleted) {
             $result->setMessage('Xóa phân quyền vai trò thất bại!');
             return $result;
         }

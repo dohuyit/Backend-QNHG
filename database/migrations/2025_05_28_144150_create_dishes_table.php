@@ -18,11 +18,11 @@ return new class extends Migration
             $table->text('description')->nullable()->comment('Mô tả món ăn');
             $table->decimal('original_price', 10, 2)->comment('Giá gốc');
             $table->decimal('selling_price', 10, 2)->comment('Giá bán');
-            $table->string('unit', 50)->nullable()->comment('Đơn vị tính');
+            $table->enum('unit', ['bowl', 'plate', 'cup', 'glass', 'large_bowl', 'other'])->comment('Unit of measurement');
             $table->string('image_url', 255)->nullable()->comment('URL hình ảnh');
             $table->json('tags')->nullable()->comment('Các tag cho món ăn (VD: ["món chay", "cay", "best seller"])');
             $table->boolean('is_featured')->default(false)->comment('Món nổi bật');
-            $table->boolean('is_active')->default(true)->comment('Trạng thái hiển thị');
+            $table->enum('status', ['active', 'inactive'])->default('active')->comment('Trạng thái hiển thị (active/inactive)');
             $table->timestamps();
             $table->softDeletes()->comment('Thêm trường xóa mềm');
             $table->comment('Các món ăn trong thực đơn');

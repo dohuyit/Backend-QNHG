@@ -6,13 +6,19 @@ use App\Common\DataAggregate;
 use App\Common\ListAggregate;
 use App\Models\Reservation;
 use App\Repositories\Reservations\ReservationRepositoryInterface;
+use App\Repositories\Table\TableRepositoryInterface;
+use App\Services\Mails\ReservationMailService;
 
 class ReservationService
 {
     protected ReservationRepositoryInterface $reservationRepository;
-    public function __construct(ReservationRepositoryInterface $reservationRepository)
+    protected TableRepositoryInterface $tableRepository;
+    protected ReservationMailService  $reservationMailService;
+    public function __construct(ReservationRepositoryInterface $reservationRepository, TableRepositoryInterface $tableRepository, ReservationMailService $reservationMailService)
     {
         $this->reservationRepository = $reservationRepository;
+        $this->tableRepository = $tableRepository;
+        $this->reservationMailService = $reservationMailService;
     }
     public function getListReservation(array $params): ListAggregate
     {
@@ -55,6 +61,8 @@ class ReservationService
     public function createReservation(array $data): DataAggregate
     {
         $result = new DataAggregate();
+        $table = $this->tableRepository->findById($data['table_id']);
+
 
         $listDataCreate = [
             'customer_id' => $data['customer_id'],
@@ -67,14 +75,18 @@ class ReservationService
             'notes' => $data['notes'],
             'status' => $data['status'] ?? 'pending',
             'user_id' => $data['user_id'],
+            'table_name' => $table?->table_number ?? 'Không rõ',
+            'table_area_name' => $table?->tableArea?->name ?? 'Không rõ',
         ];
 
         $ok  = $this->reservationRepository->createData($listDataCreate);
         if (!$ok) {
-            $result->setMessage(message: 'Thêm mới thất bại, vui lòng thử lại!');
+            $result->setMessage(message: 'Tạo đơn đặt bàn thất bại, vui lòng thử lại!');
             return $result;
         }
-        $result->setResultSuccess(message: 'Thêm mới thành công!');
+        $result->setResultSuccess(message: 'Tạo đơn đặt bàn thành công!');
+
+        $this->reservationMailService->sendClientConfirmMail($listDataCreate);
         return $result;
     }
     public function getReservationDetail(int $id): DataAggregate

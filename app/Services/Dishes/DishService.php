@@ -23,20 +23,22 @@ class DishService
         $pagination = $this->dishRepository->getDishList(filter: $filter, limit: $limit);
 
         $data = [];
-        foreach ($pagination->items() as $item){
+        foreach ($pagination->items() as $item) {
             $data[] = [
                 'id' => (string)$item->id,
-                'category_id' => $item->category_id,
-                'category_name' => $item->category ? $item->category->name : '',
+                'category' => $item->category ? [
+                    'id' => (string) $item->category->id,
+                    'name' => $item->category->name,
+                ] : null,
                 'name' => $item->name,
                 'image_url' => $item->image_url,
                 'description' => $item->description,
                 'original_price' => $item->original_price,
                 'selling_price' => $item->selling_price,
                 'unit' => $item->unit,
-                'tags' => ConvertHelper::convertJsonToString($item->tags),
+                'tags' => $item->tags ? ConvertHelper::convertJsonToString($item->tags) : '',
                 'is_featured' => (bool)$item->is_featured,
-                'is_active' => (bool)$item->is_active,
+                'status' => $item->status,
                 'created_at' => $item->created_at,
                 'updated_at' => $item->updated_at,
             ];
@@ -63,9 +65,9 @@ class DishService
             'selling_price' => $data['selling_price'],
             'unit' => $data['unit'],
             'is_featured' => $data['is_featured'] ?? false,
-            'is_active' => $data['is_active'] ?? true,
+            'status' => $data['status'] ?? true,
         ];
-        if (!empty($data['tags'])){
+        if (!empty($data['tags'])) {
             $listDataCreate['tags'] = ConvertHelper::convertStringToJson($data['tags']);
         }
 
@@ -91,35 +93,37 @@ class DishService
     {
         $result = new DataAggregate();
 
-        $dish = $this->dishRepository->getByConditions(['id' => $id, 'is_active' => true]);
+        $dish = $this->dishRepository->getByConditions(['id' => $id]);
 
         if (!$dish) {
             $result->setMessage(message: 'Món ăn không tồn tại');
             return $result;
         }
 
-        $dish->tags = ConvertHelper::convertJsonToString($dish->tags);
+        $dish->tags = !empty($dish->tags)
+            ? ConvertHelper::convertJsonToString($dish->tags)
+            : '';
 
         $dish->category_name =  $dish->category->name;
 
         $dish->unsetRelation('category');
-        
-        $result->setResultSuccess(data: ['dish' => $dish] );
+
+        $result->setResultSuccess(data: ['dish' => $dish]);
         return $result;
     }
     public function updateDish(array $data, $dish): DataAggregate
     {
         $result = new DataAggregate();
-    
+
         $listDataUpdate = [
             'category_id' => $data['category_id'],
             'name' => $data['name'],
-            'description' => $data['description'],
+            'description' => $data['description'] ?? null,
             'original_price' => $data['original_price'],
             'selling_price' => $data['selling_price'],
-            'unit' => $data['unit'],
+            'unit' => $data['unit'] ?? null,
             'is_featured' => $data['is_featured'] ?? false,
-            'is_active' => $data['is_active'] ?? true,
+            'status' => $data['status'],
         ];
 
         if (!empty($data['tags'])) {
@@ -135,9 +139,9 @@ class DishService
                 }
             }
 
-            $file = $data['image_url'];  
+            $file = $data['image_url'];
 
-            if(!empty($dish->image_url) && Storage::disk('public')->exists($dish->image_url)) {
+            if (!empty($dish->image_url) && Storage::disk('public')->exists($dish->image_url)) {
                 Storage::disk('public')->delete($dish->image_url);
             }
 
@@ -148,11 +152,11 @@ class DishService
             $listDataUpdate['image_url'] = $path;
         }
 
-        $ok = $this->dishRepository->updateByConditions( ['id' => $dish->id], $listDataUpdate);
+        $ok = $this->dishRepository->updateByConditions(['id' => $dish->id], $listDataUpdate);
         if (!$ok) {
             $result->setMessage(message: 'Cập nhật thất bại, vui lòng thử lại!');
             return $result;
-        } 
+        }
         $result->setResultSuccess(message: 'Cập nhật thành công!');
         return $result;
     }
@@ -176,12 +180,12 @@ class DishService
                 'unit' => $item->unit,
                 'tags' => ConvertHelper::convertJsonToString($item->tags),
                 'is_featured' => $item->is_featured,
-                'is_active' => (bool)$item->is_active,
+                'status' => (bool)$item->status,
                 'created_at' => $item->created_at,
                 'updated_at' => $item->updated_at,
             ];
         }
-        
+
         $result = new ListAggregate($data);
         $result->setMeta(
             page: $pagination->currentPage(),
@@ -208,7 +212,7 @@ class DishService
         $result = new DataAggregate();
         $dish = $this->dishRepository->findOnlyTrashedById($id);
 
-        if (!empty($dish->image_url)){
+        if (!empty($dish->image_url)) {
             if (Storage::disk('public')->exists($dish->image_url)) {
                 Storage::disk('public')->delete($dish->image_url);
             }
@@ -241,7 +245,7 @@ class DishService
         $pagination = $this->dishRepository->getDishesByCategoryId($id, $filter, $limit);
 
         $data = [];
-        foreach ($pagination->items() as $item){
+        foreach ($pagination->items() as $item) {
             $data[] = [
                 'id' => (string)$item->id,
                 'category_id' => $item->category_id,
@@ -253,7 +257,7 @@ class DishService
                 'unit' => $item->unit,
                 'tags' => ConvertHelper::convertJsonToString($item->tags),
                 'is_featured' => (bool)$item->is_featured,
-                'is_active' => (bool)$item->is_active,
+                'status' => (bool)$item->status,
                 'created_at' => $item->created_at,
                 'updated_at' => $item->updated_at,
             ];
@@ -269,4 +273,3 @@ class DishService
         return $result;
     }
 }
-

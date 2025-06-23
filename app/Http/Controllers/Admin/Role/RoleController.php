@@ -15,9 +15,10 @@ class RoleController extends Controller
 
     protected RoleRepositoryInterface $roleRepository;
 
-    public function __construct(RoleService $roleService,
-                                RoleRepositoryInterface $roleRepository)
-    {
+    public function __construct(
+        RoleService $roleService,
+        RoleRepositoryInterface $roleRepository
+    ) {
         $this->roleService = $roleService;
         $this->roleRepository = $roleRepository;
 
@@ -25,28 +26,28 @@ class RoleController extends Controller
 
     public function createRole(CreateRoleRequest $request)
     {
-        $data = $request->only(['role_name','description']);
+        $data = $request->only(['role_name', 'description']);
         $result = $this->roleService->createRole($data);
 
-        if (! $result->isSuccessCode()) {
+        if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage());
         }
 
         return $this->responseSuccess(message: $result->getMessage());
     }
 
-    public function updateRole(UpdateRoleRequest $request,string $id)
+    public function updateRole(UpdateRoleRequest $request, string $id)
     {
         $data = $request->only(['role_name', 'description']);
 
         $role = $this->roleRepository->getByConditions(['id' => $id]);
 
-        if (! $role) {
+        if (!$role) {
             return $this->responseFail(message: 'Vai trò không tồn tại', statusCode: 404);
         }
 
         $result = $this->roleService->updateRole($data, $role);
-        if (! $result->isSuccessCode()) {
+        if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage());
         }
 
@@ -56,6 +57,8 @@ class RoleController extends Controller
     public function getListRoles(Request $request)
     {
         $params = $request->only(
+            'keyword',
+            'perPage',
             'page',
             'limit',
             'role_name',
@@ -77,8 +80,11 @@ class RoleController extends Controller
         }
 
         $result = $this->roleService->deleteRole($role);
-        if (! $result->isSuccessCode()) {
-            return $this->responseFail(message: $result->getMessage());
+        if (!$result->isSuccessCode()) {
+            return $this->responseFail(
+                message: $result->getMessage(),
+                errors: $result->getErrors()
+            );
         }
 
         return $this->responseSuccess(message: $result->getMessage());

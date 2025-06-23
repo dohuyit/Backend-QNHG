@@ -6,7 +6,7 @@ use App\Common\DataAggregate;
 use App\Common\ListAggregate;
 use App\Models\Role;
 use App\Repositories\Role\RoleRepositoryInterface;
-class  RoleService
+class RoleService
 {
     protected RoleRepositoryInterface $roleRepository;
 
@@ -25,7 +25,7 @@ class  RoleService
         ];
 
         $ok = $this->roleRepository->createData($createData);
-        if (! $ok) {
+        if (!$ok) {
             $result->setMessage('Thêm vai trò thất bại!');
             return $result;
         }
@@ -39,13 +39,13 @@ class  RoleService
         $result = new DataAggregate;
 
         $updateData = [
-            'role_name'   => $data['role_name'],
+            'role_name' => $data['role_name'],
             'description' => $data['description'] ?? null,
         ];
 
         $ok = $this->roleRepository->updateByConditions(['id' => $role->id], $updateData);
 
-        if (! $ok) {
+        if (!$ok) {
             $result->setMessage('Cập nhật vai trò thất bại!');
             return $result;
         }
@@ -57,7 +57,7 @@ class  RoleService
     public function getListRoles(array $params): ListAggregate
     {
         $filter = $params;
-        $limit = !empty($params['limit']) && $params['limit'] > 0 ? (int) $params['limit'] : 10;
+        $limit = (int) ($params['perPage'] ?? $params['limit'] ?? 10);
 
         $pagination = $this->roleRepository->getRoleList(filter: $filter, limit: $limit);
 
@@ -90,13 +90,17 @@ class  RoleService
             $this->roleRepository->isUsedInUserRoles($role->id) ||
             $this->roleRepository->isUsedInRolePermissions($role->id)
         ) {
-            $result->setResultError(message: 'Không thể xóa vai trò vì đang được sử dụng.');
+            $result->setResultError(
+                'Không thể xóa vai trò vì đang được sử dụng.',
+                ['role_id' => ['Vai trò đang được sử dụng.']]
+            );
+
             return $result;
         }
 
         $ok = $this->roleRepository->delete($role);
 
-        if (! $ok) {
+        if (!$ok) {
             $result->setResultError(message: 'Xóa vai trò thất bại. Vui lòng thử lại.');
             return $result;
         }

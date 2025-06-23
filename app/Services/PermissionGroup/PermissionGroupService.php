@@ -27,7 +27,7 @@ class PermissionGroupService
 
         $ok = $this->permissionGroupRepository->createData($createData);
 
-        if (! $ok) {
+        if (!$ok) {
             $result->setMessage('Thêm nhóm quyền thất bại!');
             return $result;
         }
@@ -47,7 +47,7 @@ class PermissionGroupService
 
         $ok = $this->permissionGroupRepository->updateByConditions(['id' => $group->id], $updateData);
 
-        if (! $ok) {
+        if (!$ok) {
             $result->setMessage('Cập nhật nhóm quyền thất bại!');
             return $result;
         }
@@ -59,7 +59,7 @@ class PermissionGroupService
     public function getListPermissionGroups(array $params): ListAggregate
     {
         $filter = $params;
-        $limit = !empty($params['limit']) && $params['limit'] > 0 ? (int) $params['limit'] : 10;
+        $limit = (int) ($params['perPage'] ?? $params['limit'] ?? 10);
 
         $pagination = $this->permissionGroupRepository->getPermissionGroupList(filter: $filter, limit: $limit);
 
@@ -88,15 +88,16 @@ class PermissionGroupService
     {
         $result = new DataAggregate();
 
-        if (!$group) {
+        $used = $this->permissionGroupRepository->isUsedInPermissions($group->id);
+        if ($used) {
             $result->setResultError(
-                message: 'Dữ liệu không hợp lệ.',
-                errors: ['group_id' => ['Nhóm quyền không tồn tại.']]
+                'Không thể xóa nhóm quyền vì đang được sử dụng.',
+                ['group_id' => ['Nhóm quyền đang được sử dụng.']]
             );
             return $result;
         }
 
-        $deleted = $this->permissionGroupRepository->delete($group);
+        $deleted = $this->permissionGroupRepository->forceDelete($group);
 
         if (!$deleted) {
             $result->setResultError(message: 'Xóa nhóm quyền thất bại. Vui lòng thử lại.');
@@ -104,29 +105,6 @@ class PermissionGroupService
         }
 
         $result->setResultSuccess(message: 'Xóa nhóm quyền thành công!');
-        return $result;
-    }
-
-    public function restoreGroup(PermissionGroup $group): DataAggregate
-    {
-        $result = new DataAggregate();
-
-        if (!$group || !$group->trashed()) {
-            $result->setResultError(
-                message: 'Nhóm quyền không tồn tại hoặc chưa bị xóa.',
-                errors: ['group_id' => ['Không thể khôi phục bản ghi này.']]
-            );
-            return $result;
-        }
-
-        $restored = $this->permissionGroupRepository->restore($group);
-
-        if (!$restored) {
-            $result->setResultError(message: 'Khôi phục nhóm quyền thất bại.');
-            return $result;
-        }
-
-        $result->setResultSuccess(message: 'Khôi phục nhóm quyền thành công!');
         return $result;
     }
 }

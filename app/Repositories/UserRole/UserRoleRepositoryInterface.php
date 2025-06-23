@@ -14,4 +14,5 @@ interface UserRoleRepositoryInterface
     public function getByConditions(array $conditions): ?UserRole;
     public function getUserRoleList(array $filter = [], int $limit = 10): LengthAwarePaginator;
     public function delete(UserRole $userRole): bool;
+    public function isDuplicateUserRoleExceptId(int $userId, int $roleId, int $excludeId): bool;
 }

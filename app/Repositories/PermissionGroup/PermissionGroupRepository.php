@@ -2,11 +2,12 @@
 
 namespace App\Repositories\PermissionGroup;
 
+use App\Models\Permission;
 use App\Models\PermissionGroup;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 
-class  PermissionGroupRepository implements PermissionGroupRepositoryInterface
+class PermissionGroupRepository implements PermissionGroupRepositoryInterface
 {
     public function createData(array $data): bool
     {
@@ -28,7 +29,7 @@ class  PermissionGroupRepository implements PermissionGroupRepositoryInterface
     {
         $query = PermissionGroup::query();
 
-        if (! empty($filter)) {
+        if (!empty($filter)) {
             $query = $this->filterPermissionGroupList($query, $filter);
         }
 
@@ -37,6 +38,12 @@ class  PermissionGroupRepository implements PermissionGroupRepositoryInterface
 
     private function filterPermissionGroupList(Builder $query, array $filter = []): Builder
     {
+        if ($val = $filter['keyword'] ?? null) {
+            $query->where(function ($q) use ($val) {
+                $q->where('group_name', 'like', '%' . $val . '%')
+                    ->orWhere('description', 'like', '%' . $val . '%');
+            });
+        }
         if ($val = $filter['group_name'] ?? null) {
             $query->where('group_name', 'like', '%' . $val . '%');
         }
@@ -48,13 +55,14 @@ class  PermissionGroupRepository implements PermissionGroupRepositoryInterface
         return $query;
     }
 
-    public function delete(PermissionGroup $group): bool
+    public function isUsedInPermissions(int $groupId): bool
     {
-        return $group->delete();
+        return Permission::where('permission_group_id', $groupId)->exists();
     }
 
-    public function restore(PermissionGroup $group): bool
+    public function forceDelete(PermissionGroup $group): bool
     {
-        return $group->restore();
+        return $group->forceDelete();
     }
+
 }

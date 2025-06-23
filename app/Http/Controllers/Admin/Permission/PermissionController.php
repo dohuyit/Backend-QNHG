@@ -15,16 +15,17 @@ class PermissionController extends Controller
 
     protected PermissionRepositoryInterface $permissionRepository;
 
-    public function __construct(PermissionService $permissionService,
-                                PermissionRepositoryInterface $permissionRepository)
-    {
+    public function __construct(
+        PermissionService $permissionService,
+        PermissionRepositoryInterface $permissionRepository
+    ) {
         $this->permissionService = $permissionService;
         $this->permissionRepository = $permissionRepository;
     }
 
     public function getPermissionLists(Request $request)
     {
-        $params = $request->only('page', 'limit', 'permission_name', 'description', 'permission_group_id');
+        $params = $request->only('page', 'limit', 'perPage', 'keyword', 'permission_name', 'description', 'permission_group_id');
 
         $result = $this->permissionService->getListPermissions($params);
         $data = $result->getResult();
@@ -38,7 +39,7 @@ class PermissionController extends Controller
 
         $result = $this->permissionService->createPermission($data);
 
-        if (! $result->isSuccessCode()) {
+        if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage());
         }
 
@@ -51,13 +52,13 @@ class PermissionController extends Controller
 
         $permission = $this->permissionRepository->getByConditions(['id' => $id]);
 
-        if (! $permission) {
+        if (!$permission) {
             return $this->responseFail(message: 'Quyền hạn không tồn tại', statusCode: 404);
         }
 
         $result = $this->permissionService->updatePermission($data, $permission);
 
-        if (! $result->isSuccessCode()) {
+        if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage());
         }
 
@@ -68,32 +69,19 @@ class PermissionController extends Controller
     {
         $permission = $this->permissionRepository->getByConditions(['id' => $id]);
 
-        if (! $permission) {
+        if (!$permission) {
             return $this->responseFail(message: 'Quyền không tồn tại', statusCode: 404);
         }
 
         $result = $this->permissionService->deletePermission($permission);
 
-        if (! $result->isSuccessCode()) {
-            return $this->responseFail(message: $result->getMessage());
+        if (!$result->isSuccessCode()) {
+            return $this->responseFail(
+                message: $result->getMessage(),
+                errors: $result->getErrors()
+            );
         }
 
-        return $this->responseSuccess(message: $result->getMessage());
-    }
-
-    public function restorePermission(string $id)
-    {
-        $permission = $this->permissionRepository->getByConditions(['id' => $id]);
-
-        if (! $permission || !$permission->trashed()) {
-            return $this->responseFail(message: 'Quyền không tồn tại hoặc chưa bị xóa.');
-        }
-
-        $result = $this->permissionService->restorePermission($permission);
-
-        if (! $result->isSuccessCode()) {
-            return $this->responseFail(message: $result->getMessage());
-        }
 
         return $this->responseSuccess(message: $result->getMessage());
     }
