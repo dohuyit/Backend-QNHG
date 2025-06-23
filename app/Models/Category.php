@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Category extends Model
 {
@@ -19,22 +21,27 @@ class Category extends Model
         'deleted_at',       // Trường xóa mềm
     ];
 
-    public function parent(){
+    public function parent(): BelongsTo
+    {
         return $this->belongsTo(Category::class, 'parent_id');
     }
-    public function children(){
+
+    public function children(): HasMany
+    {
         return $this->hasMany(Category::class, 'parent_id');
     }
-    public function getAllChildrenIds(){
+
+    public function getAllChildrenIds()
+    {
         $ids = [$this->id];
         foreach($this->children as $child) {
             $ids = array_merge($ids, $child->getAllChildrenIds());
         }
         return $ids;
     }
-    public function dishes(){
+
+    public function dishes(): HasMany
+    {
         return $this->hasMany(Dish::class, 'category_id');
     }
-
-
 }

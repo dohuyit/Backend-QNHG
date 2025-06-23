@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class OrderTable extends Model
 {
@@ -13,4 +14,20 @@ class OrderTable extends Model
         'table_id',
         'notes',
     ];
+
+    /**
+     * Relationship với Order
+     */
+    public function order(): BelongsTo
+    {
+        return $this->belongsTo(Order::class);
+    }
+
+    /**
+     * Relationship với Table
+     */
+    public function table(): BelongsTo
+    {
+        return $this->belongsTo(Table::class);
+    }
 }

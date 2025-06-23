@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Table extends Model
 {
@@ -21,8 +23,17 @@ class Table extends Model
         'status',           // Ví dụ: 'available', 'occupied', 'reserved', 'cleaning', 'out_of_service'
         'is_active',        // Ví dụ: true, false
     ];
-    public function tableArea()
+
+    public function tableArea(): BelongsTo
     {
         return $this->belongsTo(TableArea::class);
+    }
+
+    /**
+     * Relationship với OrderTable
+     */
+    public function orderTables(): HasMany
+    {
+        return $this->hasMany(OrderTable::class);
     }
 }

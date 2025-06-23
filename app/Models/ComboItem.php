@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ComboItem extends Model
 {
@@ -13,11 +14,13 @@ class ComboItem extends Model
         'dish_id',     // ID của món ăn trong combo
         'quantity',         // Ví dụ: 1, 2
     ];
-    public function combo()
+
+    public function combo(): BelongsTo
     {
         return $this->belongsTo(Combo::class, 'combo_id');
     }
-    public function dish()
+
+    public function dish(): BelongsTo
     {
         return $this->belongsTo(Dish::class, 'dish_id');
     }

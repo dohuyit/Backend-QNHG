@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Order extends Model
 {
@@ -30,4 +32,36 @@ class Order extends Model
         'delivery_dispatched_at',
         'delivered_at',
     ];
+
+    /**
+     * Relationship với OrderItem
+     */
+    public function items(): HasMany
+    {
+        return $this->hasMany(OrderItem::class);
+    }
+
+    /**
+     * Relationship với OrderTable
+     */
+    public function tables(): HasMany
+    {
+        return $this->hasMany(OrderTable::class);
+    }
+
+    /**
+     * Relationship với Customer
+     */
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
+    }
+
+    /**
+     * Relationship với User (nhân viên tạo đơn)
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 }

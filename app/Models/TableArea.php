@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class TableArea extends Model
 {
@@ -17,4 +18,12 @@ class TableArea extends Model
         'status',            // Trạng thái khu vực bàn (active, inactive)
     ];
     public $timestamps = true;
+
+    /**
+     * Relationship với Table
+     */
+    public function tables(): HasMany
+    {
+        return $this->hasMany(Table::class);
+    }
 }
