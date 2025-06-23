@@ -146,4 +146,5 @@ Route::prefix('admin')->group(function () {
     Route::delete('reservations/{id}/soft/delete', [ReservationController::class, 'softDeleteReservation']);
     Route::delete('reservations/{id}/force/delete', [ReservationController::class, 'forceDeleteReservation']);
     Route::post('reservations/{id}/restore', [ReservationController::class, 'restoreReservation']);
+    Route::post('reservations/{id}/confirm', [ReservationController::class, 'confirmReservation']);
 });

@@ -71,28 +71,7 @@ class OrderService
         return $result;
     }
 
-    public function createOrder(array $data): DataAggregate
-    {
-        // Validate dữ liệu đầu vào
-        if (!isset($data['order_type']) || !in_array($data['order_type'], ['dine-in', 'takeaway', 'delivery'])) {
-            $result = new DataAggregate();
-            $result->setResultError('Loại đơn hàng không hợp lệ', [], ErrorHelper::INVALID_REQUEST_FORMAT);
-            return $result;
-        }
 
-        // Tạo mã đơn hàng tự động
-        $lastOrder = $this->orderRepository->getLastOrder();
-        $orderNumber = $lastOrder ? (int)substr($lastOrder->order_code, 3) + 1 : 1;
-        $data['order_code'] = 'ORD' . str_pad($orderNumber, 6, '0', STR_PAD_LEFT);
-
-        // Thêm thông tin người tạo
-        $data['user_id'] = Auth::id();
-        $data['order_time'] = now();
-        $data['status'] = 'pending_confirmation';
-        $data['payment_status'] = 'unpaid';
-
-        return $this->orderRepository->createOrder($data);
-    }
 
     public function updateOrder(array $data, Order $order): DataAggregate
     {
@@ -281,6 +260,28 @@ class OrderService
         }
 
         return $this->orderRepository->addOrderItem($orderId, $data);
+    }
+    public function createOrder(array $data): DataAggregate
+    {
+        // Validate dữ liệu đầu vào
+        if (!isset($data['order_type']) || !in_array($data['order_type'], ['dine-in', 'takeaway', 'delivery'])) {
+            $result = new DataAggregate();
+            $result->setResultError('Loại đơn hàng không hợp lệ', [], ErrorHelper::INVALID_REQUEST_FORMAT);
+            return $result;
+        }
+
+        // Tạo mã đơn hàng tự động
+        $lastOrder = $this->orderRepository->getLastOrder();
+        $orderNumber = $lastOrder ? (int)substr($lastOrder->order_code, 3) + 1 : 1;
+        $data['order_code'] = 'ORD' . str_pad($orderNumber, 6, '0', STR_PAD_LEFT);
+
+        // Thêm thông tin người tạo
+        $data['user_id'] = Auth::id();
+        $data['order_time'] = now();
+        $data['status'] = 'pending_confirmation';
+        $data['payment_status'] = 'unpaid';
+
+        return $this->orderRepository->createOrder($data);
     }
 
     public function updateOrderItem(string $orderId, int $itemId, array $data): DataAggregate

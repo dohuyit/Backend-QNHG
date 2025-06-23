@@ -159,4 +159,14 @@ class ReservationController extends Controller
         }
         return $this->responseSuccess(message: $result->getMessage());
     }
+    public function confirmReservation(Request $request, int $id)
+    {
+        $userId = \Illuminate\Support\Facades\Auth::check() ? \Illuminate\Support\Facades\Auth::user()->id : null; // hoặc lấy từ $request nếu cần
+        $result = $this->reservationService->confirmReservation($id, $userId);
+
+        if (!$result->isSuccessCode()) {
+            return $this->responseFail(message: $result->getMessage());
+        }
+        return $this->responseSuccess(message: 'Xác nhận đơn đặt bàn thành công');
+    }
 }
