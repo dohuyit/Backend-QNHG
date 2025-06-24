@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class RolePermission extends Model
 {
@@ -13,14 +14,13 @@ class RolePermission extends Model
         'permission_id',
     ];
 
-    public function role()
+    public function role(): BelongsTo
     {
         return $this->belongsTo(Role::class, 'role_id');
     }
 
-    public function permission()
+    public function permission(): BelongsTo
     {
         return $this->belongsTo(Permission::class, 'permission_id');
     }
-
 }

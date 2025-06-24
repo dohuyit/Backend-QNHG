@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Combo extends Model
 {
@@ -18,8 +19,17 @@ class Combo extends Model
         'is_active',            // Ví dụ: true (đang áp dụng)
         'deleted_at',
     ];
-    public function items()
+
+    public function items(): HasMany
     {
         return $this->hasMany(ComboItem::class, 'combo_id');
+    }
+
+    /**
+     * Relationship với OrderItem
+     */
+    public function orderItems(): HasMany
+    {
+        return $this->hasMany(OrderItem::class, 'combo_id');
     }
 }

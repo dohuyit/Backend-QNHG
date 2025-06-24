@@ -3,9 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Database\Seeders\TableAreaSeeder;
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class DatabaseSeeder extends Seeder
 {
@@ -15,20 +13,36 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
+            // Nhóm các bảng không phụ thuộc
             CategorySeeder::class,
             CustomerSeeder::class,
             TableAreaSeeder::class,
             TableSeeder::class,
-            OrderSeeder::class,
+            TableAreaSeeder::class, // nếu có
+
+            // Seed dish trước combo
             DishSeeder::class,
+
+            // Combo cần dish
             ComboSeeder::class,
+
+            // combo_items cần cả combo + dish
             ComboItemSeeder::class,
+
+            // Order có thể cần dish/customer (tùy logic bạn)
+            OrderSeeder::class,
+
+            // Reservation cần user, table, customer (phổ biến)
             ReservationSeeder::class,
             UserSeeder::class,
             PermissionGroupSeeder::class,
             PermissionSeeder::class,
+
+            // Role cần trước để liên kết với permission, user
             RoleSeeder::class,
             RolePermissionSeeder::class,
+
+            // user_roles phải sau khi có user và role
             UserRoleSeeder::class,
         ]);
     }

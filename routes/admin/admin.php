@@ -3,9 +3,7 @@
 use App\Http\Controllers\Admin\Role\RoleController;
 use App\Http\Controllers\Admin\TableArea\TableAreaController;
 use App\Http\Controllers\Admin\Table\TableController;
-use App\Http\Controllers\Admin\Category\CategoryController;;
-
-use App\Http\Controllers\Admin\Customer\CustomerController;
+use App\Http\Controllers\Admin\Category\CategoryController;
 use App\Http\Controllers\Admin\User\UserController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\Auth\AuthController;
@@ -79,14 +77,12 @@ Route::prefix('admin')->group(function () {
     Route::post('permission/groups/{id}/update', [PermissionGroupController::class, 'updatePermissionGroup']);
     Route::get('permission/groups/list', [PermissionGroupController::class, 'getPermissionGroupLists']);
     Route::post('permission/groups/{id}/delete', [PermissionGroupController::class, 'deletePermissionGroup']);
-    Route::post('permission/groups/{id}/restore', [PermissionGroupController::class, 'restorePermissionGroup']);
 
     ##Permission
     Route::post('permissions/create', [PermissionController::class, 'createPermission']);
     Route::post('permissions/{id}/update', [PermissionController::class, 'updatePermission']);
     Route::get('permissions/list', [PermissionController::class, 'getPermissionLists']);
     Route::post('permissions/{id}/delete', [PermissionController::class, 'deletePermission']);
-    Route::post('permissions/{id}/restore', [PermissionController::class, 'restorePermission']);
 
     ##UserRole
     Route::post('user/roles/create', [UserRoleController::class, 'createUserRole']);
@@ -149,4 +145,5 @@ Route::prefix('admin')->group(function () {
     Route::delete('reservations/{id}/soft/delete', [ReservationController::class, 'softDeleteReservation']);
     Route::delete('reservations/{id}/force/delete', [ReservationController::class, 'forceDeleteReservation']);
     Route::post('reservations/{id}/restore', [ReservationController::class, 'restoreReservation']);
+    Route::post('reservations/{id}/confirm', [ReservationController::class, 'confirmReservation']);
 });

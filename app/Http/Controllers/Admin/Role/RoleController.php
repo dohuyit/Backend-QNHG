@@ -81,7 +81,10 @@ class RoleController extends Controller
 
         $result = $this->roleService->deleteRole($role);
         if (!$result->isSuccessCode()) {
-            return $this->responseFail(message: $result->getMessage());
+            return $this->responseFail(
+                message: $result->getMessage(),
+                errors: $result->getErrors()
+            );
         }
 
         return $this->responseSuccess(message: $result->getMessage());

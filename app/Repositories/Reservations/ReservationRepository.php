@@ -65,4 +65,16 @@ class ReservationRepository implements ReservationRepositoryInterface
         return $query->orderBy('deleted_at', 'desc')->paginate($limit);
     }
 
+    public function confirmReservation(int $id, int $userId): bool
+    {
+        return $this->updateByConditions(
+            ['id' => $id],
+            [
+                'status' => 'confirmed',
+                'confirmed_at' => now(),
+                'user_id' => $userId,
+            ]
+        );
+    }
+
 }

@@ -3,6 +3,7 @@
 namespace App\Repositories\Permission;
 
 use App\Models\Permission;
+use App\Models\RolePermission;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -67,13 +68,14 @@ class PermissionRepository implements PermissionRepositoryInterface
         return $query;
     }
 
-    public function delete(Permission $permission): bool
+    public function isUsedInRolePermissions(int $permissionId): bool
     {
-        return $permission->delete();
+        return RolePermission::where('permission_id', $permissionId)->exists();
     }
 
-    public function restore(Permission $permission): bool
+    public function forceDelete(Permission $permission): bool
     {
-        return $permission->restore();
+        return $permission->forceDelete();
     }
+
 }

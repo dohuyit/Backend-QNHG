@@ -2,6 +2,7 @@
 
 namespace App\Repositories\PermissionGroup;
 
+use App\Models\Permission;
 use App\Models\PermissionGroup;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -54,13 +55,14 @@ class PermissionGroupRepository implements PermissionGroupRepositoryInterface
         return $query;
     }
 
-    public function delete(PermissionGroup $group): bool
+    public function isUsedInPermissions(int $groupId): bool
     {
-        return $group->delete();
+        return Permission::where('permission_group_id', $groupId)->exists();
     }
 
-    public function restore(PermissionGroup $group): bool
+    public function forceDelete(PermissionGroup $group): bool
     {
-        return $group->restore();
+        return $group->forceDelete();
     }
+
 }

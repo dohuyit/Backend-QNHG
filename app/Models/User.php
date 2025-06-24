@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
@@ -60,9 +62,25 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
-    public function roles()
+    public function roles(): BelongsToMany
     {
         return $this->belongsToMany(Role::class, 'user_roles');
+    }
+
+    /**
+     * Relationship với Order (đơn hàng được tạo bởi user)
+     */
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
+
+    /**
+     * Relationship với OrderItemChangeLog (lịch sử thay đổi được thực hiện bởi user)
+     */
+    public function orderItemChangeLogs(): HasMany
+    {
+        return $this->hasMany(OrderItemChangeLog::class);
     }
 
     public function hasPermission($permissionSlug)

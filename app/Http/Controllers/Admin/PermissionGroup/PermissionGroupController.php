@@ -75,28 +75,13 @@ class PermissionGroupController extends Controller
 
         $result = $this->permissionGroupService->deleteGroup($group);
         if (!$result->isSuccessCode()) {
-            return $this->responseFail(message: $result->getMessage());
+            return $this->responseFail(
+                message: $result->getMessage(),
+                errors: $result->getErrors()
+            );
         }
 
         return $this->responseSuccess(message: $result->getMessage());
     }
-
-    public function restorePermissionGroup(string $id)
-    {
-        $group = $this->permissionGroupRepository->getByConditions(['id' => $id]);
-
-        if (!$group) {
-            return $this->responseFail(message: 'Nhóm quyền không tồn tại.');
-        }
-
-        $result = $this->permissionGroupService->restoreGroup($group);
-
-        if (!$result->isSuccessCode()) {
-            return $this->responseFail(message: $result->getMessage());
-        }
-
-        return $this->responseSuccess(message: $result->getMessage());
-    }
-
 
 }
