@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\Role\RoleController;
 use App\Http\Controllers\Admin\TableArea\TableAreaController;
 use App\Http\Controllers\Admin\Table\TableController;
 use App\Http\Controllers\Admin\Category\CategoryController;;
+
 use App\Http\Controllers\Admin\Customer\CustomerController;
 use App\Http\Controllers\Admin\User\UserController;
 use Illuminate\Support\Facades\Route;
@@ -38,6 +39,7 @@ Route::prefix('admin')->group(function () {
     Route::delete('categories/{id}/soft/delete', [CategoryController::class, 'softDeleteCategory']);
     Route::delete('categories/{id}/force/delete', [CategoryController::class, 'forceDeleteCategory']);
     Route::post('categories/{id}/restore', [CategoryController::class, 'restoreCategory']);
+    Route::get('categories/parent', [CategoryController::class, 'getParentCategories']);
 
     ##users
     Route::post('users/create', [UserController::class, 'createUser']);
@@ -112,7 +114,7 @@ Route::prefix('admin')->group(function () {
     Route::post('orders/{orderId}/items', [OrderController::class, 'addOrderItem']);
     Route::put('orders/{orderId}/items/{itemId}', [OrderController::class, 'updateOrderItem']);
     Route::delete('orders/{orderId}/items/{itemId}', [OrderController::class, 'deleteOrderItem']);
-    
+
     // dishes
     Route::get('dishes/list', [DishController::class, 'getListDishes']);
     Route::get('dishes/{id}/detail', [DishController::class, 'getDishDetail']);

@@ -1,14 +1,16 @@
 <?php
+
 namespace App\Repositories\Categories;
 
 use App\Models\Category;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 
 class CategoryRepository implements CategoryRepositoryInterface
 {
-	 public function updateByConditions(array $conditions, array $updateData): bool
+    public function updateByConditions(array $conditions, array $updateData): bool
     {
         $result = Category::where($conditions)->update($updateData);
         return (bool)$result;
@@ -66,4 +68,8 @@ class CategoryRepository implements CategoryRepositoryInterface
         return $query->orderBy('deleted_at', 'desc')->paginate($limit);
     }
 
+    public function getCategoriesWithoutParent(): Collection
+    {
+        return Category::whereNull('parent_id')->get();
+    }
 }

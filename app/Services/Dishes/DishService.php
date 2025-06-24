@@ -170,17 +170,19 @@ class DishService
         foreach ($pagination->items() as $item) {
             $data[] = [
                 'id' => (string)$item->id,
-                'category_id' => $item->category_id,
-                'category_name' => $item->category ? $item->category->name : '',
+                'category' => $item->category ? [
+                    'id' => (string) $item->category->id,
+                    'name' => $item->category->name,
+                ] : null,
                 'name' => $item->name,
                 'image_url' => $item->image_url,
                 'description' => $item->description,
                 'original_price' => $item->original_price,
                 'selling_price' => $item->selling_price,
                 'unit' => $item->unit,
-                'tags' => ConvertHelper::convertJsonToString($item->tags),
-                'is_featured' => $item->is_featured,
-                'status' => (bool)$item->status,
+                'tags' => $item->tags ? ConvertHelper::convertJsonToString($item->tags) : '',
+                'is_featured' => (bool)$item->is_featured,
+                'status' => $item->status,
                 'created_at' => $item->created_at,
                 'updated_at' => $item->updated_at,
             ];

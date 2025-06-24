@@ -8,8 +8,9 @@ use App\Models\Category;
 use App\Repositories\Categories\CategoryRepositoryInterface;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+
 class CategoryService
-{ 
+{
     protected CategoryRepositoryInterface $categoryRepository;
     public function __construct(CategoryRepositoryInterface $categoryRepository)
     {
@@ -93,15 +94,15 @@ class CategoryService
 
         $listDataUpdate = [
             'name' => $data['name'],
-            'description' => $data['description'],            
+            'description' => $data['description'],
             'is_active' => $data['is_active'],
             'parent_id' => $data['parent_id'],
         ];
 
         if (!empty($data['image_url'])) {
 
-            if(!empty($category->image_url) && $category->image_url !== $data['image_url']){
-            $oldImagePath = storage_path('app/public/' . $category->image_url);
+            if (!empty($category->image_url) && $category->image_url !== $data['image_url']) {
+                $oldImagePath = storage_path('app/public/' . $category->image_url);
 
                 if (file_exists($oldImagePath)) {
                     unlink($oldImagePath);
@@ -110,7 +111,7 @@ class CategoryService
 
             $file = $data['image_url'];
 
-            if(!empty($category->image_url) && Storage::disk('public')->exists($category->image_url)) {
+            if (!empty($category->image_url) && Storage::disk('public')->exists($category->image_url)) {
                 Storage::disk('public')->delete($category->image_url);
             }
 
@@ -119,7 +120,6 @@ class CategoryService
 
             $path = Storage::disk('public')->putFileAs('categories', $file, $filename);
             $listDataUpdate['image_url'] = $path;
-            
         }
 
         $ok = $this->categoryRepository->updateByConditions(['id' => $category->id], $listDataUpdate);
@@ -178,7 +178,7 @@ class CategoryService
         $category = $this->categoryRepository->findOnlyTrashedById($id);
 
         if (!empty($category->image_url)) {
-            if(Storage::disk('public')->exists($category->image_url)){
+            if (Storage::disk('public')->exists($category->image_url)) {
                 Storage::disk('public')->delete($category->image_url);
             }
         }
@@ -203,5 +203,29 @@ class CategoryService
         }
         $result->setResultSuccess(message: 'Khôi phục thành công!');
         return $result;
+    }
+
+    public function getParentCategories(): array
+    {
+        $categories = $this->categoryRepository->getCategoriesWithoutParent();
+        if (!$categories) {
+            return [];
+        }
+
+        $data = [];
+        foreach ($categories as $category) {
+            $data[] = [
+                'id' => (string)$category->id,
+                'name' => $category->name,
+                'description' => $category->description,
+                'image_url' => $category->image_url,
+                'is_active' => (bool)$category->is_active,
+                'parent_id' => $category->parent_id,
+                'created_at' => $category->created_at,
+                'updated_at' => $category->updated_at,
+            ];
+        }
+
+        return $data;
     }
 }

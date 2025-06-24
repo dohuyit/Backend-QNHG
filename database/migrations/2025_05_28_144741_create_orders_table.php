@@ -24,8 +24,9 @@ return new class extends Migration
             $table->enum('payment_status', ['unpaid', 'partially_paid', 'paid', 'refunded'])->default('unpaid')->comment('Trạng thái thanh toán');
             $table->text('notes')->nullable()->comment('Ghi chú chung');
             $table->text('delivery_address')->nullable()->comment('Địa chỉ giao hàng (delivery)');
-            $table->string('delivery_contact_name', 100)->nullable()->comment('Tên người nhận (delivery)');
-            $table->string('delivery_contact_phone', 20)->nullable()->comment('SĐT người nhận (delivery)');
+            $table->string('contact_name', 100)->nullable()->comment('Tên liên hệ (khách hàng vãng lai hoặc giao hàng)');
+            $table->string('contact_email', 100)->nullable()->comment('Email liên hệ (khách hàng vãng lai hoặc giao hàng)');
+            $table->string('contact_phone', 20)->nullable()->comment('SĐT liên hệ (khách hàng vãng lai hoặc giao hàng)');
             $table->decimal('total_amount', 12, 2)->default(0.00)->comment('Tổng tiền tạm tính');
             $table->decimal('final_amount', 12, 2)->default(0.00)->comment('Tổng tiền cuối cùng (từ Bill)');
             $table->dateTime('delivered_at')->nullable()->comment('TG giao thành công');
