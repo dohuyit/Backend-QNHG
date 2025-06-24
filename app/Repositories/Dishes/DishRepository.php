@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Repositories\Dishes;
 
 use App\Models\Category;
@@ -42,7 +43,7 @@ class DishRepository implements DishRepositoryInterface
     {
         $query = Dish::with('category');
 
-        if(!empty($filter)){
+        if (!empty($filter)) {
             $result = $this->filterDishList($query, $filter);
         }
 
@@ -65,7 +66,7 @@ class DishRepository implements DishRepositoryInterface
     }
     function getTrashDishList(array $filter = [], int $limit = 10): LengthAwarePaginator
     {
-        $query = Dish::onlyTrashed();
+        $query = Dish::onlyTrashed()->with('category');
 
         if (!empty($filter)) {
             $query = $this->filterDishList($query, $filter);
@@ -92,5 +93,4 @@ class DishRepository implements DishRepositoryInterface
         }
         return $query->orderBy('created_at', 'desc')->paginate($limit);
     }
-
 }

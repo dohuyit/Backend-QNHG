@@ -26,7 +26,8 @@ class UpdateReservationRequest extends BaseFormRequest
             'customer_name'     => 'required|string|max:100',
             'customer_phone'    => 'required|string|max:20',
             'customer_email'    => 'nullable|email|max:100',
-            'reservation_time'  => 'required|date',
+            'reservation_date'  => 'required|date',
+            'reservation_time'  => 'required|date_format:H:i',
             'number_of_guests'  => 'required|integer|min:1',
             'table_id'          => 'nullable|integer|exists:tables,id',
             'notes'             => 'nullable|string',
@@ -51,8 +52,12 @@ class UpdateReservationRequest extends BaseFormRequest
             'customer_email.email'      => 'Email không hợp lệ.',
             'customer_email.max'        => 'Email không được vượt quá 100 ký tự.',
 
-            'reservation_time.required' => 'Vui lòng chọn thời gian đặt.',
-            'reservation_time.date'     => 'Thời gian đặt không hợp lệ.',
+            'reservation_date.required' => 'Vui lòng chọn ngày đặt.',
+            'reservation_date.date'     => 'Ngày đặt không hợp lệ.',
+
+            'reservation_time.required' => 'Vui lòng chọn giờ đến.',
+            'reservation_time.date_format' => 'Giờ đến phải đúng định dạng HH:mm.',
+
 
             'number_of_guests.required' => 'Vui lòng nhập số lượng khách.',
             'number_of_guests.integer'  => 'Số lượng khách phải là số nguyên.',
