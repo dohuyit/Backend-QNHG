@@ -30,6 +30,9 @@ class RepoServiceProvider extends ServiceProvider
         $this->app->bind(\App\Repositories\RolePermission\RolePermissionRepositoryInterface::class, \App\Repositories\RolePermission\RolePermissionRepository::class);
 
         $this->app->bind(\App\Repositories\Auth\AuthClientRepositoryInterface::class, \App\Repositories\Auth\AuthClientRepository::class);
+        
+        $this->app->bind(\App\Repositories\KitchenOrders\KitchenOrderRepositoryInterface::class, \App\Repositories\KitchenOrders\KitchenOrderRepository::class);
+
 
     }
 

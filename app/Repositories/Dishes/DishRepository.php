@@ -96,4 +96,13 @@ class DishRepository implements DishRepositoryInterface
             ->with('category')
             ->get();
     }
+      public function countByConditions(array $conditions = []): int
+    {
+        $query = Dish::query();
+
+        if (!empty($conditions)) {
+            $this->filterDishList($query, $conditions);
+        }
+        return $query->count();
+    }
 }

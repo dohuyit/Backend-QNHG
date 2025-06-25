@@ -94,4 +94,11 @@ class TableAreaController extends Controller
         return $this->responseSuccess(message: 'Xóa khu vực bàn thành công');
     }
 
+    public function countByStatus()
+    {
+        $result = $this->tableAreaService->countByStatus();
+
+        return $this->responseSuccess($result);
+    }
+
 }

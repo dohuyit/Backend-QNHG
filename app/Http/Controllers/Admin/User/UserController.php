@@ -131,4 +131,11 @@ class UserController extends Controller
 
         return $this->responseSuccess(message: $result->getMessage());
     }
+    public function countByStatus()
+    {
+        $result = $this->userService->countByStatus();
+
+        return $this->responseSuccess($result);
+    }
+
 }

@@ -358,4 +358,30 @@ class OrderRepository implements OrderRepositoryInterface
             return $result;
         }
     }
+    public function countByConditions(array $conditions = []): int
+    {
+        $query = Order::query();
+
+        if (isset($conditions['order_type'])) {
+            $query->where('order_type', $conditions['order_type']);
+        }
+
+        if (isset($conditions['status'])) {
+            $query->where('status', $conditions['status']);
+        }
+
+        if (isset($conditions['payment_status'])) {
+            $query->where('payment_status', $conditions['payment_status']);
+        }
+
+        if (isset($conditions['date_from'])) {
+            $query->where('order_time', '>=', $conditions['date_from']);
+        }
+
+        if (isset($conditions['date_to'])) {
+            $query->where('order_time', '<=', $conditions['date_to']);
+        }
+
+        return $query->count();
+    }
 }

@@ -76,5 +76,14 @@ class ReservationRepository implements ReservationRepositoryInterface
             ]
         );
     }
+    public function countByConditions(array $conditions = []): int
+    {
+        $query = Reservation::query();
+
+        if (!empty($conditions)) {
+            $this->filterReservationList($query, $conditions);
+        }
+        return $query->count();
+    }
 
 }

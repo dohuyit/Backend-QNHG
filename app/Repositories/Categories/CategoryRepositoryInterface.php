@@ -16,4 +16,6 @@ interface CategoryRepositoryInterface
     public function findOnlyTrashedById($id): ?Category;
     public function getCategoriesWithoutParent(): Collection;
     public function getChildrenByParentId(int $parentId): Collection;
+    public function countByConditions(array $conditions): int;
+
 }

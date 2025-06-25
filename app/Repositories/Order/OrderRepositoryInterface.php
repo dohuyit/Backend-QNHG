@@ -36,4 +36,6 @@ interface OrderRepositoryInterface
     public function updateOrderItem(string $orderId, int $itemId, array $data): DataAggregate;
 
     public function deleteOrderItem(string $orderId, int $itemId): DataAggregate;
+    
+    public function countByConditions(array $conditions): int;
 }

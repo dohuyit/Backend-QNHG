@@ -320,4 +320,14 @@ class DishService
         $result->setResultSuccess(data: $data);
         return $result;
     }
+    public function countByStatus(): array
+    {
+        $listStatus = ['active', 'inactive'];
+        $counts = [];
+
+        foreach($listStatus as $status) {
+            $counts[$status] = $this->dishRepository->countByConditions(['status' => $status]);
+        }
+        return $counts;
+    }
 }

@@ -266,4 +266,16 @@ class CategoryService
         $result->setResultSuccess(data: $data);
         return $result;
     }
+    public function countByStatus(): array
+    {
+        $listStatus = [true, false];
+        $counts = [];
+
+        foreach ($listStatus as $status) {
+            $key = $status ? 'active' : 'inactive';
+            $counts[$key] = $this->categoryRepository->countByConditions(['is_active' => $status]);
+        }
+        
+        return $counts;
+    }
 }

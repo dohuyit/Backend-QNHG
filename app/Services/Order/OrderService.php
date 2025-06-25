@@ -299,4 +299,14 @@ class OrderService
     {
         return $this->orderRepository->deleteOrderItem($orderId, $itemId);
     }
+    public function countByStatus(): array
+    {
+        $listStatus = ['pending_confirmation', 'confirmed', 'preparing', 'ready_to_serve', 'served', 'ready_for_pickup', 'delivering', 'completed', 'cancelled', 'payment_failed'];
+        $counts = [];
+
+        foreach($listStatus as $status) {
+            $counts[$status] = $this->orderRepository->countByConditions(['status' => $status]);
+        }
+        return $counts;
+    }
 }

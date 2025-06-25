@@ -14,4 +14,5 @@ interface TableAreaRepositoryInterface
 
     public function findById($id);
      public function create(array $data);
+    public function countByConditions(array $conditions): int;
 }

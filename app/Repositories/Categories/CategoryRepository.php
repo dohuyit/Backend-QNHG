@@ -40,12 +40,12 @@ class CategoryRepository implements CategoryRepositoryInterface
 
     private function filterCategoryList(Builder $query, array $filter = []): Builder
     {
-        if ($val = $filter['name'] ?? null) {
-            $query->where('name', 'like', '%' . $val . '%');
+        if (!empty($filter['name'])) {
+            $query->where('name', 'like', '%' . $filter['name'] . '%');
         }
 
-        if ($val = $filter['status'] ?? null) {
-            $query->where('status', $val);
+        if (array_key_exists('is_active', $filter)) {
+            $query->where('is_active', $filter['is_active']);
         }
 
         return $query;
@@ -67,14 +67,21 @@ class CategoryRepository implements CategoryRepositoryInterface
 
         return $query->orderBy('deleted_at', 'desc')->paginate($limit);
     }
-
     public function getCategoriesWithoutParent(): Collection
     {
         return Category::whereNull('parent_id')->get();
     }
-
     public function getChildrenByParentId(int $parentId): Collection
     {
         return Category::where('parent_id', $parentId)->get();
+    }
+    public function countByConditions(array $conditions = []): int
+    {
+        $query = Category::query();
+
+        if (!empty($conditions)) {
+            $this->filterCategoryList($query, $conditions);
+        }
+        return $query->count();
     }
 }

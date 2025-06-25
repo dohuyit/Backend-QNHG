@@ -104,4 +104,10 @@ class TableController extends Controller
         }
         return $this->responseSuccess(message: 'Xóa bàn thành công');
     }
+    public function countByStatus()
+    {
+        $result = $this->tableService->countByStatus();
+
+        return $this->responseSuccess($result);
+    }
 }

@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\RolePermission\RolePermissionController;
 use App\Http\Controllers\Admin\Combo\ComboController;
 use App\Http\Controllers\Admin\Customer\CustomerController;
 use App\Http\Controllers\Admin\Dish\DishController;
+use App\Http\Controllers\Admin\KitchenOrder\KitchenOrderController;
 use App\Http\Controllers\Admin\Order\OrderController;
 use App\Http\Controllers\Admin\Reservation\ReservationController;
 
@@ -38,7 +39,7 @@ Route::prefix('admin')->group(function () {
     Route::delete('categories/{id}/soft/delete', [CategoryController::class, 'softDeleteCategory']);
     Route::delete('categories/{id}/force/delete', [CategoryController::class, 'forceDeleteCategory']);
     Route::post('categories/{id}/restore', [CategoryController::class, 'restoreCategory']);
-    
+    Route::get('categories/count-by-status', [CategoryController::class, 'countByStatus']);
 
     ##users
     Route::post('users/create', [UserController::class, 'createUser']);
@@ -47,6 +48,8 @@ Route::prefix('admin')->group(function () {
     Route::post('users/{id}/delete', [UserController::class, 'deleteUser']);
     Route::post('users/{id}/block', [UserController::class, 'blockUser']);
     Route::post('users/{id}/unblock', [UserController::class, 'unblockUser']);
+    Route::get('users/count-by-status', [UserController::class, 'countByStatus']);
+
 
     ## table areas
     Route::get('table-areas/list', [TableAreaController::class, 'getListTableArea']);
@@ -54,6 +57,7 @@ Route::prefix('admin')->group(function () {
     Route::post('table-areas/create', [TableAreaController::class, 'createTableArea']);
     Route::post('table-areas/{id}/update', [TableAreaController::class, 'updateTableArea']);
     Route::delete('table-areas/{id}/delete', [TableAreaController::class, 'destroy']);
+    Route::get('table-areas/count-by-status', [TableAreaController::class, 'countByStatus']);
 
     ## tables
     Route::get('tables/list', [TableController::class, 'getListTables']);
@@ -61,7 +65,7 @@ Route::prefix('admin')->group(function () {
     Route::post('tables/create', [TableController::class, 'createTable']);
     Route::post('tables/{id}/update', [TableController::class, 'updateTable']);
     Route::delete('tables/{id}/delete', [TableController::class, 'destroyTable']);
-
+    Route::get('tables/count-by-status', [TableController::class, 'countByStatus']);
 
     ##resetpass
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
@@ -111,6 +115,8 @@ Route::prefix('admin')->group(function () {
     Route::post('orders/{orderId}/items', [OrderController::class, 'addOrderItem']);
     Route::put('orders/{orderId}/items/{itemId}', [OrderController::class, 'updateOrderItem']);
     Route::delete('orders/{orderId}/items/{itemId}', [OrderController::class, 'deleteOrderItem']);
+    Route::get('orders/count-by-status', [OrderController::class, 'countByStatus']);
+
 
     // dishes
     Route::get('dishes/list', [DishController::class, 'getListDishes']);
@@ -122,6 +128,7 @@ Route::prefix('admin')->group(function () {
     Route::delete('dishes/{id}/soft/delete', [DishController::class, 'softDeleteDish']);
     Route::delete('dishes/{id}/force/delete', [DishController::class, 'forceDeleteDish']);
     Route::post('dishes/{id}/restore', [DishController::class, 'restoreDish']);
+    Route::get('dishes/count-by-status', [DishController::class, 'countByStatus']);
 
     // combos
     Route::get('combos/list', [ComboController::class, 'getListCombos']);
@@ -132,6 +139,7 @@ Route::prefix('admin')->group(function () {
     Route::delete('combos/{id}/soft/delete', [ComboController::class, 'softDeleteCombo']);
     Route::delete('combos/{id}/force/delete', [ComboController::class, 'forceDeleteCombo']);
     Route::post('combos/{id}/restore', [ComboController::class, 'restoreCombo']);
+    Route::get('combos/count-by-status', [ComboController::class, 'countByStatus']);
 
     Route::post('combos/{id}/add-items', [ComboController::class, 'addItemToCombo']);
     Route::post('combos/{comboId}/{dishId}/update-quantity', [ComboController::class, 'updateItemQuantity']);
@@ -146,4 +154,11 @@ Route::prefix('admin')->group(function () {
     Route::delete('reservations/{id}/force/delete', [ReservationController::class, 'forceDeleteReservation']);
     Route::post('reservations/{id}/restore', [ReservationController::class, 'restoreReservation']);
     Route::post('reservations/{id}/confirm', [ReservationController::class, 'confirmReservation']);
+    Route::get('reservations/count-by-status', [ReservationController::class, 'countByStatus']);
+
+    // Kitchen Order
+    Route::get('kitchen-orders/list', [KitchenOrderController::class, 'getListKitchenOrders']);
+    Route::post('kitchen-orders/{id}/update-status', [KitchenOrderController::class, 'updateKitchenOrderStatus']);
+    Route::post('kitchen-orders/{id}/cancel', [KitchenOrderController::class, 'cancelKitchenOrder']);
+    Route::get('kitchen-orders/count-by-status', [KitchenOrderController::class, 'countByStatus']);
 });

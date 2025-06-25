@@ -68,5 +68,15 @@ class TableRepository implements TableRepositoryInterface
             return false;
         }
         return $table->delete();
+    
+    }
+    public function countByConditions(array $conditions = []): int
+    {
+        $query = Table::query();
+
+        if (!empty($conditions)) {
+            $this->filterTableList($query, $conditions);
+        }
+        return $query->count();
     }
 }

@@ -65,5 +65,15 @@ class TableAreaRepository implements TableAreaRepositoryInterface
         return $this->model->create($data);
     }
 
+   public function countByConditions(array $conditions = []): int
+    {
+        $query = TableArea::query();
+
+        if (!empty($conditions)) {
+            $query = $this->filterTableAreaList($query, $conditions);
+        }
+
+        return $query->count();
+    }
 
 }
