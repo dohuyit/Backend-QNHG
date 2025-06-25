@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Repositories\Reservations;
 
 use App\Models\Reservation;
@@ -7,7 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class ReservationRepository implements ReservationRepositoryInterface
 {
-	 public function updateByConditions(array $conditions, array $updateData): bool
+    public function updateByConditions(array $conditions, array $updateData): bool
     {
         $result = Reservation::where($conditions)->update($updateData);
         return (bool)$result;
@@ -85,5 +86,4 @@ class ReservationRepository implements ReservationRepositoryInterface
         }
         return $query->count();
     }
-
 }
