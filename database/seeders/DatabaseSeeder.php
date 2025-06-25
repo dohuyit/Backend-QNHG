@@ -14,40 +14,40 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             // Nhóm các bảng không phụ thuộc
-            CategorySeeder::class,
-            CustomerSeeder::class,
-            TableAreaSeeder::class,
-            TableSeeder::class,
-            TableAreaSeeder::class, // nếu có
+            // CategorySeeder::class,
+            // CustomerSeeder::class,
+            // TableAreaSeeder::class,
+            // TableSeeder::class,
+            // TableAreaSeeder::class, // nếu có
 
-            // Seed dish trước combo
-            DishSeeder::class,
+            // // Seed dish trước combo
+            // DishSeeder::class,
 
-            // Combo cần dish
-            ComboSeeder::class,
+            // // Combo cần dish
+            // ComboSeeder::class,
 
-            // combo_items cần cả combo + dish
-            ComboItemSeeder::class,
+            // // combo_items cần cả combo + dish
+            // ComboItemSeeder::class,
 
-            // Order có thể cần dish/customer (tùy logic bạn)
-            OrderSeeder::class,
+            // // Order có thể cần dish/customer (tùy logic bạn)
+            // OrderSeeder::class,
             
             
-            // KitchenOrder cần Order + OrderItem
+            // // KitchenOrder cần Order + OrderItem
             KitchenOrderSeeder::class,
 
             // Reservation cần user, table, customer (phổ biến)
-            ReservationSeeder::class,
-            UserSeeder::class,
-            PermissionGroupSeeder::class,
-            PermissionSeeder::class,
+            // ReservationSeeder::class,
+            // UserSeeder::class,
+            // PermissionGroupSeeder::class,
+            // PermissionSeeder::class,
 
-            // Role cần trước để liên kết với permission, user
-            RoleSeeder::class,
-            RolePermissionSeeder::class,
+            // // Role cần trước để liên kết với permission, user
+            // RoleSeeder::class,
+            // RolePermissionSeeder::class,
 
-            // user_roles phải sau khi có user và role
-            UserRoleSeeder::class,
+            // // user_roles phải sau khi có user và role
+            // UserRoleSeeder::class,
         ]);
     }
 }

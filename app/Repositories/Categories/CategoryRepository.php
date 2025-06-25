@@ -51,7 +51,6 @@ class CategoryRepository implements CategoryRepositoryInterface
         return $query;
     }
 
-
     public function findOnlyTrashedById($id): ?Category
     {
         $result = Category::onlyTrashed()->where('id', $id)->firstOrFail();
