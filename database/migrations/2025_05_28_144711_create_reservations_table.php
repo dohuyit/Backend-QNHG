@@ -17,7 +17,8 @@ return new class extends Migration
             $table->string('customer_name', 100)->comment('Tên khách đặt');
             $table->string('customer_phone', 20)->comment('SĐT khách đặt');
             $table->string('customer_email', 100)->nullable()->comment('Email khách đặt');
-            $table->dateTime('reservation_time')->comment('Thời gian đặt');
+            $table->date('reservation_date')->comment('Ngày đặt bàn');
+            $table->time('reservation_time')->comment('Giờ đến');
             $table->integer('number_of_guests')->comment('Số lượng khách');
             $table->foreignId('table_id')->nullable()->comment('Bàn chỉ định')->constrained('tables', 'id')->onDelete('set null');
             $table->text('notes')->nullable()->comment('Ghi chú');

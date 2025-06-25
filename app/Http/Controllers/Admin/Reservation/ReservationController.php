@@ -32,6 +32,7 @@ class ReservationController extends Controller
             'customer_phone',
             'customer_email',
             'reservation_time',
+            'reservation_date',
             'number_of_guests',
             'table_id',
             'notes',
@@ -52,6 +53,7 @@ class ReservationController extends Controller
             'customer_name',
             'customer_phone',
             'customer_email',
+            'reservation_date',
             'reservation_time',
             'number_of_guests',
             'table_id',
@@ -85,6 +87,7 @@ class ReservationController extends Controller
             'customer_name',
             'customer_phone',
             'customer_email',
+            'reservation_date',
             'reservation_time',
             'number_of_guests',
             'table_id',
@@ -97,11 +100,11 @@ class ReservationController extends Controller
         ]);
 
         $reservation  = $this->reservationRepository->getByConditions(['id' => $id]);
-        if (!$reservation ) {
+        if (!$reservation) {
             return $this->responseFail(message: 'Đơn đặt bàn không tồn tại', statusCode: 404);
         }
 
-        $result = $this->reservationService->updateReservation($data, $reservation );
+        $result = $this->reservationService->updateReservation($data, $reservation);
         if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage());
         }
@@ -117,6 +120,7 @@ class ReservationController extends Controller
             'customer_name',
             'customer_phone',
             'customer_email',
+            'reservation_date',
             'reservation_time',
             'number_of_guests',
             'table_id',
