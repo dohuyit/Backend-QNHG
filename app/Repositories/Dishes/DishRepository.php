@@ -7,6 +7,7 @@ use App\Models\Dish;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 
 class DishRepository implements DishRepositoryInterface
 {
@@ -79,18 +80,20 @@ class DishRepository implements DishRepositoryInterface
         $result = Dish::onlyTrashed()->where('id', $id)->firstOrFail();
         return $result;
     }
-    public function getDishesByCategoryId(int $id, array $filter = [], int $limit = 10): LengthAwarePaginator
-    {
-        $category = Category::with('children')->where('id', $id)->first();
-        if (!$category) {
-            return new LengthAwarePaginator([], 0, $limit);
-        }
-        $categoryIds = $category->getAllChildrenIds();
 
-        $query = Dish::query()->whereIn('category_id', $categoryIds);
-        if (!empty($filter)) {
-            $query = $this->filterDishList($query, $filter);
-        }
-        return $query->orderBy('created_at', 'desc')->paginate($limit);
+    public function getFeaturedDishes(): Collection
+    {
+        return Dish::where('is_featured', true)
+            ->where('is_active', true)
+            ->with('category') // optional
+            ->get();
+    }
+
+    public function getByCategoryId($categoryId): Collection
+    {
+        return Dish::where('category_id', $categoryId)
+            ->where('is_active', true)
+            ->with('category')
+            ->get();
     }
 }

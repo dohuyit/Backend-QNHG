@@ -72,4 +72,9 @@ class CategoryRepository implements CategoryRepositoryInterface
     {
         return Category::whereNull('parent_id')->get();
     }
+
+    public function getChildrenByParentId(int $parentId): Collection
+    {
+        return Category::where('parent_id', $parentId)->get();
+    }
 }
