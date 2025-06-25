@@ -38,7 +38,7 @@ Route::prefix('admin')->group(function () {
     Route::delete('categories/{id}/soft/delete', [CategoryController::class, 'softDeleteCategory']);
     Route::delete('categories/{id}/force/delete', [CategoryController::class, 'forceDeleteCategory']);
     Route::post('categories/{id}/restore', [CategoryController::class, 'restoreCategory']);
-    Route::get('categories/parent', [CategoryController::class, 'getParentCategories']);
+    
 
     ##users
     Route::post('users/create', [UserController::class, 'createUser']);

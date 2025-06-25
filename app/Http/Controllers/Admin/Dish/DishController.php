@@ -44,27 +44,6 @@ class DishController extends Controller
         $data = $result->getResult();
         return $this->responseSuccess($data);
     }
-    public function getDishesByCategory(Request $request, int $id)
-    {
-        $params = $request->only(
-            'page',
-            'limit',
-            'query',
-            'category_id',
-            'name',
-            'image_url',
-            'description',
-            'original_price',
-            'selling_price',
-            'unit',
-            'tags',
-            'is_featured',
-            'status'
-        );
-        $result = $this->dishService->getDishByCategory($params, $id);
-        $data = $result->getResult();
-        return $this->responseSuccess($data);
-    }
 
     public function createDish(StoreDishRequest $request)
     {
