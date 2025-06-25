@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\Admin\Combo;
 
 use App\Http\Controllers\Controller;
@@ -59,8 +58,11 @@ class ComboController extends Controller
             'selling_price',
             'is_active'
         );
+        $items = $request->input('items', []);
 
-        $result = $this->comboService->createCombo($data);
+        // Sửa dòng này:
+        $result = $this->comboService->createCombo($data, $items);
+
         if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage());
         }
@@ -86,7 +88,7 @@ class ComboController extends Controller
             'is_active'
         );
         $combo = $this->comboRepository->getByConditions(['id' => $id]);
-        if (!$combo) {
+        if(!$combo) {
             return $this->responseFail(message: 'Combo không tồn tại', statusCode: 404);
         }
         $result = $this->comboService->updateCombo($data, $combo);
@@ -141,9 +143,10 @@ class ComboController extends Controller
         return $this->responseSuccess(message: $result->getMessage());
     }
 
-    public function addItemToCombo(StoreComboItemRequest $request, int $id)
+    public function addItemToCombo(StoreComboItemRequest $request, $id)
     {
-        $data = $request->only('dish_id', 'quantity');
+        $id = (int) $id;
+        $data = $request->only( 'dish_id', 'quantity');
 
         $data['combo_id'] = $id;
 
@@ -180,7 +183,7 @@ class ComboController extends Controller
         }
         return $this->responseSuccess(message: $result->getMessage());
     }
-    public function countByStatus()
+      public function countByStatus()
     {
         $result = $this->comboService->countByStatus();
 
