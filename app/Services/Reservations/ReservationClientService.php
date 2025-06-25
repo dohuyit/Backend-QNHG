@@ -23,8 +23,6 @@ class ReservationClientService
     {
         $result = new DataAggregate();
 
-        $table = $this->tableRepository->findById($data['table_id']);
-
         $listDataCreate = [
             'customer_id' => $data['customer_id'],
             'customer_name' => $data['customer_name'],
@@ -33,14 +31,11 @@ class ReservationClientService
             'reservation_time' => $data['reservation_time'],
             'reservation_date' => $data['reservation_date'],
             'number_of_guests' => $data['number_of_guests'],
-            'table_id' => $data['table_id'],
             'notes' => $data['notes'],
             'user_id' => $data['user_id'] ?? null,
             'status' => 'pending',
-            'table_name' => $table?->table_number ?? 'Không rõ',
-            'table_area_name' => $table?->tableArea?->name ?? 'Không rõ',
         ];
-        
+
         $ok  = $this->reservationRepository->createData($listDataCreate);
         if (!$ok) {
             $result->setMessage(message: 'Đặt bàn thất bại, vui lòng thử lại!');
@@ -51,5 +46,4 @@ class ReservationClientService
         $this->reservationMailService->sendClientConfirmMail($listDataCreate);
         return $result;
     }
-
 }
