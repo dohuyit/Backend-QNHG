@@ -58,8 +58,11 @@ class ComboController extends Controller
             'selling_price',
             'is_active'
         );
+        $items = $request->input('items', []);
 
-        $result = $this->comboService->createCombo($data);
+        // Sửa dòng này:
+        $result = $this->comboService->createCombo($data, $items);
+
         if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage());
         }

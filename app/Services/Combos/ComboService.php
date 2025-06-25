@@ -2,12 +2,13 @@
 
 namespace App\Services\Combos;
 
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use App\Common\DataAggregate;
 use App\Common\ListAggregate;
 use App\Helpers\ConvertHelper;
-use App\Repositories\Combos\ComboRepositoryInterface;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
+use App\Repositories\Combos\ComboRepositoryInterface;
 
 class ComboService
 {
@@ -46,7 +47,7 @@ class ComboService
 
         return $result;
     }
-    public function createCombo(array $data): DataAggregate
+    public function createCombo(array $data, array $items = []): DataAggregate
     {
         $result = new DataAggregate();
 
@@ -72,12 +73,25 @@ class ComboService
             $listDataCreate['image_url'] = $path;
         }
 
-        $ok = $this->comboRepository->createData($listDataCreate);
-        if (!$ok) {
+        // Sử dụng model Combo để tạo mới combo và các item liên quan
+        try {
+            // Giả sử đã import model Combo ở đầu file: use App\Models\Combo;
+            $combo = \App\Models\Combo::create($listDataCreate);
+
+            if ($combo && !empty($items)) {
+                foreach ($items as $item) {
+                    $combo->items()->create([
+                        'dish_id' => $item['dish_id'],
+                        'quantity' => $item['quantity'],
+                    ]);
+                }
+            }
+
+            $result->setResultSuccess(message: 'Thêm mới thành công!');
+        } catch (\Exception $e) {
             $result->setMessage('Thêm mới thất bại, vui lòng thử lại!');
-            return $result;
         }
-        $result->setResultSuccess(message: 'Thêm mới thành công!');
+
         return $result;
     }
     public function getComboDetail(int $id): ?DataAggregate
