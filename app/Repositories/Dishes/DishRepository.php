@@ -92,5 +92,14 @@ class DishRepository implements DishRepositoryInterface
         }
         return $query->orderBy('created_at', 'desc')->paginate($limit);
     }
+    public function countByConditions(array $conditions = []): int
+    {
+        $query = Dish::query();
+
+        if (!empty($conditions)) {
+            $this->filterDishList($query, $conditions);
+        }
+        return $query->count();
+    }
 
 }

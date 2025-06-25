@@ -169,4 +169,11 @@ class ReservationController extends Controller
         }
         return $this->responseSuccess(message: 'Xác nhận đơn đặt bàn thành công');
     }
+
+    public function countByStatus()
+    {
+        $result = $this->reservationService->countByStatus();
+
+        return $this->responseSuccess($result);
+    }
 }

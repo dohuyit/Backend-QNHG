@@ -125,5 +125,15 @@ class TableAreaService
         return $result;
     }
 
+    public function countByStatus(): array
+    {
+        $listStatus = ['active', 'inactive'];
+        $counts = [];
 
+        foreach ($listStatus as $status) {
+            $counts[$status] = $this->tableAreaRepository->countByConditions(['status' => $status]);
+        }
+
+        return $counts;
+    }
 }

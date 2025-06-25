@@ -271,4 +271,11 @@ class OrderController extends Controller
             message: 'Xóa món thành công'
         );
     }
+
+    public function countByStatus()
+    {
+        $result = $this->orderService->countByStatus();
+
+        return $this->responseSuccess($result);
+    }
 }

@@ -249,4 +249,14 @@ class ReservationService
 
         return $this->updateReservation($data, $reservation);
     }
+    public function countByStatus(): array
+    {
+        $listStatus = ['pending', 'confirmed', 'cancelled', 'completed', 'no_show', 'seated'];
+        $counts = [];
+
+        foreach($listStatus as $status) {
+            $counts[$status] = $this->reservationRepository->countByConditions(['status' => $status]);
+        }
+        return $counts;
+    }
 }

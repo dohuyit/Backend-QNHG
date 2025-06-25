@@ -126,4 +126,10 @@ class CategoryController extends Controller
         }
         return $this->responseSuccess(message: $result->getMessage());
     }
+    public function countByStatus()
+    {
+        $result = $this->categoryService->countByStatus();
+
+        return $this->responseSuccess($result);
+    }
 }

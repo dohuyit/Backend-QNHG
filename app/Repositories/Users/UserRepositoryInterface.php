@@ -14,4 +14,5 @@ interface UserRepositoryInterface
     public function getUserList(array $filter = [], int $limit = 10): LengthAwarePaginator;
     public function getTrashUserList(array $filter = [], int $limit = 10): LengthAwarePaginator;
     public function delete(User $user): bool;
+    public function countByConditions(array $conditions): int;
 }

@@ -13,4 +13,6 @@ interface DishRepositoryInterface
     public function getTrashDishList(array $filter = [], int $limit = 10): LengthAwarePaginator;
     public function findOnlyTrashedById($id): ?Dish;
     public function getDishesByCategoryId(int $id, array $filter = [], int $limit = 10): LengthAwarePaginator;
+    public function countByConditions(array $conditions): int;
+
 }
