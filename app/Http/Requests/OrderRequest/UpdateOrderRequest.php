@@ -8,7 +8,8 @@ class UpdateOrderRequest extends BaseFormRequest
 {
     public function rules(): array
     {
-        return [
+        $comboId = $this->route('id');
+        $rules = [
             'order_type' => 'in:dine-in,takeaway,delivery',
             'table_id' => 'nullable|exists:tables,id',
             'reservation_id' => 'nullable|exists:reservations,id',
@@ -28,6 +29,13 @@ class UpdateOrderRequest extends BaseFormRequest
             'delivery_contact_phone' => 'string|max:20',
             'notes' => 'nullable|string|max:500',
         ];
+
+        // Chỉ validate name nếu có truyền lên
+        if ($this->has('name')) {
+            $rules['name'] = 'required|string|max:255|unique:combos,name,' . $comboId;
+        }
+
+        return $rules;
     }
 
     public function messages(): array
