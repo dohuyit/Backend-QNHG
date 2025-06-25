@@ -19,7 +19,7 @@ class ComboService
     public function getListCombos(array $params): ListAggregate
     {
         $filter = $params;
-        $limit = !empty($params['limit']) && $params['limit'] > 0 ? (int) $params['limit'] : 10;
+        $limit = !empty($params['limit']) && $params['limit'] > 0 ? (int) $params['limit'] : 8;
         $pagination = $this->comboRepository->getComboList(filter: $filter, limit: $limit);
 
         $data = [];
