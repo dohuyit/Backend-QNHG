@@ -93,16 +93,12 @@ class ComboService
 
         $items = [];
         foreach ($comboItems as $item) {
-            $item->unsetRelation('combo');
-            $item->unsetRelation('dish');
-
             $items[] = [
                 'dish_name' => $item->dish->name ?? '',
-                'image_url' => $item->dish->image_url ?? '',
-                'selling_price' => $item->dish->selling_price ?? '',
                 'quantity' => $item->quantity,
             ];
         }
+
         $comboData = [
             'id' => $combo->id,
             'name' => $combo->name,

@@ -140,8 +140,9 @@ class ComboController extends Controller
         return $this->responseSuccess(message: $result->getMessage());
     }
 
-      public function addItemToCombo(StoreComboItemRequest $request, int $id)
+    public function addItemToCombo(StoreComboItemRequest $request, $id)
     {
+        $id = (int) $id;
         $data = $request->only( 'dish_id', 'quantity');
 
         $data['combo_id'] = $id;
@@ -159,7 +160,7 @@ class ComboController extends Controller
         $data['combo_id'] = $comboId;
         $data['dish_id'] = $dishId;
         $data['quantity'] = $request->get('quantity');
-        
+
 
         $result = $this->comboItemService->updateItemQuantity($data);
 
