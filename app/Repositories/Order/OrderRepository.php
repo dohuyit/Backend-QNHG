@@ -27,7 +27,7 @@ class OrderRepository implements OrderRepositoryInterface
 
     public function getListOrders(array $filter = [], int $limit = 10): LengthAwarePaginator
     {
-        $query = Order::query()->with(['items', 'tables', 'customer']);
+        $query = Order::query()->with(['items', 'table', 'customer']);
 
         if (isset($filter['order_type'])) {
             $query->where('order_type', $filter['order_type']);

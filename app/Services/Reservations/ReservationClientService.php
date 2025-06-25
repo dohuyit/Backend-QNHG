@@ -31,6 +31,7 @@ class ReservationClientService
             'customer_phone' => $data['customer_phone'],
             'customer_email' => $data['customer_email'],
             'reservation_time' => $data['reservation_time'],
+            'reservation_date' => $data['reservation_date'],
             'number_of_guests' => $data['number_of_guests'],
             'table_id' => $data['table_id'],
             'notes' => $data['notes'],

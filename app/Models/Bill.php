@@ -10,18 +10,13 @@ class Bill extends Model
 
     protected $fillable = [
         'order_id',
-        'customer_id',
-        'bill_code',            // Tự sinh hoặc theo quy tắc
-        'sub_total',
-        'discount_amount',
-        'vat_percentage',
-        'vat_amount',
-        'service_charge_percentage',
-        'service_charge_amount',
-        'delivery_fee',
-        'final_amount',
-        'status',               // 'unpaid', 'partially_paid', 'paid', 'cancelled', 'refunded'
-        'issued_at',            // Thường tự động set
-        'user_id',              // Nhân viên xuất hóa đơn
+        'bill_code',            // Mã hóa đơn, tự sinh hoặc theo quy tắc
+        'sub_total',           // Tổng tiền hàng
+        'discount_amount',     // Tiền giảm giá
+        'delivery_fee',        // Phí giao hàng
+        'final_amount',        // Tổng tiền cuối cùng
+        'status',              // 'unpaid', 'paid', 'cancelled'
+        'issued_at',           // Thời gian xuất hóa đơn, thường tự động set
+        'user_id',             // Nhân viên xuất hóa đơn
     ];
 }

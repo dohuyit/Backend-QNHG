@@ -4,8 +4,6 @@ use App\Http\Controllers\Admin\Role\RoleController;
 use App\Http\Controllers\Admin\TableArea\TableAreaController;
 use App\Http\Controllers\Admin\Table\TableController;
 use App\Http\Controllers\Admin\Category\CategoryController;
-;
-use App\Http\Controllers\Admin\Customer\CustomerController;
 use App\Http\Controllers\Admin\User\UserController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\Auth\AuthController;
@@ -14,6 +12,7 @@ use App\Http\Controllers\Admin\Permission\PermissionController;
 use App\Http\Controllers\Admin\UserRole\UserRoleController;
 use App\Http\Controllers\Admin\RolePermission\RolePermissionController;
 use App\Http\Controllers\Admin\Combo\ComboController;
+use App\Http\Controllers\Admin\Customer\CustomerController;
 use App\Http\Controllers\Admin\Dish\DishController;
 use App\Http\Controllers\Admin\KitchenOrder\KitchenOrderController;
 use App\Http\Controllers\Admin\Order\OrderController;
@@ -40,7 +39,11 @@ Route::prefix('admin')->group(function () {
     Route::delete('categories/{id}/soft/delete', [CategoryController::class, 'softDeleteCategory']);
     Route::delete('categories/{id}/force/delete', [CategoryController::class, 'forceDeleteCategory']);
     Route::post('categories/{id}/restore', [CategoryController::class, 'restoreCategory']);
+<<<<<<< HEAD
     Route::get('categories/count-by-status', [CategoryController::class, 'countByStatus']);
+=======
+    
+>>>>>>> 64bb77d63cbdd1548b51b892a31185430f1df0d4
 
     ##users
     Route::post('users/create', [UserController::class, 'createUser']);

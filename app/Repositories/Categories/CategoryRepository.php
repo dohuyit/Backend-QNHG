@@ -6,6 +6,7 @@ use App\Models\Category;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 
 class CategoryRepository implements CategoryRepositoryInterface
 {
@@ -66,6 +67,14 @@ class CategoryRepository implements CategoryRepositoryInterface
         }
 
         return $query->orderBy('deleted_at', 'desc')->paginate($limit);
+    }
+    public function getCategoriesWithoutParent(): Collection
+    {
+        return Category::whereNull('parent_id')->get();
+    }
+    public function getChildrenByParentId(int $parentId): Collection
+    {
+        return Category::where('parent_id', $parentId)->get();
     }
     public function countByConditions(array $conditions = []): int
     {

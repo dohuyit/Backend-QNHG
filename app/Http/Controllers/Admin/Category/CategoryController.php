@@ -66,9 +66,9 @@ class CategoryController extends Controller
         $data = $request->only([
             'name',
             'image_url',
-            'description',    
-            'is_active',        
-            'parent_id',       
+            'description',
+            'is_active',
+            'parent_id',
         ]);
 
         $category = $this->categoryRepository->getByConditions(['id' => $id]);
@@ -125,6 +125,16 @@ class CategoryController extends Controller
             return $this->responseFail(message: $result->getMessage());
         }
         return $this->responseSuccess(message: $result->getMessage());
+    }
+
+    public function getParentCategories()
+    {
+        $categories = $this->categoryService->getParentCategories();
+        if (!$categories) {
+            return $this->responseFail(message: 'Không có danh mục cha', statusCode: 404);
+        }
+
+        return $this->responseSuccess($categories);
     }
     public function countByStatus()
     {

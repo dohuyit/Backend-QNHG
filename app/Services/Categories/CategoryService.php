@@ -6,6 +6,7 @@ use App\Common\DataAggregate;
 use App\Common\ListAggregate;
 use App\Models\Category;
 use App\Repositories\Categories\CategoryRepositoryInterface;
+use Dflydev\DotAccessData\Data;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -204,6 +205,67 @@ class CategoryService
         $result->setResultSuccess(message: 'Khôi phục thành công!');
         return $result;
     }
+
+    public function getParentCategories(): DataAggregate
+    {
+        $result = new DataAggregate();
+        $categories = $this->categoryRepository->getCategoriesWithoutParent();
+        if (!$categories) {
+            $result->setMessage(message: 'Không có danh mục cha');
+            return $result;
+        }
+
+        $data = [];
+        foreach ($categories as $category) {
+            $data[] = [
+                'id' => (string)$category->id,
+                'name' => $category->name,
+                'description' => $category->description,
+                'image_url' => $category->image_url,
+                'is_active' => (bool)$category->is_active,
+                'parent_id' => $category->parent_id,
+                'created_at' => $category->created_at,
+                'updated_at' => $category->updated_at,
+            ];
+        }
+
+        $result->setResultSuccess(data: $data);
+        return $result;
+    }
+
+    public function getChildCategoriesByDish(): DataAggregate
+    {
+        $result = new DataAggregate();
+        $parent = $this->categoryRepository->getByConditions(['name' => 'Thực đơn']);
+
+        if (!$parent) {
+            $result->setMessage(message: 'Không có danh mục con');
+            return $result;
+        }
+
+        $categories = $this->categoryRepository->getChildrenByParentId($parent->id);
+        if (!$categories) {
+            $result->setMessage(message: 'Không tìm thấy danh mục con');
+            return $result;
+        }
+
+        $data = [];
+        foreach ($categories as $category) {
+            $data[] = [
+                'id' => (string)$category->id,
+                'name' => $category->name,
+                'description' => $category->description,
+                'image_url' => $category->image_url,
+                'is_active' => (bool)$category->is_active,
+                'parent_id' => $category->parent_id,
+                'created_at' => $category->created_at,
+                'updated_at' => $category->updated_at,
+            ];
+        }
+
+        $result->setResultSuccess(data: $data);
+        return $result;
+    }
     public function countByStatus(): array
     {
         $listStatus = [true, false];
@@ -213,7 +275,7 @@ class CategoryService
             $key = $status ? 'active' : 'inactive';
             $counts[$key] = $this->categoryRepository->countByConditions(['is_active' => $status]);
         }
-
+        
         return $counts;
     }
 }
