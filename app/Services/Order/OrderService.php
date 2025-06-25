@@ -71,8 +71,6 @@ class OrderService
         return $result;
     }
 
-
-
     public function updateOrder(array $data, Order $order): DataAggregate
     {
         // Validate trạng thái mới nếu có
@@ -261,6 +259,7 @@ class OrderService
 
         return $this->orderRepository->addOrderItem($orderId, $data);
     }
+
     public function createOrder(array $data): DataAggregate
     {
         // Validate dữ liệu đầu vào

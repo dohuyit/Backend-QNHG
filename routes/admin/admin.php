@@ -135,7 +135,6 @@ Route::prefix('admin')->group(function () {
 
     Route::post('combos/{id}/add-items', [ComboController::class, 'addItemToCombo']);
     Route::post('combos/{comboId}/{dishId}/update-quantity', [ComboController::class, 'updateItemQuantity']);
-    Route::delete('combos/{comboId}/{dishId}/force/delete', [ComboController::class, 'forceDeleteComboItem']);
 
     // Reservation
     Route::get('reservations/list', [ReservationController::class, 'getListReservations']);
