@@ -5,15 +5,23 @@ namespace App\Services\Users;
 use App\Common\DataAggregate;
 use App\Common\ListAggregate;
 use App\Models\User;
+use App\Repositories\UserRole\UserRoleRepositoryInterface;
 use App\Repositories\Users\UserRepositoryInterface;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class UserService
 {
     protected UserRepositoryInterface $userRepository;
-    public function __construct(UserRepositoryInterface $userRepository)
-    {
+    protected UserRoleRepositoryInterface $userRoleRepository;
+    public function __construct(
+        UserRepositoryInterface $userRepository,
+        UserRoleRepositoryInterface $userRoleRepository
+    ) {
         $this->userRepository = $userRepository;
+        $this->userRoleRepository = $userRoleRepository;
     }
 
     public function createUser(array $data): DataAggregate
@@ -21,13 +29,17 @@ class UserService
         $result = new DataAggregate();
         $avatarFile = $data['avatar'] ?? null;
 
+        $roleId = $data['role_id'] ?? null;
+
+        $plainPassword = $data['password'];
+        $hashedPassword = bcrypt($plainPassword);
         $data = [
             'username' => $data['username'],
-            'password' => bcrypt($data['password']),
             'full_name' => $data['full_name'],
+            'password' => $hashedPassword,
             'email' => $data['email'],
             'phone_number' => $data['phone_number'],
-            'status' => $data['status'] ?? User::STATUS_ACTIVE,
+            'status' => $data['status'] ?? User::STATUS_INACTIVE,
             'email_verified_at' => $data['email_verified_at'] ?? null,
             'last_login' => $data['last_login'] ?? null,
         ];
@@ -44,8 +56,31 @@ class UserService
             $result->setMessage('Thêm mới người dùng thất bại, vui lòng thử lại!');
             return $result;
         }
+        $user = $this->userRepository->getByConditions(['username' => $data['username']]);
+        if (!$user) {
+            $result->setMessage('Không tìm thấy người dùng sau khi tạo!');
+            return $result;
+        }
 
-        $result->setResultSuccess(message: 'Thêm mới người dùng thành công!');
+        if (!empty($roleId)) {
+            $this->userRoleRepository->createData([
+                'user_id' => $user->id,
+                'role_id' => $roleId,
+            ]);
+        }
+        try {
+            $user->activation_token = Str::random(64);
+            $user->save();
+            $activationLink = route('admin.activate', ['token' => $user->activation_token]);
+
+
+            Mail::to($user->email)->send(new \App\Mail\ActivateUserMail($user, $activationLink, $plainPassword));
+        } catch (\Exception $e) {
+
+            Log::error('Send activation email failed: ' . $e->getMessage());
+        }
+
+        $result->setResultSuccess(message: 'Thêm mới người dùng thành công! Đã gửi email kích hoạt.');
         return $result;
     }
     public function updateUser(int $id, array $data): DataAggregate

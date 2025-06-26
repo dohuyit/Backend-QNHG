@@ -18,6 +18,9 @@ use App\Http\Controllers\Admin\Order\OrderController;
 use App\Http\Controllers\Admin\Reservation\ReservationController;
 
 Route::prefix('admin')->group(function () {
+    ##login admin
+    Route::post('login', [AuthController::class, 'login']);
+    Route::middleware('auth:sanctum')->post('logout', [AuthController::class, 'logout']);
     // # branchs
     Route::get('customers/list', [CustomerController::class, 'getListCustomers']);
     Route::get('customers/{id}/detail', [CustomerController::class, 'getCustomerDetail']);
