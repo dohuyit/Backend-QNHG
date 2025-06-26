@@ -240,38 +240,87 @@ class DishService
         $result->setResultSuccess(message: 'Khôi phục thành công!');
         return $result;
     }
-    public function getDishByCategory(array $params, int $id): ListAggregate
+
+    public function getFeaturedDishes(): DataAggregate
     {
-        $filter = $params;
-        $limit = !empty($params['limit']) && $params['limit'] > 0 ? (int)$params['limit'] : 10;
-        $pagination = $this->dishRepository->getDishesByCategoryId($id, $filter, $limit);
+        $result = new DataAggregate();
+        $dishes = $this->dishRepository->getFeaturedDishes();
+
+        if ($dishes->isEmpty()) {
+            $result->setMessage(message: 'Không tìm thấy món ăn nổi bật');
+            return $result;
+        }
 
         $data = [];
-        foreach ($pagination->items() as $item) {
+        foreach ($dishes as $item) {
             $data[] = [
                 'id' => (string)$item->id,
-                'category_id' => $item->category_id,
-                'category_name' => $item->category ? $item->category->name : '',
+                'category' => $item->category ? [
+                    'id' => (string) $item->category->id,
+                    'name' => $item->category->name,
+                ] : null,
                 'name' => $item->name,
+                'image_url' => $item->image_url,
                 'description' => $item->description,
                 'original_price' => $item->original_price,
                 'selling_price' => $item->selling_price,
                 'unit' => $item->unit,
-                'tags' => ConvertHelper::convertJsonToString($item->tags),
+                'tags' => $item->tags ? ConvertHelper::convertJsonToString($item->tags) : '',
                 'is_featured' => (bool)$item->is_featured,
-                'status' => (bool)$item->status,
+                'status' => $item->status,
                 'created_at' => $item->created_at,
                 'updated_at' => $item->updated_at,
             ];
         }
 
-        $result = new ListAggregate($data);
-        $result->setMeta(
-            page: $pagination->currentPage(),
-            perPage: $pagination->perPage(),
-            total: $pagination->total()
-        );
-
+        $result->setResultSuccess(data: $data);
         return $result;
+    }
+
+    public function getDishesByChildCategory(int $id): DataAggregate
+    {
+        $result = new DataAggregate();
+
+        $dishes = $this->dishRepository->getByCategoryId($id);
+
+        if ($dishes->isEmpty()) {
+            $result->setMessage(message: 'Không tìm thấy món ăn nào trong danh mục');
+            return $result;
+        }
+
+        $data = [];
+        foreach ($dishes as $item) {
+            $data[] = [
+                'id' => (string)$item->id,
+                'category' => $item->category ? [
+                    'id' => (string) $item->category->id,
+                    'name' => $item->category->name,
+                ] : null,
+                'name' => $item->name,
+                'image_url' => $item->image_url,
+                'description' => $item->description,
+                'original_price' => $item->original_price,
+                'selling_price' => $item->selling_price,
+                'unit' => $item->unit,
+                'tags' => $item->tags ? ConvertHelper::convertJsonToString($item->tags) : '',
+                'is_featured' => (bool)$item->is_featured,
+                'status' => $item->status,
+                'created_at' => $item->created_at,
+                'updated_at' => $item->updated_at,
+            ];
+        }
+
+        $result->setResultSuccess(data: $data);
+        return $result;
+    }
+    public function countByStatus(): array
+    {
+        $listStatus = ['active', 'inactive'];
+        $counts = [];
+
+        foreach ($listStatus as $status) {
+            $counts[$status] = $this->dishRepository->countByConditions(['status' => $status]);
+        }
+        return $counts;
     }
 }

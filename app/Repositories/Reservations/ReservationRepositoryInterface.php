@@ -14,4 +14,5 @@ interface ReservationRepositoryInterface
     public function getTrashReservationList(array $filter = [], int $limit = 10): LengthAwarePaginator;
     public function findOnlyTrashedById($id): ?Reservation;
     public function confirmReservation(int $id, int $userId): bool;
+    public function countByConditions(array $conditions): int;
 }

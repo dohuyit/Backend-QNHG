@@ -23,7 +23,7 @@ class UpdateComboRequest extends BaseFormRequest
     {
         $comboId = $this->route('id');
         return [
-            'name' => 'required|string|max:255|unique:combos,name,' . $comboId,
+            'name' => 'required|string|max:255' . $comboId,
             'image_url' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'description' => 'nullable|string',
             'original_total_price' => 'required|numeric|min:0',

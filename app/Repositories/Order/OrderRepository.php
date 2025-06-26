@@ -27,7 +27,7 @@ class OrderRepository implements OrderRepositoryInterface
 
     public function getListOrders(array $filter = [], int $limit = 10): LengthAwarePaginator
     {
-        $query = Order::query()->with(['items', 'tables', 'customer']);
+        $query = Order::query()->with(['items', 'table', 'customer']);
 
         if (isset($filter['order_type'])) {
             $query->where('order_type', $filter['order_type']);
@@ -357,5 +357,31 @@ class OrderRepository implements OrderRepositoryInterface
             $result->setResultError('Không thể xóa món khỏi đơn hàng', ['error' => $e->getMessage()]);
             return $result;
         }
+    }
+    public function countByConditions(array $conditions = []): int
+    {
+        $query = Order::query();
+
+        if (isset($conditions['order_type'])) {
+            $query->where('order_type', $conditions['order_type']);
+        }
+
+        if (isset($conditions['status'])) {
+            $query->where('status', $conditions['status']);
+        }
+
+        if (isset($conditions['payment_status'])) {
+            $query->where('payment_status', $conditions['payment_status']);
+        }
+
+        if (isset($conditions['date_from'])) {
+            $query->where('order_time', '>=', $conditions['date_from']);
+        }
+
+        if (isset($conditions['date_to'])) {
+            $query->where('order_time', '<=', $conditions['date_to']);
+        }
+
+        return $query->count();
     }
 }

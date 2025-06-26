@@ -4,7 +4,7 @@ namespace App\Http\Requests\OrderRequest;
 
 use App\Http\Requests\BaseFormRequest;
 
-class CreateOrderRequest extends BaseFormRequest
+class StoreOrderRequest extends BaseFormRequest
 {
     public function rules(): array
     {

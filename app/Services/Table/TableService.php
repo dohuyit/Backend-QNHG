@@ -126,4 +126,14 @@ class TableService
         $result->setResultSuccess(message: 'Xóa bàn thành công!');
         return $result;
     }
+        public function countByStatus(): array
+    {
+        $listStatus = ['available', 'occupied', 'reserved', 'cleaning', 'out_of_service'];
+        $counts = [];
+
+        foreach($listStatus as $status) {
+            $counts[$status] = $this->tableRepository->countByConditions(['status' => $status]);
+        }
+        return $counts;
+    }
 }

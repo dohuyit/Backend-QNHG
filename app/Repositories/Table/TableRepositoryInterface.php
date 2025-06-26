@@ -16,4 +16,7 @@ interface TableRepositoryInterface
     public function createTable(array $data);
 
     public function deleteTable($id): bool;
+
+    public function countByConditions(array $conditions): int;
+
 }

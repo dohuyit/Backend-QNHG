@@ -13,8 +13,8 @@ class ComboRepository implements ComboRepositoryInterface
         if($val = $filter['name'] ?? null){
             $query->where('name', 'like', "%{$val}%");
         }
-         if($val = $filter['is_active'] ?? null){
-            $query->where('is_active', 'like', "%{$val}%");
+        if (array_key_exists('is_active', $filter)) {
+            $query->where('is_active', $filter['is_active']);
         }
         return $query;
     }
@@ -53,6 +53,15 @@ class ComboRepository implements ComboRepositoryInterface
     {
         $result = Combo::onlyTrashed()->where('id', $id)->firstOrFail();
         return $result;
+    }
+    public function countByConditions(array $conditions = []): int
+    {
+        $query = Combo::query();
+
+        if (!empty($conditions)) {
+            $this->filterComboList($query, $conditions);
+        }
+        return $query->count();
     }
 
 }

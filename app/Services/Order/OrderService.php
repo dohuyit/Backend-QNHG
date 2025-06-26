@@ -71,8 +71,6 @@ class OrderService
         return $result;
     }
 
-
-
     public function updateOrder(array $data, Order $order): DataAggregate
     {
         // Validate trạng thái mới nếu có
@@ -261,6 +259,7 @@ class OrderService
 
         return $this->orderRepository->addOrderItem($orderId, $data);
     }
+
     public function createOrder(array $data): DataAggregate
     {
         // Validate dữ liệu đầu vào
@@ -299,5 +298,15 @@ class OrderService
     public function deleteOrderItem(string $orderId, int $itemId): DataAggregate
     {
         return $this->orderRepository->deleteOrderItem($orderId, $itemId);
+    }
+    public function countByStatus(): array
+    {
+        $listStatus = ['pending_confirmation', 'confirmed', 'preparing', 'ready_to_serve', 'served', 'ready_for_pickup', 'delivering', 'completed', 'cancelled', 'payment_failed'];
+        $counts = [];
+
+        foreach($listStatus as $status) {
+            $counts[$status] = $this->orderRepository->countByConditions(['status' => $status]);
+        }
+        return $counts;
     }
 }

@@ -9,6 +9,8 @@ use App\Helpers\ResponseHelper;
 use App\Helpers\ErrorHelper;
 use App\Models\Order;
 use Illuminate\Http\Request;
+use App\Http\Requests\OrderRequest\StoreOrderRequest;
+use App\Http\Requests\OrderRequest\UpdateOrderRequest;
 
 class OrderController extends Controller
 {
@@ -59,24 +61,22 @@ class OrderController extends Controller
         return $this->responseSuccess($data);
     }
 
-    public function createOrder(Request $request)
+    public function createOrder(StoreOrderRequest $request)
     {
         $result = $this->orderService->createOrder($request->all());
-
         if (!$result->isSuccessCode()) {
             return $this->responseFail(
                 message: $result->getMessage(),
                 errors: $result->getErrors()
             );
         }
-
         return $this->responseSuccess(
             data: $result->getData(),
             message: 'Tạo đơn hàng thành công'
         );
     }
 
-    public function updateOrder(Request $request, string $id)
+    public function updateOrder(UpdateOrderRequest $request, string $id)
     {
         $order = $this->orderRepository->getByConditions(['id' => $id]);
         if (!$order) {
@@ -85,7 +85,6 @@ class OrderController extends Controller
                 statusCode: 404
             );
         }
-
         $result = $this->orderService->updateOrder($request->all(), $order);
         if (!$result->isSuccessCode()) {
             return $this->responseFail(
@@ -93,7 +92,6 @@ class OrderController extends Controller
                 errors: $result->getErrors()
             );
         }
-
         return $this->responseSuccess(
             data: $result->getData(),
             message: 'Cập nhật đơn hàng thành công'
@@ -270,5 +268,12 @@ class OrderController extends Controller
         return $this->responseSuccess(
             message: 'Xóa món thành công'
         );
+    }
+
+    public function countByStatus()
+    {
+        $result = $this->orderService->countByStatus();
+
+        return $this->responseSuccess($result);
     }
 }

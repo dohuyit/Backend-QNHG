@@ -89,5 +89,17 @@ class UserRepository implements UserRepositoryInterface
     {
         return (bool) $user->delete();
     }
+    public function countByConditions(array $conditions = []): int
+    {
+        $query = User::query();
+
+        if (!empty($conditions)) {
+            $query = $this->filterUserList($query, $conditions);
+        }
+
+        return $query->count();
+    }
+
+    
 
 }

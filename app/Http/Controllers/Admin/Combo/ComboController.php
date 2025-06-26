@@ -58,8 +58,11 @@ class ComboController extends Controller
             'selling_price',
             'is_active'
         );
+        $items = $request->input('items', []);
 
-        $result = $this->comboService->createCombo($data);
+        // Sửa dòng này:
+        $result = $this->comboService->createCombo($data, $items);
+
         if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage());
         }
@@ -140,8 +143,9 @@ class ComboController extends Controller
         return $this->responseSuccess(message: $result->getMessage());
     }
 
-      public function addItemToCombo(StoreComboItemRequest $request, int $id)
+    public function addItemToCombo(StoreComboItemRequest $request, $id)
     {
+        $id = (int) $id;
         $data = $request->only( 'dish_id', 'quantity');
 
         $data['combo_id'] = $id;
@@ -159,7 +163,7 @@ class ComboController extends Controller
         $data['combo_id'] = $comboId;
         $data['dish_id'] = $dishId;
         $data['quantity'] = $request->get('quantity');
-        
+
 
         $result = $this->comboItemService->updateItemQuantity($data);
 
@@ -178,5 +182,11 @@ class ComboController extends Controller
             return $this->responseFail(message: $result->getMessage());
         }
         return $this->responseSuccess(message: $result->getMessage());
+    }
+      public function countByStatus()
+    {
+        $result = $this->comboService->countByStatus();
+
+        return $this->responseSuccess($result);
     }
 }

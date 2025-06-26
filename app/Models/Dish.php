@@ -22,7 +22,7 @@ class Dish extends Model
         'image_url',        // Ví dụ: "/images/menu_items/pho-bo.jpg"
         'tags',             // Ví dụ (JSON): ["best-seller", "món truyền thống", "cay nồng"]
         'is_featured',      // Ví dụ: true (món nổi bật)
-        'is_active',        // Ví dụ: true (đang bán)
+        'status',        // Ví dụ: true (đang bán)
     ];
 
     public function category(): BelongsTo

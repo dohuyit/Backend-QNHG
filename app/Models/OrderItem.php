@@ -14,7 +14,7 @@ class OrderItem extends Model
 
     protected $fillable = [
         'order_id',
-        'menu_item_id',         // Nếu là món lẻ
+        'dish_id',         // Nếu là món lẻ
         'combo_id',             // Nếu là combo
         'quantity',
         'unit_price',           // Giá tại thời điểm đặt
@@ -36,7 +36,7 @@ class OrderItem extends Model
      */
     public function menuItem(): BelongsTo
     {
-        return $this->belongsTo(Dish::class, 'menu_item_id');
+        return $this->belongsTo(Dish::class, 'dish_id');
     }
 
     /**
@@ -54,4 +54,8 @@ class OrderItem extends Model
     {
         return $this->hasMany(OrderItemChangeLog::class);
     }
+    public function kitchenOrder()
+{
+    return $this->hasOne(\App\Models\KitchenOrder::class);
+}
 }

@@ -1,6 +1,21 @@
 <?php
 
+use App\Http\Controllers\Client\Category\CategoryController;
+use App\Http\Controllers\Client\Dish\DishController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Client\Reservation\ReservationController;
 
+// http://127.0.0.1:8000/api/reservations/create
 Route::post('reservations/create', [ReservationController::class, 'bookTableByClient']);
+
+// http://127.0.0.1:8000/api/categories/parent
+Route::get('categories/parent', [CategoryController::class, 'getParentCategories']);
+
+// http://127.0.0.1:8000/api/categories/child/dish
+Route::get('categories/child/dish', [CategoryController::class, 'getChildCategoriesByDish']);
+
+// http://127.0.0.1:8000/api/dishes/featured
+Route::get('/dishes/featured', [DishController::class, 'getFeaturedDishes']);
+
+// http://127.0.0.1:8000/api/dishes/category/{id}/child
+Route::get('/dishes/category/{id}/child', [DishController::class, 'getDishesByChildCategory']);
