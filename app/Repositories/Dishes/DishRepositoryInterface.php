@@ -18,4 +18,3 @@ interface DishRepositoryInterface
     public function getByCategoryId($categoryId): Collection;
     public function countByConditions(array $conditions): int;
 }
-

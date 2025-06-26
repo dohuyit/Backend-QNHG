@@ -84,7 +84,7 @@ class DishRepository implements DishRepositoryInterface
     public function getFeaturedDishes(): Collection
     {
         return Dish::where('is_featured', true)
-            ->where('is_active', true)
+            ->where('status', 'active')
             ->with('category') // optional
             ->get();
     }
@@ -92,11 +92,11 @@ class DishRepository implements DishRepositoryInterface
     public function getByCategoryId($categoryId): Collection
     {
         return Dish::where('category_id', $categoryId)
-            ->where('is_active', true)
+            ->where('status', 'active')
             ->with('category')
             ->get();
     }
-      public function countByConditions(array $conditions = []): int
+    public function countByConditions(array $conditions = []): int
     {
         $query = Dish::query();
 
