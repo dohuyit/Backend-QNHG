@@ -281,14 +281,7 @@ class DishService
     {
         $result = new DataAggregate();
 
-        $category = $this->dishRepository->getByConditions(['id' => $id]);
-
-        if (!$category) {
-            $result->setMessage(message: 'Danh mục không tồn tại');
-            return $result;
-        }
-
-        $dishes = $this->dishRepository->getByCategoryId($category->id);
+        $dishes = $this->dishRepository->getByCategoryId($id);
 
         if ($dishes->isEmpty()) {
             $result->setMessage(message: 'Không tìm thấy món ăn nào trong danh mục');
@@ -325,7 +318,7 @@ class DishService
         $listStatus = ['active', 'inactive'];
         $counts = [];
 
-        foreach($listStatus as $status) {
+        foreach ($listStatus as $status) {
             $counts[$status] = $this->dishRepository->countByConditions(['status' => $status]);
         }
         return $counts;
