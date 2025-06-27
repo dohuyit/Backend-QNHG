@@ -11,7 +11,7 @@ Route::post('reservations/create', [ReservationController::class, 'bookTableByCl
 // http://127.0.0.1:8000/api/categories/parent
 Route::get('categories/parent', [CategoryController::class, 'getParentCategories']);
 
-// http://127.0.0.1:8000/api/categories/child/dish@Ngọc Mai mai ơi, làm thêm 3 api của client à lấy tất cả món ăn, lấy tất cả món ăn mới nhất theo cột created_at và lấy chi tiết món ăn nhé
+// http://127.0.0.1:8000/api/categories/child/dish
 Route::get('categories/child/dish', [CategoryController::class, 'getChildCategoriesByDish']);
 
 // http://127.0.0.1:8000/api/dishes/featured

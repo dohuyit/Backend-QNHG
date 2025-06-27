@@ -115,14 +115,9 @@ class DishRepository implements DishRepositoryInterface
 
     public function getLatestActiveDishes(int $limit = 10): Collection
     {
-        return Dish::where('status', 1)
+        return Dish::where('status', 'active')
             ->orderBy('created_at', 'desc')
             ->limit($limit)
             ->get();
-    }
-
-    public function getActiveDishDetail(int $id): ?Dish
-    {
-        return Dish::where('status', 1)->find($id);
     }
 }
