@@ -19,39 +19,44 @@ class RolePermissionService
     public function getListRolePermissions(array $params): ListAggregate
     {
         $filter = $params;
-        $limit = (int) ($params['perPage'] ?? $params['limit'] ?? 10);
 
+        // Lấy tất cả dữ liệu (dùng limit lớn hoặc bỏ limit ở repo)
+        $allItems = $this->rolePermissionRepository->getRolePermissionList($filter, 1000)->items();
 
-        $pagination = $this->rolePermissionRepository->getRolePermissionList($filter, $limit);
-
-        $data = [];
-        foreach ($pagination->items() as $item) {
-            $data[] = [
-                'id' => (string) $item->id,
-                'role' => [
-                    'role_id' => $item->role_id,
-                    'role_name' => $item->role->role_name ?? null,
-                    'description' => $item->role->description ?? null,
-                ],
-                'permission' => [
-                    'permission_id' => $item->permission_id,
-                    'permission_name' => $item->permission->permission_name ?? null,
-                    'description' => $item->permission->description ?? null,
-                ],
-                'created_at' => $item->created_at?->toDateTimeString(),
-                'updated_at' => $item->updated_at?->toDateTimeString(),
+        // Gộp theo role_id
+        $grouped = collect($allItems)->groupBy('role_id')->map(function ($items) {
+            $first = $items->first();
+            return [
+                'role_id' => $first->role_id,
+                'role_name' => $first->role->role_name ?? null,
+                'description' => $first->role->description ?? null,
+                'permissions' => $items->map(function ($item) {
+                    return [
+                        'permission_id' => $item->permission_id,
+                        'permission_name' => $item->permission->permission_name ?? null,
+                        'description' => $item->permission->description ?? null,
+                    ];
+                })->values()
             ];
-        }
+        })->values();
 
-        $result = new ListAggregate($data);
+        // Phân trang thủ công
+        $page = (int) ($params['page'] ?? 1);
+        $perPage = (int) ($params['perPage'] ?? $params['limit'] ?? 10);
+        $offset = ($page - 1) * $perPage;
+        $pagedData = $grouped->slice($offset, $perPage)->values();
+
+        // Gắn meta
+        $result = new ListAggregate($pagedData);
         $result->setMeta(
-            page: $pagination->currentPage(),
-            perPage: $pagination->perPage(),
-            total: $pagination->total()
+            page: $page,
+            perPage: $perPage,
+            total: $grouped->count()
         );
 
         return $result;
     }
+
 
     public function createRolePermission(array $data): DataAggregate
     {

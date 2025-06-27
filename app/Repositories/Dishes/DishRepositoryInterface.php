@@ -24,4 +24,3 @@ interface DishRepositoryInterface
     public function getLatestActiveDishes(int $limit = 10): Collection;
     public function getActiveDishDetail(int $id): ?Dish;
 }
-
