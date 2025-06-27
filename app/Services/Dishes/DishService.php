@@ -325,9 +325,84 @@ class DishService
         $listStatus = ['active', 'inactive'];
         $counts = [];
 
-        foreach($listStatus as $status) {
+        foreach ($listStatus as $status) {
             $counts[$status] = $this->dishRepository->countByConditions(['status' => $status]);
         }
         return $counts;
+    }
+  public function getAllActiveDishes(): DataAggregate
+{
+    $result = new DataAggregate();
+    $dishes = $this->dishRepository->getAllActiveDishes();
+
+    if ($dishes->isEmpty()) {
+        $result->setMessage('Không có món ăn nào');
+        return $result;
+    }
+
+    $data = [];
+    foreach ($dishes as $item) {
+        $data[] = [
+            'id' => (string)$item->id,
+            'name' => $item->name,
+            'image_url' => $item->image_url,
+            'selling_price' => $item->selling_price,
+            'original_price' => $item->original_price,
+            'unit' => $item->unit,
+            'is_featured' => (bool)$item->is_featured,
+            'category_name' => optional($item->category)->name,
+            'created_at' => $item->created_at,
+        ];
+    }
+    $result->setResultSuccess(data: $data);
+    return $result;
+}
+
+    public function getLatestActiveDishes(int $limit = 10): DataAggregate
+    {
+        $result = new DataAggregate();
+        $dishes = $this->dishRepository->getLatestActiveDishes($limit);
+
+        if ($dishes->isEmpty()) {
+            $result->setMessage('Không có món ăn mới!');
+            return $result;
+        }
+        $data = [];
+        foreach ($dishes as $item) {
+            $data[] = [
+                'id' => (string)$item->id,
+                'name' => $item->name,
+                'image_url' => $item->image_url,
+                'selling_price' => $item->selling_price,
+                'original_price' => $item->original_price,
+                'unit' => $item->unit,
+                'is_featured' => (bool)$item->is_featured,
+                'category_name' => optional($item->category)->name,
+                'created_at' => $item->created_at,
+            ];
+        }
+
+        $result->setResultSuccess(data: $data);
+        return $result;
+    }
+    public function getActiveDishDetail(int $id): DataAggregate
+    {
+        $result = new DataAggregate();
+        $dish = $this->dishRepository->getActiveDishDetail($id);
+
+        if (!$dish) {
+            $result->setMessage('Không tìm thấy món ăn!');
+            return $result;
+        }
+
+        $dish->tags = !empty($dish->tags)
+            ? ConvertHelper::convertJsonToString($dish->tags)
+            : '';
+
+        $dish->category_name = $dish->category?->name;
+        $dish->unsetRelation('category');
+
+        $result->setResultSuccess(data: ['dish' => $dish]);
+        return $result;
     }
 }
