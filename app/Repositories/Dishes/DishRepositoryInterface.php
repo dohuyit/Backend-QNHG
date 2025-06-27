@@ -17,5 +17,6 @@ interface DishRepositoryInterface
     public function getFeaturedDishes(): Collection;
     public function getByCategoryId($categoryId): Collection;
     public function countByConditions(array $conditions): int;
+    public function getAllActiveDishes(): Collection;
+    public function getLatestActiveDishes(int $limit = 10): Collection;
 }
-

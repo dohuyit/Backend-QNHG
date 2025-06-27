@@ -3,6 +3,7 @@
 namespace App\Services\Auth;
 
 use App\Common\DataAggregate;
+use App\Models\User;
 use App\Repositories\Auth\AuthVerifyTokenRepositoryInterface;
 use App\Repositories\Users\UserRepositoryInterface;
 use Carbon\Carbon;
@@ -14,9 +15,10 @@ class AuthService
 {
     protected AuthVerifyTokenRepositoryInterface $authVerifyTokenRepository;
     protected UserRepositoryInterface $userRepository;
-    public function __construct(AuthVerifyTokenRepositoryInterface $authVerifyTokenRepository,
-                                UserRepositoryInterface $userRepository)
-    {
+    public function __construct(
+        AuthVerifyTokenRepositoryInterface $authVerifyTokenRepository,
+        UserRepositoryInterface $userRepository
+    ) {
         $this->authVerifyTokenRepository = $authVerifyTokenRepository;
         $this->userRepository = $userRepository;
     }
@@ -95,13 +97,62 @@ class AuthService
             ]
         );
 
-        // Đổi trạng thái token thành inactive
+
         $this->authVerifyTokenRepository->updateData($verifyToken->id, [
             'status' => 'inactive',
             'updated_at' => Carbon::now(),
         ]);
 
         $result->setResultSuccess(['message' => 'Cập nhật thành công']);
+
+        return $result;
+    }
+
+    public function login(array $data): DataAggregate
+    {
+        $result = new DataAggregate();
+
+        $user = User::where('email', $data['email'])->first();
+
+        if (!$user || !Hash::check($data['password'], $user->password)) {
+            $result->setMessage('Email hoặc mật khẩu không đúng.');
+            return $result;
+        }
+
+        if ($user->status !== User::STATUS_ACTIVE) {
+            $result->setMessage('Tài khoản chưa được kích hoạt.');
+            return $result;
+        }
+
+        $token = $user->createToken('admin-token')->plainTextToken;
+
+        $result->setResultSuccess(
+            data: [
+                'user' => [
+                    'id' => $user->id,
+                    'username' => $user->username,
+                    'email' => $user->email,
+                    'full_name' => $user->full_name,
+                    'role_id' => $user->roles()->first()->id ?? null,
+                ],
+                'token' => $token, // gửi token về FE
+            ],
+            message: 'Đăng nhập thành công!'
+        );
+
+        return $result;
+    }
+
+    public function logout(User $user): DataAggregate
+    {
+        $result = new DataAggregate();
+
+        try {
+            $user->tokens()->delete();
+            $result->setResultSuccess(message: 'Đăng xuất thành công!');
+        } catch (\Exception $e) {
+            $result->setMessage('Đăng xuất thất bại: ' . $e->getMessage());
+        }
 
         return $result;
     }

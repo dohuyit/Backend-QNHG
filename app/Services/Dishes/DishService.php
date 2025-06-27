@@ -281,14 +281,7 @@ class DishService
     {
         $result = new DataAggregate();
 
-        $category = $this->dishRepository->getByConditions(['id' => $id]);
-
-        if (!$category) {
-            $result->setMessage(message: 'Danh mục không tồn tại');
-            return $result;
-        }
-
-        $dishes = $this->dishRepository->getByCategoryId($category->id);
+        $dishes = $this->dishRepository->getByCategoryId($id);
 
         if ($dishes->isEmpty()) {
             $result->setMessage(message: 'Không tìm thấy món ăn nào trong danh mục');
@@ -325,9 +318,115 @@ class DishService
         $listStatus = ['active', 'inactive'];
         $counts = [];
 
-        foreach($listStatus as $status) {
+        foreach ($listStatus as $status) {
             $counts[$status] = $this->dishRepository->countByConditions(['status' => $status]);
         }
         return $counts;
+    }
+    public function getAllActiveDishes(): DataAggregate
+    {
+        $result = new DataAggregate();
+        $dishes = $this->dishRepository->getAllActiveDishes();
+
+        if ($dishes->isEmpty()) {
+            $result->setMessage('Không có món ăn nào');
+            return $result;
+        }
+
+        $data = [];
+        foreach ($dishes as $item) {
+            $data[] = [
+                'id' => (string)$item->id,
+                'category' => $item->category ? [
+                    'id' => (string) $item->category->id,
+                    'name' => $item->category->name,
+                ] : null,
+                'name' => $item->name,
+                'image_url' => $item->image_url,
+                'description' => $item->description,
+                'original_price' => $item->original_price,
+                'selling_price' => $item->selling_price,
+                'unit' => $item->unit,
+                'tags' => $item->tags ? ConvertHelper::convertJsonToString($item->tags) : '',
+                'is_featured' => (bool)$item->is_featured,
+                'status' => $item->status,
+                'created_at' => $item->created_at,
+                'updated_at' => $item->updated_at,
+            ];
+        }
+        $result->setResultSuccess(data: $data);
+        return $result;
+    }
+
+    public function getLatestActiveDishes(int $limit = 10): DataAggregate
+    {
+        $result = new DataAggregate();
+        $dishes = $this->dishRepository->getLatestActiveDishes($limit);
+
+        if ($dishes->isEmpty()) {
+            $result->setMessage('Không có món ăn mới!');
+            return $result;
+        }
+        $data = [];
+        foreach ($dishes as $item) {
+            $data[] = [
+                'id' => (string)$item->id,
+                'category' => $item->category ? [
+                    'id' => (string) $item->category->id,
+                    'name' => $item->category->name,
+                ] : null,
+                'name' => $item->name,
+                'image_url' => $item->image_url,
+                'description' => $item->description,
+                'original_price' => $item->original_price,
+                'selling_price' => $item->selling_price,
+                'unit' => $item->unit,
+                'tags' => $item->tags ? ConvertHelper::convertJsonToString($item->tags) : '',
+                'is_featured' => (bool)$item->is_featured,
+                'status' => $item->status,
+                'created_at' => $item->created_at,
+                'updated_at' => $item->updated_at,
+            ];
+        }
+
+        $result->setResultSuccess(data: $data);
+        return $result;
+    }
+    public function getActiveDishDetail(int $id): DataAggregate
+    {
+        $result = new DataAggregate();
+
+        $dish = $this->dishRepository->getByConditions([
+            'id' => $id,
+            'status' => 'active'
+        ]);
+
+        if (!$dish) {
+            $result->setMessage('Không tìm thấy món ăn!');
+            return $result;
+        }
+
+        $data = [
+            'id' => (string)$dish->id,
+            'category' => $dish->category ? [
+                'id' => (string) $dish->category->id,
+                'name' => $dish->category->name,
+            ] : null,
+            'name' => $dish->name,
+            'image_url' => $dish->image_url,
+            'description' => $dish->description,
+            'original_price' => $dish->original_price,
+            'selling_price' => $dish->selling_price,
+            'unit' => $dish->unit,
+            'tags' => $dish->tags ? ConvertHelper::convertJsonToString($dish->tags) : '',
+            'is_featured' => (bool)$dish->is_featured,
+            'status' => $dish->status,
+            'created_at' => $dish->created_at,
+            'updated_at' => $dish->updated_at,
+
+        ];
+
+        $result->setResultSuccess(data: ['dish' => $data]);
+        return $result;
     }
 }

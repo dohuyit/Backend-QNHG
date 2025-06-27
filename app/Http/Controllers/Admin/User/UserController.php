@@ -32,6 +32,7 @@ class UserController extends Controller
             'email',
             'phone_number',
             'status',
+            'role_id'
         ]);
 
         $result = $this->userService->createUser($req);
