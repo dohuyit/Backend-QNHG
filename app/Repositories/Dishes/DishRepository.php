@@ -31,12 +31,12 @@ class DishRepository implements DishRepositoryInterface
         }
 
         if ($val = $filter['price_from'] ?? null) {
-            $query->where('selling_price',  '<=', $val);
+            $query->where('selling_price', '>=', $val);
+        }
+        if ($val = $filter['price_to'] ?? null) {
+            $query->where('selling_price', '<=', $val);
         }
 
-        if ($val = $filter['price_to'] ?? null) {
-            $query->where('selling_price',  '<=', $val);
-        }
 
         return $query;
     }
@@ -104,5 +104,20 @@ class DishRepository implements DishRepositoryInterface
             $this->filterDishList($query, $conditions);
         }
         return $query->count();
+    }
+
+    public function getAllActiveDishes(): Collection
+    {
+        return Dish::where('status', 1)
+            ->with('category')
+            ->get();
+    }
+
+    public function getLatestActiveDishes(int $limit = 10): Collection
+    {
+        return Dish::where('status', 'active')
+            ->orderBy('created_at', 'desc')
+            ->limit($limit)
+            ->get();
     }
 }
