@@ -9,33 +9,23 @@ use App\Models\OrderItem;
 
 interface OrderRepositoryInterface
 {
-    public function updateByConditions(array $conditions, array $updateData): bool;
-
     public function getByConditions(array $conditions): ?Order;
 
     public function getListOrders(array $filter = [], int $limit = 10): LengthAwarePaginator;
 
-    public function createOrder(array $data): DataAggregate;
+    public function getTrashOrderList(array $filter = [], int $limit = 10): LengthAwarePaginator;
 
-    public function updateOrder(int $id, array $data): DataAggregate;
+    public function createOrder(array $data): Order;
 
-    public function getOrderDetail(int $id): DataAggregate;
+    public function updateOrder(string $id, array $data): Order;
 
-    public function updateItemStatus(int $orderItemId, string $status, int $userId): DataAggregate;
+    public function updateItemStatus(int $orderItemId, string $status, int $userId): OrderItem;
 
-    public function splitOrder(int $orderId, array $items): DataAggregate;
+    public function softDeleteOrder(string $id): void;
 
-    public function mergeOrders(array $orderIds): DataAggregate;
+    public function forceDeleteOrder(string $id): void;
 
-    public function getOrderItem(int $orderItemId): ?OrderItem;
+    public function restoreOrder(string $id): void;
 
-    public function getLastOrder(): ?Order;
-
-    public function addOrderItem(string $orderId, array $data): DataAggregate;
-
-    public function updateOrderItem(string $orderId, int $itemId, array $data): DataAggregate;
-
-    public function deleteOrderItem(string $orderId, int $itemId): DataAggregate;
-    
     public function countByConditions(array $conditions): int;
 }

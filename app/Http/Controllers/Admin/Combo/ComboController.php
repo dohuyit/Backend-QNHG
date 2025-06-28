@@ -42,7 +42,6 @@ class ComboController extends Controller
             'description',
             'original_total_price',
             'selling_price',
-            'tags',
             'is_active'
         );
         $result = $this->comboService->getListCombos($params);
@@ -59,8 +58,10 @@ class ComboController extends Controller
             'is_active'
         );
         $items = $request->input('items', []);
+        if (!is_array($items)) {
+            return $this->responseFail(message: 'Danh sách món ăn không hợp lệ!');
+        }
 
-        // Sửa dòng này:
         $result = $this->comboService->createCombo($data, $items);
 
         if (!$result->isSuccessCode()) {
@@ -87,11 +88,18 @@ class ComboController extends Controller
             'selling_price',
             'is_active'
         );
+
+        $items = $request->input('items', []);
+        if (!is_array($items)) {
+            return $this->responseFail(message: 'Danh sách món ăn không hợp lệ!');
+        }
+
         $combo = $this->comboRepository->getByConditions(['id' => $id]);
         if(!$combo) {
             return $this->responseFail(message: 'Combo không tồn tại', statusCode: 404);
         }
-        $result = $this->comboService->updateCombo($data, $combo);
+
+        $result = $this->comboService->updateCombo($data, $combo, $items);
         if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage());
         }

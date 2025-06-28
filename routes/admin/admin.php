@@ -111,13 +111,10 @@ Route::prefix('admin')->group(function () {
     Route::post('orders/create', [OrderController::class, 'createOrder']);
     Route::post('orders/{id}/update', [OrderController::class, 'updateOrder']);
     Route::post('orders/items/{orderItemId}/status', [OrderController::class, 'updateItemStatus']);
-    Route::post('orders/{orderId}/split', [OrderController::class, 'splitOrder']);
-    Route::post('orders/merge', [OrderController::class, 'mergeOrders']);
-    Route::get('orders/items/{orderItemId}/history', [OrderController::class, 'getOrderItemHistory']);
-    Route::get('orders/track/{orderCode}', [OrderController::class, 'trackOrder']);
-    Route::post('orders/{orderId}/items', [OrderController::class, 'addOrderItem']);
-    Route::put('orders/{orderId}/items/{itemId}', [OrderController::class, 'updateOrderItem']);
-    Route::delete('orders/{orderId}/items/{itemId}', [OrderController::class, 'deleteOrderItem']);
+    Route::get('orders/trash', [OrderController::class, 'listTrashedOrders']);
+    Route::delete('orders/{id}/soft/delete', [OrderController::class, 'softDeleteOrder']);
+    Route::delete('orders/{id}/force/delete', [OrderController::class, 'forceDeleteOrder']);
+    Route::post('orders/{id}/restore', [OrderController::class, 'restoreOrder']);
     Route::get('orders/count-by-status', [OrderController::class, 'countByStatus']);
 
 
