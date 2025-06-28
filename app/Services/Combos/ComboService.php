@@ -59,10 +59,6 @@ class ComboService
             'is_active' => $data['is_active'] ?? true,
         ];
 
-        if (!empty($data['tags'])) {
-            $listDataCreate['tags'] = ConvertHelper::convertStringToJson($data['tags']);
-        }
-
         if (!empty($data['image_url'])) {
             $file = $data['image_url'];
             $extension = $file->getClientOriginalExtension();
@@ -108,8 +104,11 @@ class ComboService
         $items = [];
         foreach ($comboItems as $item) {
             $items[] = [
-                'dish_name' => $item->dish->name ?? '',
+                'id' => $item->id,
+                'combo_id' => $item->combo_id,
+                'dish_id' => $item->dish_id,
                 'quantity' => $item->quantity,
+                'dish_name' => $item->dish->name ?? '',
             ];
         }
 
@@ -133,46 +132,96 @@ class ComboService
         return $result;
     }
 
-    public function updateCombo(array $data, $combo)
+    /**
+     * Cập nhật tất cả các trường của combo và combo item
+     */
+    public function updateCombo(array $data, $combo, array $items = []): DataAggregate
     {
         $result = new DataAggregate();
 
-        $listDataUpdate = [
-            'name' => $data['name'],
-            'description' => $data['description'],
-            'original_total_price' => $data['original_total_price'],
-            'selling_price' => $data['selling_price'],
-            'is_active' => $data['is_active'] ?? true,
-        ];
-
-        if (!empty($data['image_url'])) {
-            if (!empty($combo->image_url) && $combo->image_url !== $data['image_url']) {
-                $oldImagePath = storage_path('app/public/' . $combo->image_url);
-
-                if (file_exists($oldImagePath)) {
-                    unlink($oldImagePath);
-                }
-            }
-
-            $file = $data['image_url'];
-
-            if (!empty($combo->image_url) && Storage::disk('public')->exists($combo->image_url)) {
-                Storage::disk('public')->delete($combo->image_url);
-            }
-
-            $extension = $file->getClientOriginalExtension();
-            $filename = 'combo_' . uniqid() . '.' . $extension;
-
-            $path = Storage::disk('public')->putFileAs('combos', $file, $filename);
-            $listDataUpdate['image_url'] = $path;
-        }
-
-        $ok = $this->comboRepository->updateByConditions(['id' => $combo->id], $listDataUpdate);
-        if (!$ok) {
-            $result->setMessage('Cập nhật thất bại, vui lòng thử lại!');
+        // Kiểm tra combo có tồn tại không
+        if (!$combo) {
+            $result->setMessage('Không tìm thấy combo!');
             return $result;
         }
-        $result->setResultSuccess(message: 'Cập nhật thành công!');
+
+        try {
+            // Lấy tất cả các trường từ bảng combos (dựa vào hình ảnh)
+            $listDataUpdate = [
+                'name' => $data['name'] ?? $combo->name,
+                'description' => $data['description'] ?? $combo->description,
+                'original_total_price' => $data['original_total_price'] ?? $combo->original_total_price,
+                'selling_price' => $data['selling_price'] ?? $combo->selling_price,
+                'is_active' => array_key_exists('is_active', $data) ? $data['is_active'] : $combo->is_active,
+
+            ];
+
+            // Xử lý upload ảnh mới
+            if (!empty($data['image_url'])) {
+                $file = $data['image_url'];
+
+                // Xóa ảnh cũ nếu có
+                if (!empty($combo->image_url) && Storage::disk('public')->exists($combo->image_url)) {
+                    Storage::disk('public')->delete($combo->image_url);
+                }
+
+                // Upload ảnh mới
+                $extension = $file->getClientOriginalExtension();
+                $filename = 'combo_' . uniqid() . '.' . $extension;
+                $path = Storage::disk('public')->putFileAs('combos', $file, $filename);
+                $listDataUpdate['image_url'] = $path;
+            } else {
+                // Nếu không upload ảnh mới, giữ nguyên ảnh cũ
+                $listDataUpdate['image_url'] = $combo->image_url;
+            }
+
+            // Cập nhật thông tin combo
+            $ok = $this->comboRepository->updateByConditions(['id' => $combo->id], $listDataUpdate);
+            if (!$ok) {
+                $result->setMessage('Cập nhật thất bại, vui lòng thử lại!');
+                return $result;
+            }
+
+            // Cập nhật từng món ăn trong combo (combo items)
+            // Giả sử combo item có các trường: id, combo_id, dish_id, quantity, created_at, updated_at, deleted_at
+            if (is_array($items)) {
+                // Lấy danh sách dish_id hiện tại trong DB
+                $oldItems = $combo->items()->get()->keyBy('dish_id');
+                $newDishIds = [];
+
+                foreach ($items as $item) {
+                    $dishId = $item['dish_id'];
+                    $quantity = $item['quantity'];
+
+                    $newDishIds[] = $dishId;
+
+                    if ($oldItems->has($dishId)) {
+                        // Cập nhật tất cả các trường: id, combo_id, dish_id, quantity, created_at
+                        $oldItem = $oldItems[$dishId];
+                        $oldItem->id = $oldItem->id; // giữ nguyên id
+                        $oldItem->combo_id = $combo->id;
+                        $oldItem->dish_id = $dishId;
+                        $oldItem->quantity = $quantity;
+                        $oldItem->save();
+                    } else {
+                        // Thêm mới nếu chưa có, cập nhật đủ các trường
+                        $combo->items()->create([
+                            'combo_id' => $combo->id,
+                            'dish_id' => $dishId,
+                            'quantity' => $quantity,
+                        ]);
+                    }
+                }
+
+                // Xóa những món không còn trong danh sách mới
+                $combo->items()->whereNotIn('dish_id', $newDishIds)->delete();
+            }
+
+            $result->setResultSuccess(message: 'Cập nhật thành công!');
+        } catch (\Exception $e) {
+            $result->setMessage('Cập nhật thất bại, vui lòng thử lại!');
+        }
+
         return $result;
     }
     public function listTrashedCombo(array $params): ListAggregate

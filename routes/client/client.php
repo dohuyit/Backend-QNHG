@@ -19,3 +19,15 @@ Route::get('/dishes/featured', [DishController::class, 'getFeaturedDishes']);
 
 // http://127.0.0.1:8000/api/dishes/category/{id}/child
 Route::get('/dishes/category/{id}/child', [DishController::class, 'getDishesByChildCategory']);
+
+// http://127.0.0.1:8000/api/dishes
+Route::get('/dishes', [DishController::class, 'getAllDishes']);
+
+// http://127.0.0.1:8000/api/dishes/latest
+Route::get('/dishes/latest', [DishController::class, 'getLatestDishes']);
+
+// http://127.0.0.1:8000/api/dishes/{id}
+Route::get('/dishes/{id}', [DishController::class, 'getDishDetail']);
+
+
+

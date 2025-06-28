@@ -20,7 +20,7 @@ class TableService
     public function getListTables(array $params): ListAggregate
     {
         $filter = $params;
-        $limit = !empty($params['limit']) && $params['limit'] > 0 ? (int) $params['limit'] : 100000;
+        $limit = !empty($params['limit']) && $params['limit'] > 0 ? (int) $params['limit'] : 6;
 
         $pagination = $this->tableRepository->getTableList(filter: $filter, limit: $limit);
 

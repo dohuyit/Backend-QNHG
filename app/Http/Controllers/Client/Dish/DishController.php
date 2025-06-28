@@ -37,4 +37,34 @@ class DishController extends Controller
         $data = $result->getData();
         return $this->responseSuccess($data);
     }
+
+    public function getAllDishes()
+    {
+        $result = $this->dishService->getAllActiveDishes();
+        if (!$result->isSuccessCode()) {
+            return $this->responseFail(message: $result->getMessage(), statusCode: 404);
+        }
+        $data = $result->getData();
+        return $this->responseSuccess($data);
+    }
+
+        public function getDishDetail(int $id)
+    {
+        $result = $this->dishService->getActiveDishDetail($id);
+        if (!$result->isSuccessCode()) {
+            return $this->responseFail(message: $result->getMessage(), statusCode: 404);
+        }
+        $data = $result->getData();
+        return $this->responseSuccess($data);
+    }
+
+    public function getLatestDishes()
+    {
+        $result = $this->dishService->getLatestActiveDishes();
+        if (!$result->isSuccessCode()) {
+            return $this->responseFail(message: $result->getMessage(), statusCode: 404);
+        }
+        $data = $result->getData();
+        return $this->responseSuccess($data);
+    }
 }

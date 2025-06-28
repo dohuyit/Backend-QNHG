@@ -19,6 +19,16 @@ class StoreComboRequest extends BaseFormRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
+    protected function prepareForValidation()
+    {
+        $items = $this->input('items');
+        if (is_string($items)) {
+            $decoded = json_decode($items, true);
+            $this->merge([
+                'items' => $decoded
+            ]);
+        }
+    }
     public function rules()
     {
         return [
@@ -28,6 +38,9 @@ class StoreComboRequest extends BaseFormRequest
             'original_total_price' => 'required|numeric|min:0',
             'selling_price' => 'required|numeric|min:0',
             'is_active' => 'required|boolean',
+            'items' => 'nullable|array',
+            'items.*.dish_id' => 'required|integer|exists:dishes,id',
+            'items.*.quantity' => 'required|integer|min:1',
         ];
     }
     public function messages()
@@ -54,6 +67,16 @@ class StoreComboRequest extends BaseFormRequest
 
             'is_active.required' => 'Vui lòng chọn trạng thái hiển thị cho combo.',
             'is_active.boolean' => 'Trạng thái hiển thị phải là true hoặc false.',
+
+            'items.array' => 'Danh sách món ăn phải là mảng.',
+            'items.*.dish_id.required' => 'Vui lòng chọn món ăn.',
+            'items.*.dish_id.integer' => 'ID món ăn phải là số nguyên.',
+            'items.*.dish_id.exists' => 'Món ăn không tồn tại.',
+            'items.*.quantity.required' => 'Vui lòng nhập số lượng.',
+            'items.*.quantity.integer' => 'Số lượng phải là số nguyên.',
+            'items.*.quantity.min' => 'Số lượng phải lớn hơn 0.',
         ];
     }
+
+
 }
