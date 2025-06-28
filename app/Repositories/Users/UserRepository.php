@@ -45,7 +45,15 @@ class UserRepository implements UserRepositoryInterface
 
     private function filterUserList(Builder $query, array $filter = []): Builder
     {
-        if ($val = $filter['keyword'] ?? $filter['query'] ?? null) {
+
+        if (
+            !isset($filter['username']) &&
+            !isset($filter['full_name']) &&
+            !isset($filter['email']) &&
+            !isset($filter['phone_number']) &&
+            ($val = $filter['keyword'] ?? $filter['query'] ?? null) &&
+            trim($val) !== ''
+        ) {
             $query->where(function ($q) use ($val) {
                 $q->where('username', 'like', '%' . $val . '%')
                     ->orWhere('full_name', 'like', '%' . $val . '%')
@@ -77,14 +85,18 @@ class UserRepository implements UserRepositoryInterface
         return $query;
     }
 
+
     public function getTrashUserList(array $filter = [], int $limit = 10): LengthAwarePaginator
     {
+        $query = User::onlyTrashed();
+
         if (!empty($filter)) {
-            $query = $this->filterUserList($filter);
+            $query = $this->filterUserList($query, $filter);
         }
 
         return $query->orderBy('deleted_at', 'desc')->paginate($limit);
     }
+
     public function delete(User $user): bool
     {
         return (bool) $user->delete();
@@ -100,6 +112,6 @@ class UserRepository implements UserRepositoryInterface
         return $query->count();
     }
 
-    
+
 
 }
