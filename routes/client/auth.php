@@ -11,4 +11,5 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
 // http://127.0.0.1:8000/api/logout
-Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
+Route::middleware('auth:customer')->post('/logout', [AuthController::class, 'logout']);
+
