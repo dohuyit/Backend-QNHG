@@ -40,7 +40,6 @@ class AuthClientService
         $result = new DataAggregate();
 
         $data['password'] = bcrypt($data['password']);
-        $data['role'] = 'client';
 
         $user = $this->authClientRepository->createData($data);
         $token = $user->createToken('client-token')->plainTextToken;

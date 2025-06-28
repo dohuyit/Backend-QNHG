@@ -2,18 +2,18 @@
 
 namespace App\Repositories\Auth;
 
-use App\Models\User;
+use App\Models\Customer;
 
 class AuthClientRepository implements AuthClientRepositoryInterface
 {
-    public function getByConditions(array $conditions): ?User
+    public function getByConditions(array $conditions): ?Customer
     {
-        return User::where($conditions)->first();
+        return Customer::where($conditions)->first();
     }
 
-    public function createData(array $data): User
+    public function createData(array $data): Customer
     {
-        $result = User::create($data);
+        $result = Customer::create($data);
         return $result;
     }
 

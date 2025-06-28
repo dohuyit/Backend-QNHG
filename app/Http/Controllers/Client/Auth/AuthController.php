@@ -27,7 +27,7 @@ class AuthController extends Controller
     }
     public function register(RegisterClientRequest $request)
     {
-        $data  = $request->only('full_name','username', 'email', 'password');
+        $data  = $request->only('full_name','phone_number', 'email', 'password');
         $result = $this->authClientService->register($data);
         if (!$result->isSuccessCode()){
             return $this->responseFail(message: $result->getMessage());
@@ -36,7 +36,7 @@ class AuthController extends Controller
     }
     public function logout()
     {
-        $user = auth()->user();
+        $user = auth('customer')->user();
         $result = $this->authClientService->logout($user);
         return $this->responseSuccess(message: $result->getMessage());
     }
