@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id()->comment('Mã đơn hàng');
             $table->string('order_code', 20)->unique()->comment('Mã code đơn hàng');
             $table->enum('order_type', ['dine-in', 'takeaway', 'delivery'])->comment('Loại đơn hàng');
-            $table->foreignId('table_id')->nullable()->comment('Bàn đặt hàng (dine-in)')->constrained('tables', 'id')->onDelete('set null');
             $table->foreignId('reservation_id')->nullable()->comment('Mã đặt bàn liên quan')->constrained('reservations', 'id')->onDelete('set null');
             $table->foreignId('user_id')->nullable()->comment('Nhân viên tạo/phụ trách')->constrained('users', 'id')->onDelete('set null');
             $table->foreignId('customer_id')->nullable()->comment('Mã khách hàng')->constrained('customers', 'id')->onDelete('set null');

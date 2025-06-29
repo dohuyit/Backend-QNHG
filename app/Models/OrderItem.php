@@ -47,15 +47,12 @@ class OrderItem extends Model
         return $this->belongsTo(Combo::class);
     }
 
-    /**
-     * Relationship với OrderItemChangeLog (lịch sử thay đổi)
-     */
     public function statusHistory(): HasMany
     {
         return $this->hasMany(OrderItemChangeLog::class);
     }
     public function kitchenOrder()
-{
-    return $this->hasOne(\App\Models\KitchenOrder::class);
-}
+    {
+        return $this->hasOne(KitchenOrder::class);
+    }
 }
