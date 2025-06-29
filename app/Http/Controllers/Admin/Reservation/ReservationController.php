@@ -165,7 +165,7 @@ class ReservationController extends Controller
     }
     public function confirmReservation(Request $request, int $id)
     {
-        $userId = \Illuminate\Support\Facades\Auth::check() ? \Illuminate\Support\Facades\Auth::user()->id : null; // hoặc lấy từ $request nếu cần
+        $userId = \Illuminate\Support\Facades\Auth::check() ? \Illuminate\Support\Facades\Auth::user()->id : 1; // nếu không có user thì mặc định bằng 1
         $result = $this->reservationService->confirmReservation($id, $userId);
 
         if (!$result->isSuccessCode()) {
@@ -173,6 +173,7 @@ class ReservationController extends Controller
         }
         return $this->responseSuccess(message: 'Xác nhận đơn đặt bàn thành công');
     }
+
 
     public function countByStatus()
     {

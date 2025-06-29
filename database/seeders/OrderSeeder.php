@@ -14,7 +14,6 @@ class OrderSeeder extends Seeder
     public function run(): void
     {
         $customers = Customer::pluck('id')->toArray();
-        $tables = Table::pluck('id')->toArray();
         $users = User::pluck('id')->toArray();
         $reservations = Reservation::pluck('id')->toArray();
 
@@ -24,7 +23,6 @@ class OrderSeeder extends Seeder
             $order = Order::create([
                 'order_code' => 'ORD-' . strtoupper(fake()->unique()->bothify('##########')),
                 'order_type' => $type,
-                'table_id' => $type === 'dine-in' ? fake()->randomElement($tables) : null,
                 'reservation_id' => fake()->boolean(30) ? (count($reservations) ? fake()->randomElement($reservations) : null) : null,
                 'user_id' => count($users) ? fake()->randomElement($users) : null,
                 'customer_id' => $hasCustomer && count($customers) ? fake()->randomElement($customers) : null,

@@ -26,7 +26,7 @@ class StoreReservationRequest extends BaseFormRequest
             'customer_name'     => 'required|string|max:100',
             'customer_phone'    => 'required|string|max:20',
             'customer_email'    => 'nullable|email|max:100',
-            'reservation_date'  => 'required|date',
+            'reservation_date'  => 'required|date|after_or_equal:today',
             'reservation_time'  => 'required|date_format:H:i',
             'number_of_guests'  => 'required|integer|min:1',
             'table_id'          => 'nullable|integer|exists:tables,id',
