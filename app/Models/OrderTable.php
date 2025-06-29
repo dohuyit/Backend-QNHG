@@ -26,8 +26,8 @@ class OrderTable extends Model
     /**
      * Relationship với Table
      */
-    public function table(): BelongsTo
+    public function tableItem(): BelongsTo
     {
-        return $this->belongsTo(Table::class);
+        return $this->belongsTo(Table::class, 'table_id');
     }
 }
