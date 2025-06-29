@@ -19,16 +19,14 @@ class OrderFactory extends Factory
         $orderTypes = ['dine-in', 'takeaway', 'delivery'];
         $type = $this->faker->randomElement($orderTypes);
         $status = $this->faker->randomElement([
-            'pending_confirmation',
+            'pending',
             'confirmed',
             'preparing',
-            'ready_to_serve',
+            'ready',
             'served',
-            'ready_for_pickup',
             'delivering',
             'completed',
             'cancelled',
-            'payment_failed'
         ]);
 
         $isDelivery = $type === 'delivery';

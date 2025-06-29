@@ -46,7 +46,7 @@ class DishSeeder extends Seeder
                 'name' => 'Bia Heineken',
                 'description' => 'Bia Heineken mát lạnh, hương vị đặc trưng, thích hợp cho các bữa tiệc.',
                 'image_url' => null,
-                'status' => 'inactive',
+                'status' => 'active',
                 'is_featured' => false,
                 'category_id' => 9,
                 'original_price' => 45000.00,

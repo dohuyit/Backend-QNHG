@@ -100,7 +100,8 @@ class OrderController extends Controller
             'contact_email',
             'contact_phone',
             'items',
-            'tables'
+            'tables',
+            'status',
         ]);
 
         $result = $this->orderService->updateOrder($data, $order);

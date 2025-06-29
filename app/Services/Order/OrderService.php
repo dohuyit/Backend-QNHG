@@ -4,6 +4,7 @@ namespace App\Services\Order;
 
 use App\Common\DataAggregate;
 use App\Common\ListAggregate;
+use App\Models\Dish;
 use App\Models\Order;
 use App\Repositories\Order\OrderRepositoryInterface;
 use Illuminate\Support\Facades\Auth;
@@ -91,35 +92,58 @@ class OrderService
             'contact_phone' => $data['contact_phone'] ?? null,
             'user_id' => Auth::id(),
             'order_time' => now(),
-            'status' => $data['status'] ?? 'pending_confirmation',
+            'status' => 'pending',
             'payment_status' => $data['payment_status'] ?? 'unpaid',
             'order_code' => 'ORD' . Str::upper(Str::random(8)),
         ];
 
         $items = [];
+        $totalAmount = 0;
+
         if (!empty($data['items'])) {
+            // Lấy danh sách món
+            $dishIds = collect($data['items'])->pluck('dish_id')->unique()->toArray();
+            $menuItems = Dish::whereIn('id', $dishIds)->get()->keyBy('id');
+
             foreach ($data['items'] as $item) {
+                $menuItem = $menuItems->get($item['dish_id']);
+                if (!$menuItem) {
+                    $result->setMessage("Món ăn ID {$item['dish_id']} không tồn tại");
+                    return $result;
+                }
+
+                $quantity = max(1, (int)($item['quantity'] ?? 1));
+                $lineTotal = $menuItem->selling_price * $quantity;
+                $totalAmount += $lineTotal;
+
                 $items[] = [
                     'dish_id' => $item['dish_id'],
-                    'unit_price' => $item['unit_price'],
-                    'quantity' => max(1, (int)($item['quantity'] ?? 1)),
+                    'quantity' => $quantity,
+                    'unit_price' => $menuItem->selling_price,
                     'kitchen_status' => $item['kitchen_status'] ?? 'pending',
+                    'notes' => $item['notes'] ?? null,
+                    'is_priority' => $item['is_priority'] ?? false,
+                    'item_name' => $menuItem->name, // để tạo KitchenOrder
                 ];
             }
         }
 
+        $orderData['total_amount'] = $totalAmount;
+        $orderData['final_amount'] = $totalAmount;
+
         $tables = $data['tables'] ?? [];
 
-        $ok = $this->orderRepository->createOrder($orderData, $items, $tables);
+        $order = $this->orderRepository->createOrder($orderData, $items, $tables);
 
-        if (!$ok) {
-            $result->setMessage(message: 'Tạo đơn hàng thất bại, vui lòng thử lại!');
+        if (!$order) {
+            $result->setMessage('Tạo đơn hàng thất bại, vui lòng thử lại!');
             return $result;
         }
 
         $result->setResultSuccess(message: 'Tạo đơn hàng thành công!');
         return $result;
     }
+
 
     public function getOrderDetail(string $id): DataAggregate
     {
