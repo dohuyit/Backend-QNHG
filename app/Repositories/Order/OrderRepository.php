@@ -9,6 +9,7 @@ use App\Models\Table;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Pagination\LengthAwarePaginator;
 use App\Models\Dish;
+use App\Models\KitchenOrder;
 use App\Models\OrderTable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -127,41 +128,42 @@ class OrderRepository implements OrderRepositoryInterface
         try {
             DB::beginTransaction();
 
-            // Lấy tất cả món ăn cần thiết
-            $menuItemIds = collect($items)->pluck('dish_id')->unique()->toArray();
-            $menuItems = Dish::whereIn('id', $menuItemIds)->get()->keyBy('id');
-            $totalAmount = 0;
-
-            // Tính tổng tiền
-            foreach ($items as $item) {
-                $menuItem = $menuItems->get($item['dish_id']);
-                if (!$menuItem) {
-                    throw new \Exception("Món ăn ID {$item['dish_id']} không tồn tại");
-                }
-                $lineTotal = $menuItem->selling_price * $item['quantity'];
-                $totalAmount += $lineTotal;
-                // Bổ sung giá
-                $item['price'] = $menuItem->selling_price;
-            }
-
-            $orderData['total_amount'] = $totalAmount;
-            $orderData['final_amount'] = $totalAmount;
-
             // Tạo đơn hàng
             $order = Order::create($orderData);
 
-            // Tạo OrderItem
+            // Tạo OrderItem và KitchenOrder nếu có món
             foreach ($items as $item) {
-                $item['order_id'] = $order->id;
-                OrderItem::create($item);
+                $orderItem = OrderItem::create([
+                    'order_id' => $order->id,
+                    'dish_id' => $item['dish_id'],
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $item['unit_price'],
+                    'kitchen_status' => $item['kitchen_status'],
+                    'notes' => $item['notes'],
+                    'is_priority' => $item['is_priority'],
+                ]);
+
+                KitchenOrder::create([
+                    'order_item_id' => $orderItem->id,
+                    'order_id' => $order->id,
+                    'table_number' => $order->tables()->first()->table->number ?? null,
+                    'item_name' => $item['item_name'],
+                    'quantity' => $item['quantity'],
+                    'notes' => $item['notes'],
+                    'status' => 'pending',
+                    'is_priority' => $item['is_priority'],
+                    'received_at' => now(),
+                ]);
             }
-            // Tạo TableOrder
+
+            // Tạo OrderTable nếu có bàn
             foreach ($tables as $table) {
                 OrderTable::create([
                     'order_id' => $order->id,
                     'table_id' => $table['table_id'],
                 ]);
             }
+
             DB::commit();
             return $order;
         } catch (\Exception $e) {
@@ -171,13 +173,12 @@ class OrderRepository implements OrderRepositoryInterface
         }
     }
 
-
     public function updateOrder(Order $order, array $orderData, array $items, array $tables): ?Order
     {
         try {
             DB::beginTransaction();
 
-            // Lấy danh sách dish_id
+            // Lấy danh sách dish_id mới
             $menuItemIds = collect($items)->pluck('dish_id')->unique()->toArray();
             $menuItems = Dish::whereIn('id', $menuItemIds)->get()->keyBy('id');
 
@@ -186,7 +187,10 @@ class OrderRepository implements OrderRepositoryInterface
             // Xóa toàn bộ OrderItem cũ
             OrderItem::where('order_id', $order->id)->delete();
 
-            // Tính lại tổng tiền + tạo OrderItem mới
+            // Xóa toàn bộ KitchenOrder cũ liên quan đến order
+            KitchenOrder::where('order_id', $order->id)->delete();
+
+            // Tính lại tổng tiền + tạo OrderItem & KitchenOrder mới
             foreach ($items as $item) {
                 $menuItem = $menuItems->get($item['dish_id']);
                 if (!$menuItem) {
@@ -196,18 +200,33 @@ class OrderRepository implements OrderRepositoryInterface
                 $lineTotal = $menuItem->selling_price * $item['quantity'];
                 $totalAmount += $lineTotal;
 
-                OrderItem::create([
+                $orderItem = OrderItem::create([
                     'order_id' => $order->id,
                     'dish_id' => $item['dish_id'],
                     'quantity' => $item['quantity'],
                     'unit_price' => $menuItem->selling_price,
                     'kitchen_status' => $item['kitchen_status'] ?? 'pending',
                 ]);
+
+                // Tạo phiếu bếp cho mỗi OrderItem mới
+                KitchenOrder::create([
+                    'order_item_id' => $orderItem->id,
+                    'order_id' => $order->id,
+                    'table_number' => $order->tables()->first()->table->number ?? null,
+                    'item_name' => $menuItem->name,
+                    'quantity' => $item['quantity'],
+                    'notes' => $item['notes'] ?? null,
+                    'status' => 'pending',
+                    'is_priority' => $item['is_priority'] ?? false,
+                    'received_at' => now(),
+                ]);
             }
 
+            // Cập nhật tổng tiền
             $orderData['total_amount'] = $totalAmount;
             $orderData['final_amount'] = $totalAmount;
 
+            // Cập nhật thông tin order
             $order->update($orderData);
 
             // Xóa OrderTable cũ
@@ -230,13 +249,13 @@ class OrderRepository implements OrderRepositoryInterface
 
             DB::commit();
             return $order->refresh()->load(['items.menuItem', 'tables.tableItem']);
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error("[OrderRepository] Failed to update order: " . $e->getMessage());
             return null;
         }
     }
+
 
     public function softDeleteOrder(string $id): void
     {
