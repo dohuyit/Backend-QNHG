@@ -74,7 +74,7 @@ class DishSeeder extends Seeder
                 'name' => 'Nộm dê rau má',
                 'description' => 'Nộm dê rau má tươi ngon, kết hợp giữa thịt dê mềm và rau má thanh mát.',
                 'image_url' => null,
-                'status' => 'active',
+                'status' => 'inactive',
                 'is_featured' => false,
                 'category_id' => 6,
                 'original_price' => 70000.00,
