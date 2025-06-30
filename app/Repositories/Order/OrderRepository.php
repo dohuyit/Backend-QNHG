@@ -343,4 +343,9 @@ class OrderRepository implements OrderRepositoryInterface
 
         return $query->count();
     }
+
+    public function updateByConditions(array $conditions, array $data): bool
+    {
+        return Order::where($conditions)->update($data);
+    }
 }

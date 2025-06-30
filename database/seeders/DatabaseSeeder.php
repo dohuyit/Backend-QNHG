@@ -47,6 +47,9 @@ class DatabaseSeeder extends Seeder
 
             // user_roles phải sau khi có user và role
             UserRoleSeeder::class,
+
+            BillSeeder::class,
+            BillPaymentSeeder::class,
         ]);
     }
 }

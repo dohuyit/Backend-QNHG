@@ -7,6 +7,8 @@ use App\Http\Controllers\Admin\Category\CategoryController;
 use App\Http\Controllers\Admin\User\UserController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\Auth\AuthController;
+use App\Http\Controllers\Admin\Bill\BillController;
+use App\Http\Controllers\Admin\BillPayment\BillPaymentController;
 use App\Http\Controllers\Admin\PermissionGroup\PermissionGroupController;
 use App\Http\Controllers\Admin\Permission\PermissionController;
 use App\Http\Controllers\Admin\UserRole\UserRoleController;
@@ -161,4 +163,20 @@ Route::prefix('admin')->group(function () {
     Route::post('kitchen-orders/{id}/update-status', [KitchenOrderController::class, 'updateKitchenOrderStatus']);
     Route::post('kitchen-orders/{id}/cancel', [KitchenOrderController::class, 'cancelKitchenOrder']);
     Route::get('kitchen-orders/count-by-status', [KitchenOrderController::class, 'countByStatus']);
+
+    // Bill
+    Route::post('bills/create', [BillController::class, 'createBill']);
+    Route::get('bills/{id}/detail', [BillController::class, 'getBillDetail']);
+    Route::post('bills/{id}/update', [BillController::class, 'updateBill']);
+
+    // Bill Payment
+    Route::post('bill-payments/create', [BillPaymentController::class, 'createBillPayment']);
+    Route::get('bill-payments/{billId}', [BillPaymentController::class, 'getPaymentsByBill']);
+    Route::post('bill-payments/{id}/update', [BillPaymentController::class, 'updateBillPayment']);
+
+
+
+
+
+    
 });
