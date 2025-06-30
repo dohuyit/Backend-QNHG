@@ -37,11 +37,18 @@ class KitchenOrderController extends Controller
     }
     public function updateKitchenOrderStatus(int $id)
     {
-        $result = $this->kitchenOrderService->updateStatus($id);
+        $request = request();
+        $newStatus = $request->input('status');
+
+        if (!$newStatus) {
+            return $this->responseFail(message: 'Trạng thái mới không được cung cấp', statusCode: 400);
+        }
+
+        $result = $this->kitchenOrderService->updateStatus($id, $newStatus);
         if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage(), statusCode: 400);
         }
-        return $this->responseSuccess(message: $result->getMessage());
+        return $this->responseSuccess(message: $result->getMessage(), data: $result->getData());
     }
     public function cancelKitchenOrder(int $id)
     {

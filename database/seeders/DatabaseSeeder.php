@@ -31,10 +31,13 @@ class DatabaseSeeder extends Seeder
 
             // Order có thể cần dish/customer (tùy logic bạn)
             OrderSeeder::class,
-            
+            OrderItemSeeder::class,
             // KitchenOrder cần Order + OrderItem
-            KitchenOrderSeeder::class,
 
+
+            // Thêm TableOrderSeeder vào đây
+            OrderTableSeeder::class,
+            KitchenOrderSeeder::class,
             // Reservation cần user, table, customer (phổ biến)
             ReservationSeeder::class,
             UserSeeder::class,
