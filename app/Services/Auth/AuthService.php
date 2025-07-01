@@ -112,7 +112,7 @@ class AuthService
     {
         $result = new DataAggregate();
 
-        $user = User::where('email', $data['email'])->first();
+        $user = User::with('roles.permissions')->where('email', $data['email'])->first();
 
         if (!$user || !Hash::check($data['password'], $user->password)) {
             $result->setMessage('Email hoặc mật khẩu không đúng.');
@@ -126,6 +126,17 @@ class AuthService
 
         $token = $user->createToken('admin-token')->plainTextToken;
 
+        $permissions = $user->roles
+            ->flatMap(fn($role) => $role->permissions)
+            ->pluck('permission_name')
+            ->unique()
+            ->values();
+
+        $roles = $user->roles->map(fn($role) => [
+            'id' => $role->id,
+            'name' => $role->role_name,
+        ]);
+
         $result->setResultSuccess(
             data: [
                 'user' => [
@@ -133,7 +144,8 @@ class AuthService
                     'username' => $user->username,
                     'email' => $user->email,
                     'full_name' => $user->full_name,
-                    'role_id' => $user->roles()->first()->id ?? null,
+                    'roles' => $roles,
+                    'permissions' => $permissions,
                 ],
                 'token' => $token, // gửi token về FE
             ],
