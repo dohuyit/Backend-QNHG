@@ -4,6 +4,7 @@ namespace App\Services\Order;
 
 use App\Common\DataAggregate;
 use App\Common\ListAggregate;
+use App\Models\Dish;
 use App\Models\Order;
 use App\Repositories\Order\OrderRepositoryInterface;
 use Illuminate\Support\Facades\Auth;
@@ -24,17 +25,19 @@ class OrderService
         $filter = $params;
         $limit = !empty($params['limit']) && $params['limit'] > 0 ? (int)$params['limit'] : 10000;
         $pagination = $this->orderRepository->getListOrders(filter: $filter, limit: $limit);
-
+        // dd($pagination);
         $data = [];
         foreach ($pagination->items() as $item) {
             $data[] = [
                 'id' => (string)$item->id,
                 'order_code' => $item->order_code,
                 'order_type' => $item->order_type,
-                'table' => $item->table ? [
-                    'id' => (string)$item->table->id,
-                    'name' => $item->table->name,
-                ] : null,
+                'tables' => $item->tables->map(function ($table) {
+                    return [
+                        'id' => (string)$table->id,
+                        'name' => $table->name,
+                    ];
+                })->toArray(),
                 'reservation' => $item->reservation ? [
                     'id' => (string)$item->reservation->id,
                     'reservation_time' => $item->reservation->reservation_time,
@@ -48,6 +51,23 @@ class OrderService
                     'id' => (string)$item->user->id,
                     'name' => $item->user->name,
                 ] : null,
+                // 'items' => $items->map(function ($item) {
+                //     return [
+                //         'id' => (string)$item->id,
+                //         'dish_id' => $item->menuItem ? [
+                //             'id' => (string)$item->menuItem->id,
+                //             'name' => $item->menuItem->name,
+                //         ] : null,
+                //         'combo_id' => $item->combo ? [
+                //             'id' => (string)$item->combo->id,
+                //             'name' => $item->combo->name,
+                //         ] : null,
+                //         'unit_price' => $item->unit_price,
+                //         'quantity' => $item->quantity,
+                //         'notes' => $item->notes,
+                //         'kitchen_status' => $item->kitchen_status,
+                //     ];
+                // })->toArray(),
                 'status' => $item->status,
                 'payment_status' => $item->payment_status,
                 'notes' => $item->notes,
@@ -78,9 +98,8 @@ class OrderService
     {
         $result = new DataAggregate();
 
-        $listDataCreate = [
+        $orderData = [
             'order_type' => $data['order_type'],
-            'table_id' => $data['table_id'] ?? null,
             'reservation_id' => $data['reservation_id'] ?? null,
             'customer_id' => $data['customer_id'] ?? null,
             'notes' => $data['notes'] ?? null,
@@ -90,32 +109,58 @@ class OrderService
             'contact_phone' => $data['contact_phone'] ?? null,
             'user_id' => Auth::id(),
             'order_time' => now(),
-            'status' => $data['status'] ?? 'pending_confirmation',
+            'status' => 'pending',
             'payment_status' => $data['payment_status'] ?? 'unpaid',
-            'total_amount' => 0,
-            'final_amount' => 0,
+            'order_code' => 'ORD' . Str::upper(Str::random(8)),
         ];
 
-        if (isset($data['items'])) {
-            $listDataCreate['items'] = $data['items'];
+        $items = [];
+        $totalAmount = 0;
+
+        if (!empty($data['items'])) {
+            // Lấy danh sách món
+            $dishIds = collect($data['items'])->pluck('dish_id')->unique()->toArray();
+            $menuItems = Dish::whereIn('id', $dishIds)->get()->keyBy('id');
+
+            foreach ($data['items'] as $item) {
+                $menuItem = $menuItems->get($item['dish_id']);
+                if (!$menuItem) {
+                    $result->setMessage("Món ăn ID {$item['dish_id']} không tồn tại");
+                    return $result;
+                }
+
+                $quantity = max(1, (int)($item['quantity'] ?? 1));
+                $lineTotal = $menuItem->selling_price * $quantity;
+                $totalAmount += $lineTotal;
+
+                $items[] = [
+                    'dish_id' => $item['dish_id'],
+                    'quantity' => $quantity,
+                    'unit_price' => $menuItem->selling_price,
+                    'kitchen_status' => $item['kitchen_status'] ?? 'pending',
+                    'notes' => $item['notes'] ?? null,
+                    'is_priority' => $item['is_priority'] ?? false,
+                    'item_name' => $menuItem->name, // để tạo KitchenOrder
+                ];
+            }
         }
 
-        if (isset($data['tables'])) {
-            $listDataCreate['tables'] = $data['tables'];
-        }
+        $orderData['total_amount'] = $totalAmount;
+        $orderData['final_amount'] = $totalAmount;
 
+        $tables = $data['tables'] ?? [];
 
-        $listDataCreate['order_code'] = 'ORD' . Str::upper(Str::random(8));
+        $order = $this->orderRepository->createOrder($orderData, $items, $tables);
 
-
-        $ok = $this->orderRepository->createOrder($listDataCreate);
-        if (!$ok->isSuccessCode()) {
-            $result->setMessage(message: 'Tạo đơn hàng thất bại, vui lòng thử lại!');
+        if (!$order) {
+            $result->setMessage('Tạo đơn hàng thất bại, vui lòng thử lại!');
             return $result;
         }
+
         $result->setResultSuccess(message: 'Tạo đơn hàng thành công!');
         return $result;
     }
+
 
     public function getOrderDetail(string $id): DataAggregate
     {
@@ -127,18 +172,22 @@ class OrderService
             return $result;
         }
 
-        $order->load(['table', 'reservation', 'customer', 'user', 'items.menuItem', 'bill']);
+        $order->load(['tables.tableItem', 'reservation', 'customer', 'user', 'items.menuItem', 'bill']);
         $data = [
             'id' => (string)$order->id,
             'order_code' => $order->order_code,
             'order_type' => $order->order_type,
-            'table' => $order->table ? [
-                'id' => (string)$order->table->id,
-                'table_number' => $order->table->table_number,
-            ] : null,
+            'tables' => $order->tables->map(function ($table) {
+                return [
+                    'id' => (string)($table->tableItem ? $table->tableItem->id : null),
+                    'table_number' => $table->tableItem ? $table->tableItem->table_number : null,
+                ];
+            })->toArray(),
+
             'reservation' => $order->reservation ? [
                 'id' => (string)$order->reservation->id,
                 'reservation_time' => $order->reservation->reservation_time,
+                'table_id' => (string)$order->reservation->table_id,
             ] : null,
             'customer' => $order->customer ? [
                 'id' => (string)$order->customer->id,
@@ -163,10 +212,15 @@ class OrderService
             'items' => $order->items->map(function ($item) {
                 return [
                     'id' => (string)$item->id,
-                    'menu_item' => $item->menuItem ? [
+                    'dish_id' => $item->menuItem ? [
                         'id' => (string)$item->menuItem->id,
                         'name' => $item->menuItem->name,
                     ] : null,
+                    'combo_id' => $item->combo ? [
+                        'id' => (string)$item->combo->id,
+                        'name' => $item->combo->name,
+                    ] : null,
+                    'unit_price' => $item->unit_price,
                     'quantity' => $item->quantity,
                     'notes' => $item->notes,
                     'kitchen_status' => $item->kitchen_status,
@@ -188,9 +242,8 @@ class OrderService
     {
         $result = new DataAggregate();
 
-        $listDataUpdate = [
+        $orderData = [
             'order_type' => $data['order_type'] ?? $order->order_type,
-            'table_id' => $data['table_id'] ?? $order->table_id,
             'reservation_id' => $data['reservation_id'] ?? $order->reservation_id,
             'customer_id' => $data['customer_id'] ?? $order->customer_id,
             'status' => $data['status'] ?? $order->status,
@@ -202,19 +255,26 @@ class OrderService
             'contact_phone' => $data['contact_phone'] ?? $order->contact_phone,
         ];
 
-        if (isset($data['items'])) {
-            $listDataUpdate['items'] = $data['items'];
+        $items = [];
+        if (!empty($data['items'])) {
+            foreach ($data['items'] as $item) {
+                $items[] = [
+                    'dish_id' => $item['dish_id'],
+                    'quantity' => max(1, (int)($item['quantity'] ?? 1)),
+                    'kitchen_status' => $item['kitchen_status'] ?? 'pending',
+                ];
+            }
         }
 
-        if (isset($data['tables'])) {
-            $listDataUpdate['tables'] = $data['tables'];
-        }
+        $tables = $data['tables'] ?? [];
 
-        $ok = $this->orderRepository->updateOrder($order->id, $listDataUpdate);
-        if (!$ok->isSuccessCode()) {
+        $ok = $this->orderRepository->updateOrder($order, $orderData, $items, $tables);
+
+        if (!$ok) {
             $result->setMessage(message: 'Cập nhật đơn hàng thất bại, vui lòng thử lại!');
             return $result;
         }
+
         $result->setResultSuccess(message: 'Cập nhật đơn hàng thành công!');
         return $result;
     }

@@ -15,9 +15,9 @@ interface OrderRepositoryInterface
 
     public function getTrashOrderList(array $filter = [], int $limit = 10): LengthAwarePaginator;
 
-    public function createOrder(array $data): Order;
+    public function createOrder(array $orderData, array $items, array $tables): ?Order;
 
-    public function updateOrder(string $id, array $data): Order;
+    public function updateOrder(Order $order, array $orderData, array $items, array $tables): ?Order;
 
     public function updateItemStatus(int $orderItemId, string $status, int $userId): OrderItem;
 

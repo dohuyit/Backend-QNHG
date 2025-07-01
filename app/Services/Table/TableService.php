@@ -28,7 +28,7 @@ class TableService
         foreach ($pagination->items() as $item) {
             $data[] = [
                 'id' => (string) $item->id,
-                'name' => $item->name ?? null,
+                'table_number' => $item->table_number ?? null,
                 'description' => $item->description ?? null,
                 'capacity' => $item->capacity ?? null,
                 'status' => $item->status ?? null,
@@ -126,12 +126,12 @@ class TableService
         $result->setResultSuccess(message: 'Xóa bàn thành công!');
         return $result;
     }
-        public function countByStatus(): array
+    public function countByStatus(): array
     {
         $listStatus = ['available', 'occupied', 'reserved', 'cleaning', 'out_of_service'];
         $counts = [];
 
-        foreach($listStatus as $status) {
+        foreach ($listStatus as $status) {
             $counts[$status] = $this->tableRepository->countByConditions(['status' => $status]);
         }
         return $counts;

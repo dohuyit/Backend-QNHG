@@ -51,7 +51,7 @@ class KitchenOrderService
         return $result;
     }
 
-    public function updateStatus(int $id): DataAggregate
+    public function updateStatus(int $id, string $newStatus): DataAggregate
     {
         $result = new DataAggregate();
 
@@ -61,29 +61,47 @@ class KitchenOrderService
             return $result;
         }
 
-        if ($kitchenOrder->status === 'ready') {
-            $result->setMessage('Đơn bếp đã hoàn tất, không thể chuyển trạng thái');
+        $currentStatus = $kitchenOrder->status;
+
+        // Validate trạng thái mới có hợp lệ không
+        $validStatuses = ['pending', 'preparing', 'ready', 'cancelled'];
+        if (!in_array($newStatus, $validStatuses)) {
+            $result->setMessage('Trạng thái không hợp lệ');
             return $result;
         }
 
-        if ($kitchenOrder->status === 'cancelled') {
-            $result->setMessage('Đơn bếp đã bị hủy, không thể chuyển trạng thái');
-            return $result;
-        }
-
-        $map = [
-            'pending' => 'preparing',
-            'preparing' => 'ready',
+        // Kiểm tra logic chuyển trạng thái
+        $allowedTransitions = [
+            'pending' => ['preparing', 'cancelled'],
+            'preparing' => ['ready', 'cancelled'],
+            'ready' => [], // ready không chuyển được nữa
+            'cancelled' => [], // cancelled không chuyển được nữa
         ];
 
-        $nextStatus = $map[$kitchenOrder->status] ?? $kitchenOrder->status;
+        if (!in_array($newStatus, $allowedTransitions[$currentStatus])) {
+            $result->setMessage("Không thể chuyển từ trạng thái '{$currentStatus}' sang '{$newStatus}'");
+            return $result;
+        }
 
-        $kitchenOrder->status = $nextStatus;
+        // Cập nhật trạng thái
+        $kitchenOrder->status = $newStatus;
+
+        // Cập nhật thời gian nếu cần
+        if ($newStatus === 'preparing' && $currentStatus === 'pending') {
+            $kitchenOrder->received_at = now();
+        } elseif ($newStatus === 'ready' && $currentStatus === 'preparing') {
+            $kitchenOrder->completed_at = now();
+        }
+
         $kitchenOrder->save();
 
         $result->setResultSuccess(
             message: 'Chuyển trạng thái thành công',
-            data: ['new_status' => $nextStatus]
+            data: [
+                'id' => $kitchenOrder->id,
+                'status' => $newStatus,
+                'previous_status' => $currentStatus
+            ]
         );
         return $result;
     }
@@ -99,6 +117,11 @@ class KitchenOrderService
 
         if ($kitchenOrder->status === 'ready') {
             $result->setMessage('Đơn đã hoàn tất, không thể hủy');
+            return $result;
+        }
+
+        if ($kitchenOrder->status === 'preparing') {
+            $result->setMessage('Đơn đang chế biến, không thể hủy');
             return $result;
         }
 
@@ -126,5 +149,5 @@ class KitchenOrderService
         }
         return $counts;
     }
-    
+
 }

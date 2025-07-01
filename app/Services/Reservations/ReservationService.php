@@ -8,22 +8,25 @@ use App\Models\Reservation;
 use App\Repositories\Reservations\ReservationRepositoryInterface;
 use App\Repositories\Table\TableRepositoryInterface;
 use App\Services\Mails\ReservationMailService;
+use App\Services\Order\OrderService;
 
 class ReservationService
 {
     protected ReservationRepositoryInterface $reservationRepository;
     protected TableRepositoryInterface $tableRepository;
     protected ReservationMailService  $reservationMailService;
-    public function __construct(ReservationRepositoryInterface $reservationRepository, TableRepositoryInterface $tableRepository, ReservationMailService $reservationMailService)
+    protected OrderService $orderService;
+    public function __construct(ReservationRepositoryInterface $reservationRepository, TableRepositoryInterface $tableRepository, ReservationMailService $reservationMailService, OrderService $orderService)
     {
         $this->reservationRepository = $reservationRepository;
         $this->tableRepository = $tableRepository;
         $this->reservationMailService = $reservationMailService;
+        $this->orderService = $orderService;
     }
     public function getListReservation(array $params): ListAggregate
     {
         $filter = $params;
-        $limit = !empty($params['limit']) && $params['limit'] > 0 ? (int)$params['limit'] : 10;
+        $limit = !empty($params['limit']) && $params['limit'] > 0 ? (int)$params['limit'] : 8;
 
         $pagination = $this->reservationRepository->getReservationList(filter: $filter, limit: $limit);
 
@@ -129,6 +132,21 @@ class ReservationService
         if ($newStatus !== $currentStatus) {
             if ($newStatus === 'confirmed' && !$reservation->confirmed_at) {
                 $listDataUpdate['confirmed_at'] = now();
+                // Tạo order mới khi cập nhật trạng thái sang confirmed
+                $orderData = [
+                    'order_type' => 'dine-in',
+                    'reservation_id' => $reservation->id,
+                    'customer_id' => $reservation->customer_id,
+                    'notes' => $reservation->notes,
+                    'contact_name' => $reservation->customer_name,
+                    'contact_phone' => $reservation->customer_phone,
+                    'contact_email' => $reservation->customer_email,
+                    'user_id' => $reservation->user_id,
+                    'tables' => $reservation->table_id ? [['table_id' => $reservation->table_id]] : [],
+                    'status' => 'pending_confirmation',
+                    'items' => [], // chưa có món
+                ];
+                $this->orderService->createOrder($orderData);
             } elseif ($newStatus === 'cancelled' && !$reservation->cancelled_at) {
                 $listDataUpdate['cancelled_at'] = now();
             } elseif ($newStatus === 'completed' && !$reservation->completed_at) {
@@ -226,33 +244,46 @@ class ReservationService
 
     public function confirmReservation(int $id, int $userId)
     {
-        if (empty($userId)) {
-            $result = new DataAggregate();
-            $result->setResultError(message: 'Thiếu thông tin người xác nhận!');
-            return $result;
-        }
+        $result = new DataAggregate();
+
         $reservation = $this->reservationRepository->getByConditions(['id' => $id]);
         if (!$reservation) {
-            $result = new DataAggregate();
             $result->setResultError(message: 'Đơn đặt bàn không tồn tại');
             return $result;
         }
 
-        $data = [
-            'status' => 'confirmed',
-            'confirmed_at' => now(),
-            'user_id' => $userId,
-        ];
-
-        $ok = $this->reservationRepository->confirmReservation($id, $userId);
-        if (!$ok) {
-            $result = new DataAggregate();
-            $result->setResultError(message: 'Xác nhận thất bại, vui lòng thử lại!');
+        if ($reservation->status !== 'pending') {
+            $result->setResultError(message: 'Chỉ xác nhận đơn ở trạng thái chờ!');
             return $result;
         }
 
-        return $this->updateReservation($data, $reservation);
+        // Tạo order mới khi xác nhận đơn đặt bàn
+        $orderData = [
+            'order_type' => 'dine-in',
+            'reservation_id' => $reservation->id,
+            'customer_id' => $reservation->customer_id,
+            'notes' => $reservation->notes,
+            'contact_name' => $reservation->customer_name,
+            'contact_phone' => $reservation->customer_phone,
+            'contact_email' => $reservation->customer_email,
+            'user_id' => $userId,
+            'tables' => $reservation->table_id ? [['table_id' => $reservation->table_id]] : [],
+            'status' => 'pending_confirmation',
+            'items' => [], // chưa có món
+        ];
+        $this->orderService->createOrder($orderData);
+
+        // Chỉ update status, không cần truyền lại các trường khác
+        $this->reservationRepository->updateByConditions(['id' => $id], [
+            'status' => 'confirmed',
+            'user_id' => $userId,
+            'confirmed_at' => now(),
+        ]);
+
+        $result->setResultSuccess(message: 'Xác nhận đơn đặt bàn thành công', data: ['new_status' => 'confirmed']);
+        return $result;
     }
+
     public function countByStatus(): array
     {
         $listStatus = ['pending', 'confirmed', 'cancelled', 'completed', 'no_show', 'seated'];

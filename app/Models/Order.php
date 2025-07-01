@@ -15,7 +15,6 @@ class Order extends Model
     protected $fillable = [
         'order_code',           // Tự sinh hoặc theo quy tắc
         'order_type',           // 'dine-in', 'takeaway', 'delivery'
-        'table_id',             // Cho 'dine-in'
         'reservation_id',       // Nếu đơn hàng từ đặt bàn
         'user_id',              // Nhân viên tạo đơn
         'customer_id',          // Khách hàng (nếu có)
@@ -31,11 +30,6 @@ class Order extends Model
         'final_amount',         // Tổng tiền cuối cùng (tham chiếu từ Bill)
         'delivered_at',         // Thời gian giao thành công (cho 'delivery')
     ];
-
-    public function table()
-    {
-        return $this->belongsTo(Table::class, 'table_id');
-    }
 
     // Quan hệ với bảng reservations
     public function reservation()
@@ -61,10 +55,15 @@ class Order extends Model
         return $this->hasMany(OrderItem::class, 'order_id');
     }
 
+    public function tables(): HasMany
+    {
+        return $this->hasMany(OrderTable::class);
+    }
+
+
     // Quan hệ với bảng bills
     public function bill()
     {
         return $this->hasOne(Bill::class, 'order_id');
-
     }
 }

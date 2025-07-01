@@ -19,16 +19,14 @@ class OrderFactory extends Factory
         $orderTypes = ['dine-in', 'takeaway', 'delivery'];
         $type = $this->faker->randomElement($orderTypes);
         $status = $this->faker->randomElement([
-            'pending_confirmation',
+            'pending',
             'confirmed',
             'preparing',
-            'ready_to_serve',
+            'ready',
             'served',
-            'ready_for_pickup',
             'delivering',
             'completed',
             'cancelled',
-            'payment_failed'
         ]);
 
         $isDelivery = $type === 'delivery';
@@ -44,7 +42,6 @@ class OrderFactory extends Factory
         return [
             'order_code' => 'ORD-' . strtoupper(Str::random(10)),
             'order_type' => $type,
-            'table_id' => $type === 'dine-in' ? Table::inRandomOrder()->first()?->id : null,
             'reservation_id' => $this->faker->boolean(30) ? Reservation::inRandomOrder()->first()?->id : null,
             'user_id' => User::inRandomOrder()->first()?->id,
             'customer_id' => $hasCustomer ? Customer::inRandomOrder()->first()?->id : null,

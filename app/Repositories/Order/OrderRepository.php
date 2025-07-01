@@ -5,9 +5,14 @@ namespace App\Repositories\Order;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\OrderItemChangeLog;
+use App\Models\Table;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Pagination\LengthAwarePaginator;
 use App\Models\Dish;
+use App\Models\KitchenOrder;
+use App\Models\OrderTable;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class OrderRepository implements OrderRepositoryInterface
 {
@@ -18,7 +23,7 @@ class OrderRepository implements OrderRepositoryInterface
 
     public function getListOrders(array $filter = [], int $limit = 10): LengthAwarePaginator
     {
-        $query = Order::query()->with(['items.menuItem', 'table', 'reservation', 'customer', 'user']);
+        $query = Order::query()->with(['items.menuItem', 'tables', 'reservation', 'customer', 'user']);
 
         if (isset($filter['order_type'])) {
             $query->where('order_type', $filter['order_type']);
@@ -118,97 +123,139 @@ class OrderRepository implements OrderRepositoryInterface
         return $query->orderBy('deleted_at', 'desc')->paginate($limit);
     }
 
-    public function createOrder(array $data): Order
+    public function createOrder(array $orderData, array $items, array $tables): ?Order
     {
-        $total_amount = 0;
-        if (isset($data['items'])) {
-            foreach ($data['items'] as $item) {
-                $menuItem = Dish::find($item['menu_item_id']);
-                if ($menuItem) {
-                    $total_amount += $menuItem->selling_price * ($item['quantity'] ?? 1);
-                }
+        try {
+            DB::beginTransaction();
+
+            // Tạo đơn hàng
+            $order = Order::create($orderData);
+
+            // Tạo OrderItem và KitchenOrder nếu có món
+            foreach ($items as $item) {
+                $orderItem = OrderItem::create([
+                    'order_id' => $order->id,
+                    'dish_id' => $item['dish_id'],
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $item['unit_price'],
+                    'kitchen_status' => $item['kitchen_status'],
+                    'notes' => $item['notes'],
+                    'is_priority' => $item['is_priority'],
+                ]);
+
+                KitchenOrder::create([
+                    'order_item_id' => $orderItem->id,
+                    'order_id' => $order->id,
+                    'table_number' => $order->tables()->first()->table->number ?? null,
+                    'item_name' => $item['item_name'],
+                    'quantity' => $item['quantity'],
+                    'notes' => $item['notes'],
+                    'status' => 'pending',
+                    'is_priority' => $item['is_priority'],
+                    'received_at' => now(),
+                ]);
             }
-        }
 
-        $orderData = [
-            'order_code' => $data['order_code'],
-            'order_type' => $data['order_type'],
-            'table_id' => $data['table_id'] ?? null,
-            'reservation_id' => $data['reservation_id'] ?? null,
-            'customer_id' => $data['customer_id'] ?? null,
-            'user_id' => $data['user_id'],
-            'order_time' => $data['order_time'],
-            'status' => $data['status'],
-            'payment_status' => $data['payment_status'],
-            'notes' => $data['notes'] ?? null,
-            'delivery_address' => $data['delivery_address'] ?? null,
-            'contact_name' => $data['contact_name'] ?? null,
-            'contact_email' => $data['contact_email'] ?? null,
-            'contact_phone' => $data['contact_phone'] ?? null,
-            'total_amount' => $total_amount,
-            'final_amount' => $total_amount,
-        ];
-
-        $order = Order::create($orderData);
-
-        if (isset($data['items'])) {
-            foreach ($data['items'] as $item) {
-                $item['order_id'] = $order->id;
-                $item['kitchen_status'] = $item['kitchen_status'] ?? 'pending';
-                OrderItem::create($item);
+            // Tạo OrderTable nếu có bàn
+            foreach ($tables as $table) {
+                OrderTable::create([
+                    'order_id' => $order->id,
+                    'table_id' => $table['table_id'],
+                ]);
             }
-        }
 
-        return $order->load(['items.menuItem', 'table', 'reservation', 'customer', 'user', 'bill']);
+            DB::commit();
+            return $order;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('[OrderRepository] Failed to create order: ' . $e->getMessage());
+            return null;
+        }
     }
 
-    public function updateOrder(string $id, array $data): Order
+    public function updateOrder(Order $order, array $orderData, array $items, array $tables): ?Order
     {
-        $order = Order::find($id);
+        try {
+            DB::beginTransaction();
 
-        $total_amount = $order->total_amount;
-        if (isset($data['items'])) {
-            $total_amount = 0;
-            foreach ($data['items'] as $item) {
-                $menuItem = Dish::find($item['menu_item_id'] ?? ($order->items->find($item['id'])?->menu_item_id));
-                if ($menuItem) {
-                    $total_amount += $menuItem->selling_price * ($item['quantity'] ?? 1);
+            // Lấy danh sách dish_id mới
+            $menuItemIds = collect($items)->pluck('dish_id')->unique()->toArray();
+            $menuItems = Dish::whereIn('id', $menuItemIds)->get()->keyBy('id');
+
+            $totalAmount = 0;
+
+            // Xóa toàn bộ OrderItem cũ
+            OrderItem::where('order_id', $order->id)->delete();
+
+            // Xóa toàn bộ KitchenOrder cũ liên quan đến order
+            KitchenOrder::where('order_id', $order->id)->delete();
+
+            // Tính lại tổng tiền + tạo OrderItem & KitchenOrder mới
+            foreach ($items as $item) {
+                $menuItem = $menuItems->get($item['dish_id']);
+                if (!$menuItem) {
+                    throw new \Exception("Món ăn ID {$item['dish_id']} không tồn tại");
+                }
+
+                $lineTotal = $menuItem->selling_price * $item['quantity'];
+                $totalAmount += $lineTotal;
+
+                $orderItem = OrderItem::create([
+                    'order_id' => $order->id,
+                    'dish_id' => $item['dish_id'],
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $menuItem->selling_price,
+                    'kitchen_status' => $item['kitchen_status'] ?? 'pending',
+                ]);
+
+                // Tạo phiếu bếp cho mỗi OrderItem mới
+                KitchenOrder::create([
+                    'order_item_id' => $orderItem->id,
+                    'order_id' => $order->id,
+                    'table_number' => $order->tables()->first()->table->number ?? null,
+                    'item_name' => $menuItem->name,
+                    'quantity' => $item['quantity'],
+                    'notes' => $item['notes'] ?? null,
+                    'status' => 'pending',
+                    'is_priority' => $item['is_priority'] ?? false,
+                    'received_at' => now(),
+                ]);
+            }
+
+            // Cập nhật tổng tiền
+            $orderData['total_amount'] = $totalAmount;
+            $orderData['final_amount'] = $totalAmount;
+
+            // Cập nhật thông tin order
+            $order->update($orderData);
+
+            // Xóa OrderTable cũ
+            OrderTable::where('order_id', $order->id)->delete();
+
+            // Tạo lại OrderTable nếu order_type là dine-in
+            if (($orderData['order_type'] ?? $order->order_type) === 'dine-in' && !empty($tables)) {
+                foreach ($tables as $table) {
+                    $tableId = is_array($table) ? ($table['table_id'] ?? $table['id'] ?? $table) : $table;
+                    $tableModel = Table::find($tableId);
+                    if (!$tableModel) {
+                        throw new \Exception("Bàn ID {$tableId} không tồn tại");
+                    }
+                    OrderTable::create([
+                        'order_id' => $order->id,
+                        'table_id' => $tableModel->id,
+                    ]);
                 }
             }
+
+            DB::commit();
+            return $order->refresh()->load(['items.menuItem', 'tables']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("[OrderRepository] Failed to update order: " . $e->getMessage());
+            return null;
         }
-
-        $orderData = [
-            'order_type' => $data['order_type'],
-            'table_id' => $data['table_id'] ?? $order->table_id,
-            'reservation_id' => $data['reservation_id'] ?? $order->reservation_id,
-            'customer_id' => $data['customer_id'] ?? $order->customer_id,
-            'status' => $data['status'] ?? $order->status,
-            'payment_status' => $data['payment_status'] ?? $order->payment_status,
-            'notes' => $data['notes'] ?? $order->notes,
-            'delivery_address' => $data['delivery_address'] ?? $order->delivery_address,
-            'contact_name' => $data['contact_name'] ?? $order->contact_name,
-            'contact_email' => $data['contact_email'] ?? $order->contact_email,
-            'contact_phone' => $data['contact_phone'] ?? $order->contact_phone,
-            'total_amount' => $total_amount,
-            'final_amount' => $total_amount,
-        ];
-
-        $order->update($orderData);
-
-        if (isset($data['items'])) {
-            foreach ($data['items'] as $item) {
-                if (isset($item['id'])) {
-                    OrderItem::where('id', $item['id'])->update($item);
-                } else {
-                    $item['order_id'] = $order->id;
-                    $item['kitchen_status'] = $item['kitchen_status'] ?? 'pending';
-                    OrderItem::create($item);
-                }
-            }
-        }
-
-        return $order->load(['items.menuItem', 'table', 'reservation', 'customer', 'user', 'bill']);
     }
+
 
     public function softDeleteOrder(string $id): void
     {

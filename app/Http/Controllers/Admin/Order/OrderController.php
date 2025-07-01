@@ -51,7 +51,6 @@ class OrderController extends Controller
         try {
             $data = $request->only([
                 'order_type',
-                'table_id',
                 'reservation_id',
                 'customer_id',
                 'notes',
@@ -93,18 +92,16 @@ class OrderController extends Controller
 
         $data = $request->only([
             'order_type',
-            'table_id',
             'reservation_id',
             'customer_id',
-            'status',
-            'payment_status',
             'notes',
             'delivery_address',
             'contact_name',
             'contact_email',
             'contact_phone',
             'items',
-            'tables'
+            'tables',
+            'status',
         ]);
 
         $result = $this->orderService->updateOrder($data, $order);

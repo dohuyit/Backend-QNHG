@@ -15,12 +15,11 @@ return new class extends Migration
             $table->id()->comment('Mã đơn hàng');
             $table->string('order_code', 20)->unique()->comment('Mã code đơn hàng');
             $table->enum('order_type', ['dine-in', 'takeaway', 'delivery'])->comment('Loại đơn hàng');
-            $table->foreignId('table_id')->nullable()->comment('Bàn đặt hàng (dine-in)')->constrained('tables', 'id')->onDelete('set null');
             $table->foreignId('reservation_id')->nullable()->comment('Mã đặt bàn liên quan')->constrained('reservations', 'id')->onDelete('set null');
             $table->foreignId('user_id')->nullable()->comment('Nhân viên tạo/phụ trách')->constrained('users', 'id')->onDelete('set null');
             $table->foreignId('customer_id')->nullable()->comment('Mã khách hàng')->constrained('customers', 'id')->onDelete('set null');
             $table->timestamp('order_time')->useCurrent()->comment('Thời gian đặt/tạo đơn');
-            $table->enum('status', ['pending_confirmation', 'confirmed', 'preparing', 'ready_to_serve', 'served', 'ready_for_pickup', 'delivering', 'completed', 'cancelled', 'payment_failed'])->default('pending_confirmation')->comment('Trạng thái xử lý');
+            $table->enum('status', ['pending', 'confirmed', 'preparing', 'ready', 'served', 'delivering', 'completed', 'cancelled'])->default('pending')->comment('Trạng thái xử lý');
             $table->enum('payment_status', ['unpaid', 'partially_paid', 'paid', 'refunded'])->default('unpaid')->comment('Trạng thái thanh toán');
             $table->text('notes')->nullable()->comment('Ghi chú chung');
             $table->text('delivery_address')->nullable()->comment('Địa chỉ giao hàng (delivery)');
