@@ -9,12 +9,15 @@ class ConvertHelper
      *
      * @return string JSON encoded array
      */
-    public static function convertStringToJson(string $stringValue): string
+    public static function convertArrayToJson(array $tags): string
     {
-        $tagsArray = array_filter(array_map('trim', explode(',', $stringValue)));
+        // Duyệt và trim từng phần tử, loại bỏ phần tử rỗng
+        $tagsArray = array_filter(array_map('trim', $tags));
 
+        // Chuyển sang JSON, không mã hóa Unicode
         return json_encode($tagsArray, JSON_UNESCAPED_UNICODE);
     }
+
 
     /**
      * Chuyển JSON array tag thành chuỗi ngăn cách bởi dấu phẩy (dùng trong form edit).

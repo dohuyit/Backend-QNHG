@@ -24,7 +24,7 @@ class UpdateDishRequest extends BaseFormRequest
             'selling_price' => 'required|numeric|min:0',
             'status' => 'required|in:active,inactive',
             'is_featured' => 'nullable|boolean',
-            'tags' => 'nullable|string|max:255',
+            'tags' => 'nullable|array|max:255',
             'unit' => 'nullable|in:bowl,plate,cup,glass,large_bowl,other',
         ];
     }
@@ -60,7 +60,7 @@ class UpdateDishRequest extends BaseFormRequest
 
             'is_featured.boolean' => 'Trạng thái nổi bật phải là true hoặc false.',
 
-            'tags.string' => 'Tags phải là chuỗi.',
+            'tags.array' => 'Tags phải là mảng.',
             'tags.max' => 'Tags không được vượt quá 255 ký tự.',
 
             'unit.in' => 'Đơn vị tính không hợp lệ.',
