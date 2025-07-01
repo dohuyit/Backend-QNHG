@@ -55,10 +55,11 @@ class Order extends Model
         return $this->hasMany(OrderItem::class, 'order_id');
     }
 
-    public function tables()
+    public function tables(): HasMany
     {
-        return $this->belongsToMany(Table::class, 'order_tables', 'order_id', 'table_id');
+        return $this->hasMany(OrderTable::class);
     }
+
 
     // Quan hệ với bảng bills
     public function bill()

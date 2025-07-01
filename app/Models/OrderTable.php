@@ -18,7 +18,7 @@ class OrderTable extends Model
     /**
      * Relationship với Order
      */
-    public function order(): BelongsTo
+    public function order()
     {
         return $this->belongsTo(Order::class);
     }
@@ -26,7 +26,7 @@ class OrderTable extends Model
     /**
      * Relationship với Table
      */
-    public function tableItem(): BelongsTo
+    public function tableItem()
     {
         return $this->belongsTo(Table::class, 'table_id');
     }

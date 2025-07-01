@@ -68,7 +68,7 @@ class DishService
             'status' => $data['status'] ?? true,
         ];
         if (!empty($data['tags'])) {
-            $listDataCreate['tags'] = ConvertHelper::convertStringToJson($data['tags']);
+            $listDataCreate['tags'] = ConvertHelper::convertArrayToJson($data['tags']);
         }
 
         if (!empty($data['image_url'])) {
@@ -127,7 +127,7 @@ class DishService
         ];
 
         if (!empty($data['tags'])) {
-            $listDataUpdate['tags'] = ConvertHelper::convertStringToJson($data['tags']);
+            $listDataUpdate['tags'] = ConvertHelper::convertArrayToJson($data['tags']);
         }
 
         if (!empty($data['image_url'])) {

@@ -248,7 +248,7 @@ class OrderRepository implements OrderRepositoryInterface
             }
 
             DB::commit();
-            return $order->refresh()->load(['items.menuItem', 'tables.tableItem']);
+            return $order->refresh()->load(['items.menuItem', 'tables']);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error("[OrderRepository] Failed to update order: " . $e->getMessage());

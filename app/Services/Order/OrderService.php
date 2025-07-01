@@ -25,7 +25,7 @@ class OrderService
         $filter = $params;
         $limit = !empty($params['limit']) && $params['limit'] > 0 ? (int)$params['limit'] : 10000;
         $pagination = $this->orderRepository->getListOrders(filter: $filter, limit: $limit);
-
+        // dd($pagination);
         $data = [];
         foreach ($pagination->items() as $item) {
             $data[] = [
@@ -51,6 +51,23 @@ class OrderService
                     'id' => (string)$item->user->id,
                     'name' => $item->user->name,
                 ] : null,
+                // 'items' => $items->map(function ($item) {
+                //     return [
+                //         'id' => (string)$item->id,
+                //         'dish_id' => $item->menuItem ? [
+                //             'id' => (string)$item->menuItem->id,
+                //             'name' => $item->menuItem->name,
+                //         ] : null,
+                //         'combo_id' => $item->combo ? [
+                //             'id' => (string)$item->combo->id,
+                //             'name' => $item->combo->name,
+                //         ] : null,
+                //         'unit_price' => $item->unit_price,
+                //         'quantity' => $item->quantity,
+                //         'notes' => $item->notes,
+                //         'kitchen_status' => $item->kitchen_status,
+                //     ];
+                // })->toArray(),
                 'status' => $item->status,
                 'payment_status' => $item->payment_status,
                 'notes' => $item->notes,
@@ -162,10 +179,11 @@ class OrderService
             'order_type' => $order->order_type,
             'tables' => $order->tables->map(function ($table) {
                 return [
-                    'id' => (string)$table->tableItem->id,
+                    'id' => (string)($table->tableItem ? $table->tableItem->id : null),
                     'table_number' => $table->tableItem ? $table->tableItem->table_number : null,
                 ];
             })->toArray(),
+
             'reservation' => $order->reservation ? [
                 'id' => (string)$order->reservation->id,
                 'reservation_time' => $order->reservation->reservation_time,
