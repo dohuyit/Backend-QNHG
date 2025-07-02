@@ -28,4 +28,6 @@ interface OrderRepositoryInterface
     public function restoreOrder(string $id): void;
 
     public function countByConditions(array $conditions): int;
+    
+    public function updateByConditions(array $conditions, array $updateData): bool;
 }
