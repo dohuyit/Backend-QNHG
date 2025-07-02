@@ -173,10 +173,4 @@ Route::prefix('admin')->group(function () {
     Route::post('bill-payments/create', [BillPaymentController::class, 'createBillPayment']);
     Route::get('bill-payments/{billId}', [BillPaymentController::class, 'getPaymentsByBill']);
     Route::post('bill-payments/{id}/update', [BillPaymentController::class, 'updateBillPayment']);
-
-
-
-
-
-    
 });

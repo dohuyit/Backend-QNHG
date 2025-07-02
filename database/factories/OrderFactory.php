@@ -47,7 +47,6 @@ class OrderFactory extends Factory
             'customer_id' => $hasCustomer ? Customer::inRandomOrder()->first()?->id : null,
             'order_time' => $orderTime,
             'status' => $status,
-            'payment_status' => $this->faker->randomElement(['unpaid', 'partially_paid', 'paid', 'refunded']),
             'notes' => $this->faker->boolean(30) ? $this->faker->sentence() : null,
             'delivery_address' => $isDelivery ? $this->faker->address() : null,
             'contact_name' => !$hasCustomer || $isDelivery ? $this->faker->name() : null,
