@@ -68,7 +68,6 @@ class OrderService
                     ];
                 })->toArray(),
                 'status' => $item->status,
-                'payment_status' => $item->payment_status,
                 'notes' => $item->notes,
                 'delivery_address' => $item->delivery_address,
                 'contact_name' => $item->contact_name,
@@ -109,7 +108,6 @@ class OrderService
             'user_id' => Auth::id(),
             'order_time' => now(),
             'status' => 'pending',
-            'payment_status' => $data['payment_status'] ?? 'unpaid',
             'order_code' => 'ORD' . Str::upper(Str::random(8)),
         ];
 
@@ -198,7 +196,6 @@ class OrderService
                 'name' => $order->user->name,
             ] : null,
             'status' => $order->status,
-            'payment_status' => $order->payment_status,
             'notes' => $order->notes,
             'delivery_address' => $order->delivery_address,
             'contact_name' => $order->contact_name,
@@ -246,7 +243,6 @@ class OrderService
             'reservation_id' => $data['reservation_id'] ?? $order->reservation_id,
             'customer_id' => $data['customer_id'] ?? $order->customer_id,
             'status' => $data['status'] ?? $order->status,
-            'payment_status' => $data['payment_status'] ?? $order->payment_status,
             'notes' => $data['notes'] ?? $order->notes,
             'delivery_address' => $data['delivery_address'] ?? $order->delivery_address,
             'contact_name' => $data['contact_name'] ?? $order->contact_name,
@@ -308,7 +304,6 @@ class OrderService
                     'name' => $item->user->name,
                 ] : null,
                 'status' => $item->status,
-                'payment_status' => $item->payment_status,
                 'notes' => $item->notes,
                 'delivery_address' => $item->delivery_address,
                 'contact_name' => $item->contact_name,

@@ -20,7 +20,6 @@ return new class extends Migration
             $table->foreignId('customer_id')->nullable()->comment('Mã khách hàng')->constrained('customers', 'id')->onDelete('set null');
             $table->timestamp('order_time')->useCurrent()->comment('Thời gian đặt/tạo đơn');
             $table->enum('status', ['pending', 'confirmed', 'preparing', 'ready', 'served', 'delivering', 'completed', 'cancelled'])->default('pending')->comment('Trạng thái xử lý');
-            $table->enum('payment_status', ['unpaid', 'partially_paid', 'paid', 'refunded'])->default('unpaid')->comment('Trạng thái thanh toán');
             $table->text('notes')->nullable()->comment('Ghi chú chung');
             $table->text('delivery_address')->nullable()->comment('Địa chỉ giao hàng (delivery)');
             $table->string('contact_name', 100)->nullable()->comment('Tên liên hệ (khách hàng vãng lai hoặc giao hàng)');

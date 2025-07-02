@@ -33,10 +33,6 @@ class OrderRepository implements OrderRepositoryInterface
             $query->where('status', $filter['status']);
         }
 
-        if (isset($filter['payment_status'])) {
-            $query->where('payment_status', $filter['payment_status']);
-        }
-
         if (isset($filter['date_from'])) {
             $query->where('order_time', '>=', $filter['date_from']);
         }
@@ -82,10 +78,6 @@ class OrderRepository implements OrderRepositoryInterface
 
         if (isset($filter['status'])) {
             $query->where('status', $filter['status']);
-        }
-
-        if (isset($filter['payment_status'])) {
-            $query->where('payment_status', $filter['payment_status']);
         }
 
         if (isset($filter['date_from'])) {
@@ -311,10 +303,6 @@ class OrderRepository implements OrderRepositoryInterface
 
         if (isset($conditions['status'])) {
             $query->where('status', $conditions['status']);
-        }
-
-        if (isset($conditions['payment_status'])) {
-            $query->where('payment_status', $conditions['payment_status']);
         }
 
         if (isset($conditions['date_from'])) {
