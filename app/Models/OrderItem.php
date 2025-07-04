@@ -44,7 +44,7 @@ class OrderItem extends Model
      */
     public function combo(): BelongsTo
     {
-        return $this->belongsTo(Combo::class);
+        return $this->belongsTo(Combo::class, 'combo_id');
     }
 
     public function statusHistory(): HasMany
