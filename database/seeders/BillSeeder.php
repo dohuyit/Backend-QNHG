@@ -22,7 +22,7 @@ class BillSeeder extends Seeder
 
             Bill::create([
                 'order_id'       => $order->id,
-                'bill_code'      => 'HD-' . strtoupper(Str::random(8)),
+                'bill_code'      => 'B-' . strtoupper(Str::random(8)),
                 'sub_total'      => $subTotal,
                 'discount_amount'=> $discount,
                 'delivery_fee'   => $delivery,
