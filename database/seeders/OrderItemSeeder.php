@@ -23,7 +23,7 @@ class OrderItemSeeder extends Seeder
                     'quantity' => rand(1, 3),
                     'unit_price' => fake()->randomFloat(2, 20, 100),
                     'notes' => fake()->boolean(30) ? fake()->sentence() : null,
-                    'kitchen_status' => fake()->randomElement(['pending', 'preparing', 'ready', 'served', 'cancelled']),
+                    'kitchen_status' => fake()->randomElement(['pending', 'preparing', 'ready', 'cancelled']),
                     'is_priority' => fake()->boolean(20),
                 ]);
             }

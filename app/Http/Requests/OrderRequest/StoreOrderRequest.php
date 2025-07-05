@@ -18,8 +18,8 @@ class StoreOrderRequest extends BaseFormRequest
             'reservation_id' => 'nullable|exists:reservations,id',
             'customer_id' => 'nullable|exists:customers,id',
             'items' => 'required|array|min:1',
-            'items.*.dish_id' => 'required_without:items.*.combo_id|exists:dishes,id',
-            'items.*.combo_id' => 'required_without:items.*.dish_id|exists:combos,id',
+            'items.*.dish_id' => 'nullable|exists:dishes,id',
+            'items.*.combo_id' => 'nullable|exists:combos,id',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.notes' => 'nullable|string|max:255',
@@ -42,9 +42,7 @@ class StoreOrderRequest extends BaseFormRequest
             'items.required' => 'Danh sách món không được để trống',
             'items.array' => 'Danh sách món không hợp lệ',
             'items.min' => 'Phải có ít nhất 1 món trong đơn hàng',
-            'items.*.dish_id.required_without' => 'Phải chọn món ăn hoặc combo',
             'items.*.dish_id.exists' => 'Món ăn không tồn tại',
-            'items.*.combo_id.required_without' => 'Phải chọn món ăn hoặc combo',
             'items.*.combo_id.exists' => 'Combo không tồn tại',
             'items.*.quantity.required' => 'Số lượng không được để trống',
             'items.*.quantity.integer' => 'Số lượng phải là số nguyên',
@@ -62,5 +60,20 @@ class StoreOrderRequest extends BaseFormRequest
             'delivery_address.max' => 'Địa chỉ giao hàng không được vượt quá 255 ký tự',
             'notes.max' => 'Ghi chú đơn hàng không được vượt quá 500 ký tự',
         ];
+    }
+
+    protected function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $items = $this->input('items', []);
+            foreach ($items as $index => $item) {
+                if (empty($item['dish_id']) && empty($item['combo_id'])) {
+                    $validator->errors()->add(
+                        "items.$index",
+                        'Phải chọn món ăn hoặc combo'
+                    );
+                }
+            }
+        });
     }
 }

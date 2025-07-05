@@ -19,7 +19,7 @@ return new class extends Migration
             $table->integer('quantity')->comment('Số lượng');
             $table->decimal('unit_price', 10, 2)->comment('Giá tại thời điểm đặt');
             $table->text('notes')->nullable()->comment('Ghi chú cho món');
-            $table->enum('kitchen_status', ['pending', 'preparing', 'ready', 'served', 'cancelled'])->default('pending')->comment('Trạng thái món ở bếp');
+            $table->enum('kitchen_status', ['pending', 'preparing', 'ready', 'cancelled'])->default('pending')->comment('Trạng thái món ở bếp');
             $table->boolean('is_priority')->default(false)->comment('Món ưu tiên');
             $table->timestamps();
             $table->comment('Chi tiết món ăn/combo trong đơn hàng');

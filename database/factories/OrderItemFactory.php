@@ -21,7 +21,7 @@ class OrderItemFactory extends Factory
             'quantity' => $this->faker->numberBetween(1, 5),
             'unit_price' => $this->faker->randomFloat(2, 20, 100),
             'notes' => $this->faker->boolean(30) ? $this->faker->sentence() : null,
-            'kitchen_status' => $this->faker->randomElement(['pending', 'preparing', 'ready', 'served', 'cancelled']),
+            'kitchen_status' => $this->faker->randomElement(['pending', 'preparing', 'ready', 'cancelled']),
             'is_priority' => $this->faker->boolean(20),
         ];
     }

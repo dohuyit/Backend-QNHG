@@ -1,7 +1,9 @@
 <?php
+
 namespace App\Repositories\KitchenOrders;
 
 use App\Models\KitchenOrder;
+use App\Models\OrderItem;
 use App\Repositories\KitchenOrders\KitchenOrderRepositoryInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -9,7 +11,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 class KitchenOrderRepository implements KitchenOrderRepositoryInterface
 {
 
-  private function filterKitchenOrders(Builder $query, array $filter = []): Builder
+    private function filterKitchenOrders(Builder $query, array $filter = []): Builder
     {
         if ($val = $filter['status'] ?? null) {
             $query->where('status', $val);
@@ -31,7 +33,7 @@ class KitchenOrderRepository implements KitchenOrderRepositoryInterface
     {
         $query = KitchenOrder::query();
 
-        if(!empty($filter)){
+        if (!empty($filter)) {
             $result = $this->filterKitchenOrders($query, $filter);
         }
 
@@ -57,4 +59,10 @@ class KitchenOrderRepository implements KitchenOrderRepositoryInterface
         return $query->count();
     }
 
+    public function updateOrderItemStatus(int $orderItemId, string $newStatus): bool
+    {
+        return OrderItem::where('id', $orderItemId)->update([
+            'kitchen_status' => $newStatus,
+        ]) > 0;
+    }
 }

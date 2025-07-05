@@ -5,6 +5,7 @@ namespace App\Services\KitchenOrders;
 use App\Common\DataAggregate;
 use App\Common\ListAggregate;
 use App\Helpers\ConvertHelper;
+use App\Models\OrderItem;
 use App\Repositories\KitchenOrders\KitchenOrderRepositoryInterface;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -83,17 +84,29 @@ class KitchenOrderService
             return $result;
         }
 
-        // Cập nhật trạng thái
-        $kitchenOrder->status = $newStatus;
-
-        // Cập nhật thời gian nếu cần
+        $updateData = ['status' => $newStatus];
         if ($newStatus === 'preparing' && $currentStatus === 'pending') {
-            $kitchenOrder->received_at = now();
+            $updateData['received_at'] = now();
         } elseif ($newStatus === 'ready' && $currentStatus === 'preparing') {
-            $kitchenOrder->completed_at = now();
+            $updateData['completed_at'] = now();
         }
 
-        $kitchenOrder->save();
+        $updateSuccess = $this->kitchenOrderRepository->updateByConditions(['id' => $id], $updateData);
+
+        if (!$updateSuccess) {
+            $result->setMessage('Cập nhật trạng thái đơn bếp thất bại');
+            return $result;
+        }
+
+        $orderItemId = $kitchenOrder->order_item_id;
+        if ($orderItemId) {
+            $updateItemSuccess = $this->kitchenOrderRepository->updateOrderItemStatus($orderItemId, $newStatus);
+
+            if (!$updateItemSuccess) {
+                $result->setMessage('Cập nhật trạng thái món trong đơn hàng thất bại');
+                return $result;
+            }
+        }
 
         $result->setResultSuccess(
             message: 'Chuyển trạng thái thành công',
@@ -103,6 +116,7 @@ class KitchenOrderService
                 'previous_status' => $currentStatus
             ]
         );
+
         return $result;
     }
     public function cancelKitchenOrder(int $id): DataAggregate
@@ -144,10 +158,9 @@ class KitchenOrderService
         $listStatus = ['pending', 'preparing', 'ready', 'cancelled'];
         $counts = [];
 
-        foreach($listStatus as $status) {
+        foreach ($listStatus as $status) {
             $counts[$status] = $this->kitchenOrderRepository->countByConditions(['status' => $status]);
         }
         return $counts;
     }
-
 }
