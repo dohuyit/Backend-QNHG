@@ -164,7 +164,10 @@ Route::prefix('admin')->group(function () {
     Route::post('kitchen-orders/{id}/update-status', [KitchenOrderController::class, 'updateKitchenOrderStatus']);
     Route::post('kitchen-orders/{id}/cancel', [KitchenOrderController::class, 'cancelKitchenOrder']);
     Route::get('kitchen-orders/count-by-status', [KitchenOrderController::class, 'countByStatus']);
-    
+
     // Order Payment
     Route::post('orders/{id}/pay', [OrderPaymentController::class, 'pay']);
+    Route::get('/vnpay-return', [OrderPaymentController::class, 'vnpayReturn']);
+
+    Route::post('/orders/{orderId}/fake-vnpay-callback', [OrderPaymentController::class, 'fakeVnpayCallback']);
 });

@@ -7,7 +7,6 @@ use App\Http\Requests\OrderPaymentRequest\StoreOrderPaymentRequest;
 use App\Repositories\Order\OrderRepositoryInterface;
 use App\Services\OrderPayments\OrderPaymentService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class OrderPaymentController  extends Controller
 {
@@ -18,7 +17,6 @@ class OrderPaymentController  extends Controller
     {
         $this->orderPaymentService = $orderPaymentService;
         $this->orderRepository = $orderRepository;
-
     }
 
     public function pay(StoreOrderPaymentRequest $request, int $id)
@@ -46,22 +44,28 @@ class OrderPaymentController  extends Controller
             $result->getMessage()
         );
     }
-      // FE gọi API này để lấy URL thanh toán
+    
     public function createPaymentUrl(Request $request, int $orderId)
     {
         return $this->orderPaymentService->generateVnpayUrl($orderId, $request);
     }
-
-    // VNPay gọi về URL này khi thanh toán xong
-   public function vnpayReturn(Request $request)
+public function vnpayReturn(Request $request)
 {
-    return $this->orderPaymentService->handleVnpayReturn($request);
+    $result = $this->orderPaymentService->handleVnpayReturn($request);
+
+    if ($result->isSuccessCode()) {
+        return response()->json([
+            'status' => 'success',
+            'message' => $result->getMessage(),
+            'data' => $result->getData(),
+        ], 200);
+    }
+
+    return response()->json([
+        'status' => 'fail',
+        'message' => $result->getMessage() ?: 'Thanh toán thất bại hoặc chữ ký không hợp lệ.',
+    ], 400);
 }
 
 
-    // API giả lập callback để test bằng Postman
-    public function fakeVnpayCallback(Request $request, int $orderId)
-    {
-        return $this->orderPaymentService->fakeVnpayCallback($orderId, $request);
-    }
 }

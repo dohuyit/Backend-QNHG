@@ -11,6 +11,7 @@ interface BillPaymentRepositoryInterface
 
     public function sumPaymentsForBill(int $billId): float;
 
+    public function getByConditions(array $conditions): ?BillPayment;
 
 
 
