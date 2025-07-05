@@ -65,4 +65,9 @@ class KitchenOrderRepository implements KitchenOrderRepositoryInterface
             'kitchen_status' => $newStatus,
         ]) > 0;
     }
+
+    public function create(array $data)
+    {
+        return \App\Models\KitchenOrder::create($data);
+    }
 }

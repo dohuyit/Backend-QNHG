@@ -7,7 +7,7 @@ use App\Common\ListAggregate;
 use App\Models\Table;
 use App\Repositories\Table\TableRepositoryInterface;
 use Carbon\Carbon;
-
+use Illuminate\Support\Facades\Log;
 class TableService
 {
     protected TableRepositoryInterface $tableRepository;
@@ -99,26 +99,25 @@ class TableService
                     'created_at' => $order->created_at->toDateTimeString(),
                     'customer' => $order->customer ? [
                         'id' => (string) $order->customer->id,
-                        'full_name' => $order->customer->full_name,
-                        'phone' => $order->customer->phone,
+                        'full_name' => $order->customer->full_name ?? $order->customer->name,
+                        'phone_number' => $order->customer->phone_number ?? $order->customer->phone,
                         'email' => $order->customer->email,
                     ] : null,
-                    'order_items' => $order->orderItems->map(function ($item) {
+                    'order_items' => $order->items->map(function ($item) {
                         return [
                             'id' => (string) $item->id,
-                            'dish_name' => $item->dish ? $item->dish->name : $item->name,
-                            'name' => $item->name,
+                            'dish_name' => $item->menuItem ? $item->menuItem->name : ($item->combo ? $item->combo->name : $item->name),
                             'quantity' => $item->quantity,
-                            'price' => $item->price,
-                            'total_price' => $item->total_price,
+                            'unit_price' => $item->unit_price,
                             'notes' => $item->notes,
-                            'status' => $item->status,
+                            'kitchen_status' => $item->kitchen_status,
                         ];
                     })->toArray(),
                 ];
             }
         }
 
+     
         $tableData = [
             'id' => (string) $table->id,
             'table_number' => $table->table_number ?? null,

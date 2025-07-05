@@ -73,4 +73,10 @@ class Table extends Model
             self::STATUS_OUT_OF_SERVICE => 'Không phục vụ',
         ];
     }
+
+    public function orders()
+    {
+        // Nhiều-nhiều qua bảng order_tables
+        return $this->belongsToMany(Order::class, 'order_tables', 'table_id', 'order_id');
+    }
 }

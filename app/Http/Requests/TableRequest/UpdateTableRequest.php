@@ -26,10 +26,11 @@ class UpdateTableRequest extends BaseFormRequest
                 'string',
                 'max:50',
                 'min:2',
-                Rule::unique('tables', 'table_number')->where(function ($query) {
-                    return $query->where('deleted_at', null)
-                        ->where('id', '!=', $this->route('id'));
-                })
+                Rule::unique('tables', 'table_number')
+                    ->where(function ($query) {
+                        return $query->where('deleted_at', null);
+                    })
+                    ->ignore($this->route('id')),
             ],
             'description' => [
                 'sometimes',

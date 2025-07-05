@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id()->comment('Mã phiếu bếp');
             $table->foreignId('order_item_id')->unique()->comment('Mã chi tiết món cần làm')->constrained('order_items', 'id')->onDelete('cascade');
             $table->foreignId('order_id')->comment('Mã đơn hàng gốc')->constrained('orders', 'id')->onDelete('cascade');
-            $table->string('table_number', 20)->nullable()->comment('Số bàn');
+            $table->json('table_numbers')->nullable()->comment('Danh sách số bàn (mảng)');
             $table->string('item_name', 255)->comment('Tên món');
             $table->integer('quantity')->comment('Số lượng');
             $table->text('notes')->nullable()->comment('Ghi chú món');

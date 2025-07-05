@@ -24,7 +24,7 @@ class OrderRepository implements OrderRepositoryInterface
 
     public function getListOrders(array $filter = [], int $limit = 10): LengthAwarePaginator
     {
-        $query = Order::query()->with(['items.menuItem', 'tables.tableItem', 'reservation', 'customer', 'user']);
+        $query = Order::query()->with(['items.menuItem', 'tables', 'reservation', 'customer', 'user']);
 
         if (isset($filter['order_type'])) {
             $query->where('order_type', $filter['order_type']);
@@ -71,7 +71,7 @@ class OrderRepository implements OrderRepositoryInterface
 
     public function getTrashOrderList(array $filter = [], int $limit = 10): LengthAwarePaginator
     {
-        $query = Order::onlyTrashed()->with(['items.menuItem', 'table', 'reservation', 'customer', 'user']);
+        $query = Order::onlyTrashed()->with(['items.menuItem', 'tables', 'reservation', 'customer', 'user']);
 
         if (isset($filter['order_type'])) {
             $query->where('order_type', $filter['order_type']);

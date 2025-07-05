@@ -18,7 +18,7 @@ class TableFactory extends Factory
             'table_type' => $this->faker->randomElement(['2_seats', '4_seats', '8_seats']),
             'description' => $this->faker->sentence(),
             'tags' => $this->faker->randomElements(['yên tĩnh', 'view đẹp', 'ghế sofa', 'gần cửa sổ', 'riêng tư'], rand(1, 3)),
-            'status' => $this->faker->optional(0.3)->randomElement(['available', 'occupied', 'cleaning', 'out_of_service']), // 30% có status, 70% null
+            'status' => $this->faker->randomElement(['available', 'occupied', 'cleaning', 'out_of_service']),
         ];
     }
 }
