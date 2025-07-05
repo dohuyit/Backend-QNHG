@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasApiTokens,HasFactory,Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -83,14 +83,35 @@ class User extends Authenticatable
         return $this->hasMany(OrderItemChangeLog::class);
     }
 
-    public function hasPermission($permissionSlug)
+    public function hasPermission($permissionName)
     {
         return $this->roles()
             ->with('permissions')
             ->get()
             ->pluck('permissions')
             ->flatten()
-            ->pluck('slug')
-            ->contains($permissionSlug);
+            ->pluck('permission_name')
+            ->contains($permissionName);
     }
+
+    public function getAllPermissions(): \Illuminate\Support\Collection
+    {
+        return $this->roles()
+            ->with('permissions')
+            ->get()
+            ->pluck('permissions')
+            ->flatten()
+            ->pluck('permission_name')
+            ->unique();
+    }
+    public function hasRole(string $roleName): bool
+    {
+        return $this->roles->pluck('role_name')->contains($roleName);
+    }
+
+    public function getPrimaryRoleName(): ?string
+    {
+        return $this->roles()->first()?->role_name;
+    }
+
 }

@@ -4,6 +4,7 @@ namespace App\Services\Order;
 
 use App\Common\DataAggregate;
 use App\Common\ListAggregate;
+use App\Models\Combo;
 use App\Models\Dish;
 use App\Models\Order;
 use App\Repositories\Order\OrderRepositoryInterface;
@@ -115,30 +116,61 @@ class OrderService
         $totalAmount = 0;
 
         if (!empty($data['items'])) {
-            // Lấy danh sách món
-            $dishIds = collect($data['items'])->pluck('dish_id')->unique()->toArray();
+            // Lấy danh sách dish và combo ID
+            $dishIds = collect($data['items'])->pluck('dish_id')->filter()->unique()->toArray();
+            $comboIds = collect($data['items'])->pluck('combo_id')->filter()->unique()->toArray();
+
+            // Lấy dữ liệu dish và combo
             $menuItems = Dish::whereIn('id', $dishIds)->get()->keyBy('id');
+            $comboItems = Combo::whereIn('id', $comboIds)->get()->keyBy('id');
 
             foreach ($data['items'] as $item) {
-                $menuItem = $menuItems->get($item['dish_id']);
-                if (!$menuItem) {
-                    $result->setMessage("Món ăn ID {$item['dish_id']} không tồn tại");
+                $quantity = max(1, (int)($item['quantity'] ?? 1));
+
+                if (!empty($item['dish_id'])) {
+                    $menuItem = $menuItems->get($item['dish_id']);
+                    if (!$menuItem) {
+                        $result->setMessage("Món ăn ID {$item['dish_id']} không tồn tại");
+                        return $result;
+                    }
+
+                    $lineTotal = $menuItem->selling_price * $quantity;
+                    $totalAmount += $lineTotal;
+
+                    $items[] = [
+                        'dish_id' => $item['dish_id'],
+                        'combo_id' => null,
+                        'quantity' => $quantity,
+                        'unit_price' => $menuItem->selling_price,
+                        'kitchen_status' => $item['kitchen_status'] ?? 'pending',
+                        'notes' => $item['notes'] ?? null,
+                        'is_priority' => $item['is_priority'] ?? false,
+                        'item_name' => $menuItem->name,
+                    ];
+                } elseif (!empty($item['combo_id'])) {
+                    $comboItem = $comboItems->get($item['combo_id']);
+                    if (!$comboItem) {
+                        $result->setMessage("Combo ID {$item['combo_id']} không tồn tại");
+                        return $result;
+                    }
+
+                    $lineTotal = $comboItem->selling_price * $quantity;
+                    $totalAmount += $lineTotal;
+
+                    $items[] = [
+                        'dish_id' => null,
+                        'combo_id' => $item['combo_id'],
+                        'quantity' => $quantity,
+                        'unit_price' => $comboItem->selling_price,
+                        'kitchen_status' => $item['kitchen_status'] ?? 'pending',
+                        'notes' => $item['notes'] ?? null,
+                        'is_priority' => $item['is_priority'] ?? false,
+                        'item_name' => $comboItem->name,
+                    ];
+                } else {
+                    $result->setMessage("Mỗi item phải có dish_id hoặc combo_id");
                     return $result;
                 }
-
-                $quantity = max(1, (int)($item['quantity'] ?? 1));
-                $lineTotal = $menuItem->selling_price * $quantity;
-                $totalAmount += $lineTotal;
-
-                $items[] = [
-                    'dish_id' => $item['dish_id'],
-                    'quantity' => $quantity,
-                    'unit_price' => $menuItem->selling_price,
-                    'kitchen_status' => $item['kitchen_status'] ?? 'pending',
-                    'notes' => $item['notes'] ?? null,
-                    'is_priority' => $item['is_priority'] ?? false,
-                    'item_name' => $menuItem->name, // để tạo KitchenOrder
-                ];
             }
         }
 
@@ -158,7 +190,6 @@ class OrderService
         return $result;
     }
 
-
     public function getOrderDetail(string $id): DataAggregate
     {
         $result = new DataAggregate();
@@ -169,7 +200,7 @@ class OrderService
             return $result;
         }
 
-        $order->load(['tables.tableItem', 'reservation', 'customer', 'user', 'items.menuItem', 'bill']);
+        $order->load(['tables.tableItem', 'reservation', 'customer', 'user', 'items.menuItem', 'items.combo', 'bill']);
         $data = [
             'id' => (string)$order->id,
             'order_code' => $order->order_code,
@@ -214,7 +245,7 @@ class OrderService
                     ] : null,
                     'combo_id' => $item->combo ? [
                         'id' => (string)$item->combo->id,
-                        'name' => $item->combo->name,
+                        'combo_name' => $item->combo->name,
                     ] : null,
                     'unit_price' => $item->unit_price,
                     'quantity' => $item->quantity,
@@ -253,26 +284,33 @@ class OrderService
         $items = [];
         if (!empty($data['items'])) {
             foreach ($data['items'] as $item) {
+
                 $items[] = [
-                    'dish_id' => $item['dish_id'],
-                    'quantity' => max(1, (int)($item['quantity'] ?? 1)),
+                    'id' => isset($item['id']) ? (int)$item['id'] : null,
+                    'dish_id' => isset($item['dish_id']) ? (int)$item['dish_id'] : null,
+                    'combo_id' => isset($item['combo_id']) ? (int)$item['combo_id'] : null,
+                    'quantity' => (int)$item['quantity'],
                     'kitchen_status' => $item['kitchen_status'] ?? 'pending',
+                    'notes' => $item['notes'] ?? null,
+                    'is_priority' => isset($item['is_priority']) ? (bool)$item['is_priority'] : false,
                 ];
             }
         }
 
+
         $tables = $data['tables'] ?? [];
 
-        $ok = $this->orderRepository->updateOrder($order, $orderData, $items, $tables);
+        $updatedOrder = $this->orderRepository->updateOrder($order, $orderData, $items, $tables);
 
-        if (!$ok) {
-            $result->setMessage(message: 'Cập nhật đơn hàng thất bại, vui lòng thử lại!');
+        if (!$updatedOrder) {
+            $result->setMessage('Cập nhật đơn hàng thất bại, vui lòng thử lại!');
             return $result;
         }
 
         $result->setResultSuccess(message: 'Cập nhật đơn hàng thành công!');
         return $result;
     }
+
 
     public function listTrashedOrders(array $params): ListAggregate
     {

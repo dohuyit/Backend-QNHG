@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Repositories\KitchenOrders;
 
 use App\Models\KitchenOrder;
@@ -10,5 +11,5 @@ interface KitchenOrderRepositoryInterface
     public function updateByConditions(array $conditions, array $updateData): bool;
     public function getByConditions(array $conditions): ?KitchenOrder;
     public function countByConditions(array $conditions): int;
-
+    public function updateOrderItemStatus(int $orderItemId, string $newStatus): bool;
 }
