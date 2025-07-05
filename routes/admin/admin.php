@@ -119,6 +119,7 @@ Route::prefix('admin')->group(function () {
     Route::delete('orders/{id}/force/delete', [OrderController::class, 'forceDeleteOrder']);
     Route::post('orders/{id}/restore', [OrderController::class, 'restoreOrder']);
     Route::get('orders/count-by-status', [OrderController::class, 'countByStatus']);
+    Route::get('orders/table/{tableId}', [OrderController::class, 'getOrderByTableId']);
 
 
     // dishes

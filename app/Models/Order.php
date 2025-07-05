@@ -54,15 +54,27 @@ class Order extends Model
         return $this->hasMany(OrderItem::class, 'order_id');
     }
 
-    public function tables(): HasMany
-    {
-        return $this->hasMany(OrderTable::class);
-    }
 
 
     // Quan hệ với bảng bills
     public function bill()
     {
         return $this->hasOne(Bill::class, 'order_id');
+    }
+
+    public function kitchenOrders() {
+        return $this->hasMany(KitchenOrder::class, 'order_id');
+    }
+
+    // Quan hệ với bảng order_tables (pivot)
+    public function orderTables()
+    {
+        return $this->hasMany(OrderTable::class, 'order_id');
+    }
+
+    // Quan hệ với bảng tables (nhiều-nhiều)
+    public function tables()
+    {
+        return $this->belongsToMany(Table::class, 'order_tables', 'order_id', 'table_id');
     }
 }

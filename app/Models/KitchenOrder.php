@@ -13,7 +13,7 @@ class KitchenOrder extends Model
     protected $fillable = [
         'order_item_id',        // UNIQUE
         'order_id',
-        'table_number',
+        'table_numbers',
         'item_name',
         'quantity',
         'notes',
@@ -21,5 +21,9 @@ class KitchenOrder extends Model
         'is_priority',
         'received_at',          // Thường tự động set
         'completed_at',
+    ];
+
+    protected $casts = [
+        'table_numbers' => 'array',
     ];
 }

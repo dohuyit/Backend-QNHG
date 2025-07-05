@@ -16,6 +16,7 @@ class RoleSeeder extends Seeder
         $roles = [
             ['role_name' => 'Admin', 'description' => 'Toàn quyền hệ thống'],
             ['role_name' => 'Nhân viên', 'description' => 'Quản lý cơ bản'],
+            ['role_name' => 'Quản lý bếp', 'description' => 'Quản lý đơn bếp, cập nhật trạng thái món ăn'],
         ];
 
         foreach ($roles as $role) {

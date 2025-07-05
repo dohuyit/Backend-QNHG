@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
 use App\Models\UserRole;
 use Illuminate\Database\Seeder;
 
@@ -12,15 +13,13 @@ class UserRoleSeeder extends Seeder
      */
     public function run(): void
     {
-        $userRoles = [
-            ['user_id' => 1, 'role_id' => 1], // Gán role Admin cho user có id = 1
-        ];
+        // Gán role Admin cho user đầu tiên
+        $admin = User::where('email', 'quanglam5401@gmail.com')->first();
 
-        foreach ($userRoles as $ur) {
-            // Tránh tạo trùng bản ghi nếu đã tồn tại
+        if ($admin) {
             UserRole::updateOrCreate(
-                ['user_id' => $ur['user_id'], 'role_id' => $ur['role_id']],
-                $ur
+                ['user_id' => $admin->id, 'role_id' => 1],
+                ['user_id' => $admin->id, 'role_id' => 1]
             );
         }
     }

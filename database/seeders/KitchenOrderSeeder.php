@@ -25,7 +25,7 @@ class KitchenOrderSeeder extends Seeder
             KitchenOrder::create([
                 'order_item_id' => $item->id,
                 'order_id' => $item->order_id,
-                'table_number' => $item->order->tables ? $item->order->tables->pluck('table_number')->join(', ') : null,
+                'table_numbers' => $item->order->tables ? $item->order->tables->pluck('table_number')->toArray() : [],
                 'item_name' => $item->menuItem->name,
                 'quantity' => $item->quantity,
                 'notes' => $item->notes,
