@@ -10,12 +10,14 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        // Tạo user 1
-        User::factory()->create([
-            'username' => 'quanglam',
-            'email' => 'quanglam5401@gmail.com',
-            'password' => Hash::make('123456'),
-            'status' => User::STATUS_ACTIVE,
-        ]);
+        User::firstOrCreate(
+            ['email' => 'admin@gmail.com'],
+            [
+                'username' => 'admin',
+                'full_name' => 'admin123',
+                'password' => Hash::make('123456'),
+                'status' => User::STATUS_ACTIVE,
+            ]
+        );
     }
 }
