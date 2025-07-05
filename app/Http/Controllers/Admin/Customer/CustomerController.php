@@ -151,4 +151,11 @@ class CustomerController extends Controller
 
         return $this->responseSuccess(message: $result->getMessage());
     }
+
+    public function countByStatus()
+    {
+        $result = $this->customerService->countByStatus();
+
+        return $this->responseSuccess($result);
+    }
 }

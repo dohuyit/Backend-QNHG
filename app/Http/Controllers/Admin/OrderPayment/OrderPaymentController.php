@@ -15,8 +15,7 @@ class OrderPaymentController  extends Controller
     protected OrderPaymentService $orderPaymentService;
     protected OrderRepositoryInterface $orderRepository;
     protected VnpayService $vnpayService;
-
-    protected MomoService $momoService; 
+    protected MomoService $momoService;
 
     public function __construct(OrderPaymentService $orderPaymentService, OrderRepositoryInterface $orderRepository, VnpayService $vnpayService, MomoService $momoService)
     {
@@ -76,22 +75,47 @@ class OrderPaymentController  extends Controller
             'message' => $result->getMessage() ?: 'Thanh toán thất bại hoặc chữ ký không hợp lệ.',
         ], 400);
     }
-  public function momoReturn(Request $request)
-{
-    $result = $this->momoService->handleMomoReturn($request->all()); // Fix ở đây
+    public function momoReturn(Request $request)
+    {
+        $result = $this->momoService->handleMomoReturn($request->all());
 
-    if ($result->isSuccessCode()) {
+        if ($result->isSuccessCode()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => $result->getMessage(),
+                'data' => $result->getData(),
+            ], 200);
+        }
+
         return response()->json([
-            'status' => 'success',
-            'message' => $result->getMessage(),
-            'data' => $result->getData(),
-        ], 200);
+            'status' => 'fail',
+            'message' => $result->getMessage() ?: 'Thanh toán Momo thất bại hoặc chữ ký không hợp lệ.',
+        ], 400);
     }
 
-    return response()->json([
-        'status' => 'fail',
-        'message' => $result->getMessage() ?: 'Thanh toán Momo thất bại hoặc chữ ký không hợp lệ.',
-    ], 400);
-}
+    public function getListBills()
+    {
+        $params = request()->only([
+            'page',
+            'limit',
+            'bill_code',
+            'order_id',
+            'status',
+            'user_id',
+            'issued_from',
+            'issued_to'
+        ]);
 
+        $result = $this->orderPaymentService->getListBill($params);
+        $data = $result->getResult();
+
+        return $this->responseSuccess($data);
+    }
+
+    public function countByStatus()
+    {
+        $result = $this->orderPaymentService->countByStatus();
+
+        return $this->responseSuccess($result);
+    }
 }

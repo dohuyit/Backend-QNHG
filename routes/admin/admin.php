@@ -34,7 +34,7 @@ Route::prefix('admin')->group(function () {
     Route::delete('customers/{id}/soft/delete', [CustomerController::class, 'softDeleteCustomer']);
     Route::delete('customers/{id}/force/delete', [CustomerController::class, 'forceDeleteCustomer']);
     Route::post('customers/{id}/restore', [CustomerController::class, 'restoreCustomer']);
-
+    Route::get('customers/count-by-status', [CustomerController::class, 'countByStatus']);
 
     ## categories
     Route::get('categories/list', [CategoryController::class, 'getListCategories']);
@@ -169,15 +169,8 @@ Route::prefix('admin')->group(function () {
     Route::post('orders/{id}/pay', [OrderPaymentController::class, 'pay']);
     Route::get('/vnpay-return', [OrderPaymentController::class, 'vnpayReturn']);
     Route::get('/momo-return', [OrderPaymentController::class, 'momoReturn']);
-//     Route::get('/momo/fake-success', function (Request $request, MomoService $momoService) {
-//     $orderId = $request->query('orderId');
-//     $amount = $request->query('amount');
-//     $fakeTransId = 'FAKE_MOMO_' . uniqid();
-
-//     $momoService->processPayment($orderId, $amount, $fakeTransId);
-
-//     return response()->json(['message' => 'Auto fake thanh toán MoMo thành công.']);
-// })->name('momo.fake.success');
+    Route::get('bills/list', [OrderPaymentController::class, 'getListBills']);
+    Route::get('bills/count-by-status', [OrderPaymentController::class, 'countByStatus']);
 
 
 });

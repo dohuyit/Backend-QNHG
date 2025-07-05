@@ -93,4 +93,17 @@ class CustomerRepository implements CustomerRepositoryInterface
 
         return $query->orderBy('deleted_at', 'desc')->paginate($limit);
     }
+
+    public function countByConditions(array $conditions = []): int
+    {
+        $query = Customer::query();
+
+        if (!empty($conditions)) {
+            foreach ($conditions as $key => $value) {
+                $query->where($key, $value);
+            }
+        }
+
+        return $query->count();
+    }
 }

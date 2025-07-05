@@ -3,6 +3,7 @@
 namespace App\Services\OrderPayments;
 
 use App\Common\DataAggregate;
+use App\Common\ListAggregate;
 use App\Repositories\BillPayments\BillPaymentRepositoryInterface;
 use App\Repositories\Bills\BillRepositoryInterface;
 use App\Repositories\Order\OrderRepositoryInterface;
@@ -238,5 +239,56 @@ class OrderPaymentService
             ]
         );
         return $result;
+    }
+    public function getListBill(array $params): ListAggregate
+    {
+        $filter = $params;
+
+        $limit = !empty($params['limit']) && $params['limit'] > 0
+            ? (int)$params['limit']
+            : 10;
+
+        $pagination = $this->billRepository->getBillList(filter: $filter, limit: $limit);
+
+        $data = [];
+        foreach ($pagination->items() as $item) {
+            $data[] = [
+                'id'             => (string) $item->id,
+                'bill_code'      => $item->bill_code,
+                'order_id'       => $item->order_id,
+                'order_code'     => optional($item->order)->order_code, 
+                'customer_name'  => optional($item->order->customer)->full_name,
+                'sub_total'      => $item->sub_total,
+                'discount_amount' => $item->discount_amount,
+                'delivery_fee'   => $item->delivery_fee,
+                'final_amount'   => $item->final_amount,
+                'status'         => $item->status,
+                'issued_at'      => $item->issued_at,
+                'user_id'        => $item->user_id,
+                'user_name'      => optional($item->user)->name,
+                'created_at'     => $item->created_at,
+                'updated_at'     => $item->updated_at,
+            ];
+        }
+
+        $result = new ListAggregate($data);
+        $result->setMeta(
+            page: $pagination->currentPage(),
+            perPage: $pagination->perPage(),
+            total: $pagination->total()
+        );
+
+        return $result;
+    }
+
+    public function countByStatus(): array
+    {
+        $listStatus = ['unpaid', 'paid', 'cancelled'];
+        $counts = [];
+
+        foreach ($listStatus as $status) {
+            $counts[$status] = $this->billRepository->countByConditions(['status' => $status]);
+        }
+        return $counts;
     }
 }
