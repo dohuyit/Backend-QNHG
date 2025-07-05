@@ -20,7 +20,6 @@ class Order extends Model
         'customer_id',          // Khách hàng (nếu có)
         'order_time',           // Thường tự động set
         'status',               // 'pending_confirmation', 'confirmed', 'preparing', ...
-        'payment_status',       // 'unpaid', 'partially_paid', 'paid', 'refunded'
         'notes',                // Ghi chú chung cho đơn hàng
         'delivery_address',     // Địa chỉ giao hàng (cho 'delivery')
         'contact_name',         // Tên liên hệ (khách vãng lai hoặc giao hàng)
