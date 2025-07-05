@@ -14,13 +14,11 @@ return new class extends Migration
         Schema::create('tables', function (Blueprint $table) {
             $table->id()->comment('Mã bàn ăn duy nhất');
             $table->foreignId('table_area_id')->comment('Mã khu vực chứa bàn')->constrained('table_areas', 'id');
-            $table->string('table_number', 20)->comment('Số hiệu hoặc tên của bàn');
-            $table->integer('capacity')->comment('Số lượng chỗ ngồi');
-            $table->integer('min_guests')->default(1)->comment('Số khách tối thiểu');
-            $table->integer('max_guests')->nullable()->comment('Số khách tối đa');
+            $table->string('table_number', 50)->comment('Số hiệu hoặc tên của bàn');
+            $table->enum('table_type', ['2_seats', '4_seats', '8_seats'])->comment('Loại bàn (2 ghế, 4 ghế, 8 ghế)');
             $table->string('description', 255)->nullable()->comment('Mô tả vị trí cụ thể của bàn');
             $table->json('tags')->nullable()->comment('Các tag cho bàn (VD: ["gần cửa sổ", "yên tĩnh", "phòng VIP"])');
-            $table->enum('status', ['available', 'occupied', 'reserved', 'cleaning', 'out_of_service'])->default('available')->comment('Trạng thái');
+            $table->enum('status', ['available', 'occupied', 'cleaning', 'out_of_service'])->nullable()->comment('Trạng thái');
             $table->timestamps();
             $table->softDeletes()->comment('Thêm trường xóa mềm');
             $table->comment('Thông tin các bàn ăn trong nhà hàng');

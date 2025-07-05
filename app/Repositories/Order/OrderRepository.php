@@ -336,4 +336,12 @@ class OrderRepository implements OrderRepositoryInterface
     {
         return Order::where($conditions)->update($data);
     }
+
+    public function getOrderByTableId($tableId): ?Order
+    {
+        return Order::where('table_id', $tableId)
+            ->whereIn('status', ['pending', 'processing', 'confirmed'])
+            ->orderByDesc('created_at')
+            ->first();
+    }
 }

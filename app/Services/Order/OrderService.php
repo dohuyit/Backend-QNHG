@@ -234,10 +234,14 @@ class OrderService
         return $result;
     }
 
-    public function updateOrder(array $data, Order $order): DataAggregate
+    public function updateOrder(array $data, $id): DataAggregate
     {
         $result = new DataAggregate();
-
+        $order = $this->orderRepository->getByConditions(['id' => $id]);
+        if (!$order) {
+            $result->setMessage(message: 'Đơn hàng không tồn tại');
+            return $result;
+        }
         $orderData = [
             'order_type' => $data['order_type'] ?? $order->order_type,
             'reservation_id' => $data['reservation_id'] ?? $order->reservation_id,
@@ -249,7 +253,6 @@ class OrderService
             'contact_email' => $data['contact_email'] ?? $order->contact_email,
             'contact_phone' => $data['contact_phone'] ?? $order->contact_phone,
         ];
-
         $items = [];
         if (!empty($data['items'])) {
             foreach ($data['items'] as $item) {
@@ -260,16 +263,12 @@ class OrderService
                 ];
             }
         }
-
         $tables = $data['tables'] ?? [];
-
         $ok = $this->orderRepository->updateOrder($order, $orderData, $items, $tables);
-
         if (!$ok) {
             $result->setMessage(message: 'Cập nhật đơn hàng thất bại, vui lòng thử lại!');
             return $result;
         }
-
         $result->setResultSuccess(message: 'Cập nhật đơn hàng thành công!');
         return $result;
     }
@@ -337,7 +336,6 @@ class OrderService
             $result->setMessage(message: 'Đơn hàng không tồn tại');
             return $result;
         }
-
         $ok = $this->orderRepository->softDeleteOrder($id);
         if (!$ok) {
             $result->setMessage(message: 'Xóa đơn hàng thất bại, vui lòng thử lại!');
@@ -410,5 +408,17 @@ class OrderService
             $counts[$status] = $this->orderRepository->countByConditions(['status' => $status]);
         }
         return $counts;
+    }
+
+    public function getOrderByTableId($tableId): DataAggregate
+    {
+        $result = new DataAggregate();
+        $order = $this->orderRepository->getOrderByTableId($tableId);
+        if (!$order) {
+            $result->setResultError(message: 'Không tìm thấy đơn hàng cho bàn này');
+            return $result;
+        }
+        $result->setResultSuccess(data: ['order' => $order]);
+        return $result;
     }
 }

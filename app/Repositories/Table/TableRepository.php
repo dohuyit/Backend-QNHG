@@ -35,17 +35,25 @@ class TableRepository implements TableRepositoryInterface
 
     private function filterTableList(Builder $query, array $filter = []): Builder
     {
-
         if ($val = $filter['status'] ?? null) {
             $query->where('status', $val);
         }
 
-        if ($val = $filter['capacity'] ?? null) {
-            $query->where('capacity', $val);
+        if ($val = $filter['table_type'] ?? null) {
+            $query->where('table_type', $val);
         }
 
-        if ($val = $filter['table_area_id'] ?? null) {
-            $query->where('table_area_id', $val);
+        if (!empty($filter['table_area_id'])) {
+            $ids = is_array($filter['table_area_id']) ? $filter['table_area_id'] : explode(',', $filter['table_area_id']);
+            $query->whereIn('table_area_id', $ids);
+        }
+
+        if ($val = $filter['table_number'] ?? null) {
+            $query->where('table_number', 'like', '%' . $val . '%');
+        }
+
+        if ($val = $filter['description'] ?? null) {
+            $query->where('description', 'like', '%' . $val . '%');
         }
 
         return $query;
@@ -68,8 +76,8 @@ class TableRepository implements TableRepositoryInterface
             return false;
         }
         return $table->delete();
-    
     }
+
     public function countByConditions(array $conditions = []): int
     {
         $query = Table::query();
