@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\OrderPayment\OrderPaymentController;
 use App\Http\Controllers\Admin\Role\RoleController;
 use App\Http\Controllers\Admin\TableArea\TableAreaController;
 use App\Http\Controllers\Admin\Table\TableController;
@@ -164,14 +165,7 @@ Route::prefix('admin')->group(function () {
     Route::post('kitchen-orders/{id}/update-status', [KitchenOrderController::class, 'updateKitchenOrderStatus']);
     Route::post('kitchen-orders/{id}/cancel', [KitchenOrderController::class, 'cancelKitchenOrder']);
     Route::get('kitchen-orders/count-by-status', [KitchenOrderController::class, 'countByStatus']);
-
-    // Bill
-    Route::post('bills/create', [BillController::class, 'createBill']);
-    Route::get('bills/{id}/detail', [BillController::class, 'getBillDetail']);
-    Route::post('bills/{id}/update', [BillController::class, 'updateBill']);
-
-    // Bill Payment
-    Route::post('bill-payments/create', [BillPaymentController::class, 'createBillPayment']);
-    Route::get('bill-payments/{billId}', [BillPaymentController::class, 'getPaymentsByBill']);
-    Route::post('bill-payments/{id}/update', [BillPaymentController::class, 'updateBillPayment']);
+    
+    // Order Payment
+    Route::post('orders/{id}/pay', [OrderPaymentController::class, 'pay']);
 });

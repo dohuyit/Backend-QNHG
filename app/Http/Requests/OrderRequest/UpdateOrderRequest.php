@@ -15,15 +15,15 @@ class UpdateOrderRequest extends BaseFormRequest
     {
         $comboId = $this->route('id');
 
-        $rules = [
+        return [
             'order_type' => 'in:dine-in,takeaway,delivery',
             'reservation_id' => 'nullable|exists:reservations,id',
             'customer_id' => 'nullable|exists:customers,id',
             'status' => 'nullable|in:pending,confirmed,preparing,ready,served,delivering,completed,cancelled',
             'items' => 'required|array|min:1',
-            'items.*.dish_id' => 'required_without:items.*.combo_id|exists:dishes,id',
-            'items.*.combo_id' => 'exists:combos,id',
-            'items.*.quantity' => 'integer|min:1',
+            'items.*.dish_id' => 'nullable|exists:dishes,id', // dish_id không required, sẽ tự check ở withValidator
+            'items.*.combo_id' => 'nullable|exists:combos,id', // combo_id cũng nullable, sẽ tự check
+            'items.*.quantity' => 'integer',
             'items.*.unit_price' => 'numeric|min:0',
             'items.*.notes' => 'nullable|string|max:255',
             'items.*.is_priority' => 'boolean',
@@ -33,12 +33,6 @@ class UpdateOrderRequest extends BaseFormRequest
             'delivery_address' => 'nullable|string|max:255',
             'notes' => 'nullable|string|max:500',
         ];
-
-        if ($this->has('name')) {
-            $rules['name'] = 'required|string|max:255|unique:combos,name,' . $comboId;
-        }
-
-        return $rules;
     }
 
     public function withValidator($validator)
@@ -48,8 +42,22 @@ class UpdateOrderRequest extends BaseFormRequest
             $tables = $this->input('tables', []);
             $status = $this->input('status', null);
 
+            // Kiểm tra từng item: phải có dish hoặc combo
+            foreach ($items as $index => $item) {
+                if (empty($item['dish_id']) && empty($item['combo_id'])) {
+                    $validator->errors()->add(
+                        "items.$index",
+                        'Phải chọn món ăn hoặc combo'
+                    );
+                }
+            }
+
+            // Kiểm tra trạng thái với điều kiện chọn món & bàn
             if (!empty($items) && !empty($tables) && ($status === 'pending' || $status === null)) {
-                $validator->errors()->add('status', 'Vui lòng cập nhật trạng thái đơn hàng sang đã xác nhận khi đã chọn món và bàn.');
+                $validator->errors()->add(
+                    'status',
+                    'Vui lòng cập nhật trạng thái đơn hàng sang đã xác nhận khi đã chọn món và bàn.'
+                );
             }
         });
     }
@@ -67,7 +75,6 @@ class UpdateOrderRequest extends BaseFormRequest
             'items.*.dish_id.exists' => 'Món ăn không tồn tại',
             'items.*.combo_id.exists' => 'Combo không tồn tại',
             'items.*.quantity.integer' => 'Số lượng phải là số nguyên',
-            'items.*.quantity.min' => 'Số lượng phải lớn hơn 0',
             'items.*.unit_price.numeric' => 'Đơn giá phải là số',
             'items.*.unit_price.min' => 'Đơn giá phải lớn hơn hoặc bằng 0',
             'items.*.notes.max' => 'Ghi chú món không được vượt quá 255 ký tự',
