@@ -6,17 +6,24 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\OrderPaymentRequest\StoreOrderPaymentRequest;
 use App\Repositories\Order\OrderRepositoryInterface;
 use App\Services\OrderPayments\OrderPaymentService;
+use App\Services\PaymentGateways\MomoService;
+use App\Services\PaymentGateways\VnpayService;
 use Illuminate\Http\Request;
 
 class OrderPaymentController  extends Controller
 {
     protected OrderPaymentService $orderPaymentService;
     protected OrderRepositoryInterface $orderRepository;
+    protected VnpayService $vnpayService;
 
-    public function __construct(OrderPaymentService $orderPaymentService, OrderRepositoryInterface $orderRepository)
+    protected MomoService $momoService; 
+
+    public function __construct(OrderPaymentService $orderPaymentService, OrderRepositoryInterface $orderRepository, VnpayService $vnpayService, MomoService $momoService)
     {
         $this->orderPaymentService = $orderPaymentService;
         $this->orderRepository = $orderRepository;
+        $this->vnpayService = $vnpayService;
+        $this->momoService = $momoService;
     }
 
     public function pay(StoreOrderPaymentRequest $request, int $id)
@@ -44,14 +51,34 @@ class OrderPaymentController  extends Controller
             $result->getMessage()
         );
     }
-    
+
     public function createPaymentUrl(Request $request, int $orderId)
     {
-        return $this->orderPaymentService->generateVnpayUrl($orderId, $request);
+        $amountPaid = (float)$request->input('amount_paid', 0);
+
+        return $this->vnpayService->generateVnpayUrl($orderId, $amountPaid);
     }
-public function vnpayReturn(Request $request)
+
+    public function vnpayReturn(Request $request)
+    {
+        $result = $this->vnpayService->handleVnpayReturn($request);
+
+        if ($result->isSuccessCode()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => $result->getMessage(),
+                'data' => $result->getData(),
+            ], 200);
+        }
+
+        return response()->json([
+            'status' => 'fail',
+            'message' => $result->getMessage() ?: 'Thanh toán thất bại hoặc chữ ký không hợp lệ.',
+        ], 400);
+    }
+  public function momoReturn(Request $request)
 {
-    $result = $this->orderPaymentService->handleVnpayReturn($request);
+    $result = $this->momoService->handleMomoReturn($request->all()); // Fix ở đây
 
     if ($result->isSuccessCode()) {
         return response()->json([
@@ -63,9 +90,8 @@ public function vnpayReturn(Request $request)
 
     return response()->json([
         'status' => 'fail',
-        'message' => $result->getMessage() ?: 'Thanh toán thất bại hoặc chữ ký không hợp lệ.',
+        'message' => $result->getMessage() ?: 'Thanh toán Momo thất bại hoặc chữ ký không hợp lệ.',
     ], 400);
 }
-
 
 }

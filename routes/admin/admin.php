@@ -168,6 +168,16 @@ Route::prefix('admin')->group(function () {
     // Order Payment
     Route::post('orders/{id}/pay', [OrderPaymentController::class, 'pay']);
     Route::get('/vnpay-return', [OrderPaymentController::class, 'vnpayReturn']);
+    Route::get('/momo-return', [OrderPaymentController::class, 'momoReturn']);
+//     Route::get('/momo/fake-success', function (Request $request, MomoService $momoService) {
+//     $orderId = $request->query('orderId');
+//     $amount = $request->query('amount');
+//     $fakeTransId = 'FAKE_MOMO_' . uniqid();
 
-    Route::post('/orders/{orderId}/fake-vnpay-callback', [OrderPaymentController::class, 'fakeVnpayCallback']);
+//     $momoService->processPayment($orderId, $amount, $fakeTransId);
+
+//     return response()->json(['message' => 'Auto fake thanh toán MoMo thành công.']);
+// })->name('momo.fake.success');
+
+
 });
