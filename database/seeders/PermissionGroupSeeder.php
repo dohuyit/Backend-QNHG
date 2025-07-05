@@ -22,6 +22,7 @@ class PermissionGroupSeeder extends Seeder
             ['group_name' => 'Đặt bàn', 'description' => 'Quản lý đặt bàn'],
             ['group_name' => 'Bàn', 'description' => 'Quản lý bàn ăn'],
             ['group_name' => 'Khu vực bàn', 'description' => 'Quản lý khu vực bàn'],
+            ['group_name' => 'Bếp', 'description' => 'Quản lý đơn bếp và cập nhật trạng thái món ăn'], // ✅ thêm dòng này
             ['group_name' => 'Vai trò & Quyền', 'description' => 'Phân quyền và vai trò hệ thống'],
         ];
 
@@ -32,4 +33,5 @@ class PermissionGroupSeeder extends Seeder
             );
         }
     }
+
 }
