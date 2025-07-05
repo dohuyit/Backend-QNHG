@@ -20,7 +20,7 @@ class KitchenOrderService
     public function getListKitchenOrder(array $params): ListAggregate
     {
         $filter = $params;
-        $limit = !empty($params['limit']) && $params['limit'] > 0 ? (int)$params['limit'] : 10;
+        $limit = !empty($params['limit']) && $params['limit'] > 0 ? (int)$params['limit'] : 1000;
         $pagination = $this->kitchenOrderRepository->getKitchenOrderList(filter: $filter, limit: $limit);
 
         $data = [];
@@ -29,7 +29,7 @@ class KitchenOrderService
                 'id' => (string) $item->id,
                 'order_item_id' => $item->order_item_id,
                 'order_id' => $item->order_id,
-                'table_number' => $item->table_number,
+                'table_numbers' => $item->table_numbers,
                 'item_name' => $item->item_name,
                 'quantity' => $item->quantity,
                 'notes' => $item->notes,
@@ -162,5 +162,16 @@ class KitchenOrderService
             $counts[$status] = $this->kitchenOrderRepository->countByConditions(['status' => $status]);
         }
         return $counts;
+    }
+    public function createKitchenOrder(array $data): DataAggregate
+    {
+        $result = new DataAggregate();
+        $kitchenOrder = $this->kitchenOrderRepository->create($data);
+        if (!$kitchenOrder) {
+            $result->setMessage('Tạo đơn bếp thất bại');
+            return $result;
+        }
+        $result->setResultSuccess(data: $kitchenOrder, message: 'Tạo đơn bếp thành công');
+        return $result;
     }
 }

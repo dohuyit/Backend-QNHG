@@ -84,11 +84,6 @@ class OrderController extends Controller
 
     public function updateOrder(UpdateOrderRequest $request, string $id)
     {
-        $order = $this->orderRepository->getByConditions(['id' => $id]);
-        if (!$order) {
-            return $this->responseFail(message: 'Đơn hàng không tồn tại', statusCode: 404);
-        }
-
         $data = $request->only([
             'order_type',
             'reservation_id',
@@ -102,8 +97,7 @@ class OrderController extends Controller
             'tables',
             'status',
         ]);
-
-        $result = $this->orderService->updateOrder($data, $order);
+        $result = $this->orderService->updateOrder($data, $id);
         if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage());
         }
@@ -133,14 +127,9 @@ class OrderController extends Controller
 
     public function softDeleteOrder(string $id)
     {
-        $order = $this->orderRepository->getByConditions(['id' => $id]);
-        if (!$order) {
-            return $this->responseFail(message: 'Đơn hàng không tồn tại', statusCode: 404);
-        }
-
         $result = $this->orderService->softDeleteOrder($id);
         if (!$result->isSuccessCode()) {
-            return $this->responseFail(message: $result->getMessage());
+            return $this->responseFail(message: $result->getMessage(), statusCode: 404);
         }
         return $this->responseSuccess(message: $result->getMessage());
     }
@@ -181,5 +170,14 @@ class OrderController extends Controller
     {
         $result = $this->orderService->countByStatus();
         return $this->responseSuccess($result);
+    }
+
+    public function getOrderByTableId($tableId)
+    {
+        $result = $this->orderService->getOrderByTableId($tableId);
+        if (!$result->isSuccessCode()) {
+            return $this->responseFail(message: $result->getMessage(), statusCode: 404);
+        }
+        return $this->responseSuccess($result->getData());
     }
 }

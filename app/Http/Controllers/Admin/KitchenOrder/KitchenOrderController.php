@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin\KitchenOrder;
 use App\Http\Controllers\Controller;
 use App\Repositories\KitchenOrders\KitchenOrderRepositoryInterface;
 use App\Services\KitchenOrders\KitchenOrderService;
+use App\Http\Requests\KitchenOrderRequest\StoreKitchenOrderRequest;
 
 class KitchenOrderController extends Controller
 {
@@ -63,5 +64,14 @@ class KitchenOrderController extends Controller
         $result = $this->kitchenOrderService->countByStatus();
 
         return $this->responseSuccess($result);
+    }
+    public function store(StoreKitchenOrderRequest $request)
+    {
+        $data = $request->validated();
+        $result = $this->kitchenOrderService->createKitchenOrder($data);
+        if (!$result->isSuccessCode()) {
+            return $this->responseFail(message: $result->getMessage(), statusCode: 400);
+        }
+        return $this->responseSuccess(message: $result->getMessage(), data: $result->getData());
     }
 }

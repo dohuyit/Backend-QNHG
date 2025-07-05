@@ -3,7 +3,8 @@
 namespace App\Http\Controllers\Admin\Table;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\TableRequest\TableRequest;
+use App\Http\Requests\TableRequest\StoreTableRequest;
+use App\Http\Requests\TableRequest\UpdateTableRequest;
 use App\Models\Table;
 use App\Repositories\Table\TableRepositoryInterface;
 use App\Services\Table\TableService;
@@ -30,9 +31,7 @@ class TableController extends Controller
             'query',
             'table_number',
             'description',
-            'capacity',
-            'min_guests',
-            'max_guests',
+            'table_type',
             'status',
             'table_area_id'
         );
@@ -51,16 +50,13 @@ class TableController extends Controller
         return $this->responseSuccess($data);
     }
 
-    public function createTable(TableRequest $request)
+    public function createTable(StoreTableRequest $request)
     {
         $data = $request->only([
             'table_number',
             'description',
-            'capacity',
-            'min_guests',
-            'max_guests',
+            'table_type',
             'tags',
-            'status',
             'table_area_id'
         ]);
 
@@ -71,14 +67,12 @@ class TableController extends Controller
         return $this->responseSuccess($result->getData(), message: $result->getMessage());
     }
 
-    public function updateTable(TableRequest $request, $id)
+    public function updateTable(UpdateTableRequest $request, $id)
     {
         $data = $request->only([
             'table_number',
             'description',
-            'capacity',
-            'min_guests',
-            'max_guests',
+            'table_type',
             'tags',
             'status',
             'table_area_id'
@@ -104,10 +98,29 @@ class TableController extends Controller
         }
         return $this->responseSuccess(message: 'Xóa bàn thành công');
     }
+
     public function countByStatus()
     {
         $result = $this->tableService->countByStatus();
 
         return $this->responseSuccess($result);
+    }
+
+    /**
+     * Lấy danh sách các loại bàn
+     */
+    public function getTableTypes()
+    {
+        $tableTypes = Table::getTableTypes();
+        return $this->responseSuccess($tableTypes);
+    }
+
+    /**
+     * Lấy danh sách các trạng thái
+     */
+    public function getStatuses()
+    {
+        $statuses = Table::getStatuses();
+        return $this->responseSuccess($statuses);
     }
 }
