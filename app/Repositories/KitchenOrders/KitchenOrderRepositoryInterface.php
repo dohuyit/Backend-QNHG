@@ -12,4 +12,5 @@ interface KitchenOrderRepositoryInterface
     public function getByConditions(array $conditions): ?KitchenOrder;
     public function countByConditions(array $conditions): int;
     public function updateOrderItemStatus(int $orderItemId, string $newStatus): bool;
+    public function create(array $data);
 }
