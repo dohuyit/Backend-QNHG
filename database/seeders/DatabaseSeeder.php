@@ -19,6 +19,9 @@ class DatabaseSeeder extends Seeder
             TableAreaSeeder::class,
             TableSeeder::class,
 
+
+//            UserSeeder::class,
+            // Seed dish trước combo
             DishSeeder::class,
 
             ComboSeeder::class,
@@ -37,7 +40,6 @@ class DatabaseSeeder extends Seeder
             KitchenOrderSeeder::class,
             // Reservation cần user, table, customer (phổ biến)
             ReservationSeeder::class,
-            UserSeeder::class,
             PermissionGroupSeeder::class,
             PermissionSeeder::class,
 
@@ -46,7 +48,7 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
 
             // user_roles phải sau khi có user và role
-            UserRoleSeeder::class,
+//            UserRoleSeeder::class,
 
             BillSeeder::class,
             BillPaymentSeeder::class,
