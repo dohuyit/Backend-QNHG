@@ -312,60 +312,6 @@ class OrderService
             return $result;
         }
 
-        // Lấy lại danh sách order_items từ DB sau khi cập nhật
-        $order->refresh();
-        $orderItems = $order->items;
-        $currentOrderItemIds = $orderItems->pluck('id')->toArray();
-
-        // Lấy danh sách KitchenOrder hiện tại của đơn hàng (Eloquent)
-        $kitchenOrders = $order->kitchenOrders ?? collect();
-        $kitchenOrderService = app(\App\Services\KitchenOrders\KitchenOrderService::class);
-
-        // 1. Xóa KitchenOrder nếu order_item_id không còn trong đơn hàng (và trạng thái là pending)
-        $kitchenOrders->where('status', 'pending')
-            ->filter(fn($ko) => !in_array($ko->order_item_id, $currentOrderItemIds))
-            ->each->delete();
-
-        // 2. Tạo KitchenOrder mới cho các món mới thêm vào (chưa có KitchenOrder)
-        foreach ($orderItems as $orderItem) {
-            $kitchenOrder = $kitchenOrders->firstWhere('order_item_id', $orderItem->id);
-            if (!$kitchenOrder) {
-                $itemName = $orderItem->menuItem->name ?? ($orderItem->combo->name ?? null);
-
-                // Lấy danh sách số bàn từ đơn hàng (mảng)
-                $tableNumbers = [];
-                if ($order->tables && $order->tables->count() > 0) {
-                    $tableNumbers = $order->tables->pluck('table_number')->toArray();
-                }
-
-                $kitchenOrderService->createKitchenOrder([
-                    'order_item_id' => $orderItem->id,
-                    'order_id' => $order->id,
-                    'table_numbers' => $tableNumbers, // Lưu mảng số bàn
-                    'item_name' => $itemName,
-                    'quantity' => $orderItem->quantity,
-                    'notes' => $orderItem->notes ?? null,
-                    'status' => 'pending',
-                    'is_priority' => $orderItem->is_priority ?? false,
-                ]);
-            } elseif ($kitchenOrder->status === 'pending') {
-                // Nếu KitchenOrder đang pending, cập nhật lại số lượng, ghi chú nếu có thay đổi
-                $kitchenOrder->update([
-                    'quantity' => $orderItem->quantity,
-                    'notes' => $orderItem->notes,
-                    'is_priority' => $orderItem->is_priority ?? false,
-                ]);
-            }
-        }
-
-        // 3. Đổi trạng thái các bàn sang occupied
-        $order->tables->each(function($table) {
-            if ($table->status === 'available') {
-                $table->status = 'occupied';
-                $table->save();
-            }
-        });
-
         $result->setResultSuccess(message: 'Cập nhật đơn hàng thành công!');
         return $result;
     }

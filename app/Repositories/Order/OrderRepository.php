@@ -151,11 +151,19 @@ class OrderRepository implements OrderRepositoryInterface
             }
 
             // Tạo OrderTable nếu có bàn
+            $tableIds = [];
             foreach ($tables as $table) {
+                $tableId = $table['table_id'] ?? $table['id'] ?? $table;
                 OrderTable::create([
                     'order_id' => $order->id,
-                    'table_id' => $table['table_id'],
+                    'table_id' => $tableId,
                 ]);
+                $tableIds[] = $tableId;
+            }
+
+            // ✅ Đánh dấu trạng thái bàn sang occupied
+            if (!empty($tableIds)) {
+                Table::whereIn('id', $tableIds)->update(['status' => 'occupied']);
             }
 
             DB::commit();
@@ -260,11 +268,49 @@ class OrderRepository implements OrderRepositoryInterface
             // Update order details
             $order->update($orderData);
 
-            // Xử lý tables (unchanged)
-            OrderTable::where('order_id', $order->id)->delete();
             if (($orderData['order_type'] ?? $order->order_type) === 'dine-in' && !empty($tables)) {
+                // 1. Phân tách bàn cũ, bàn mới có status=available, bàn mới còn lại
+                $oldTableIds = [];
+                $newAvailableTables = [];
+                $newOccupiedTables = [];
+
                 foreach ($tables as $table) {
-                    $tableId = is_array($table) ? ($table['table_id'] ?? $table['id'] ?? $table) : $table;
+                    if (isset($table['old_id_table'])) {
+                        $oldTableIds[] = (int)$table['old_id_table'];
+                    }
+                    if (isset($table['new_id_table'])) {
+                        $tableId = (int)$table['new_id_table'];
+                        if (isset($table['status']) && $table['status'] === 'available') {
+                            $newAvailableTables[] = $tableId; // bàn mới đang available → occupied
+                        } else {
+                            $newOccupiedTables[] = $tableId;  // bàn mới bình thường
+                        }
+                    }
+                }
+
+                // 2. Cập nhật trạng thái bàn cũ về available
+                if (!empty($oldTableIds)) {
+                    Table::whereIn('id', $oldTableIds)->update(['status' => 'available']);
+                }
+
+                // 3. Cập nhật trạng thái bàn mới (status=available) sang occupied
+                if (!empty($newAvailableTables)) {
+                    Table::whereIn('id', $newAvailableTables)->update(['status' => 'occupied']);
+                }
+
+                // 4. Cập nhật trạng thái bàn mới khác sang occupied (nếu cần)
+                if (!empty($newOccupiedTables)) {
+                    Table::whereIn('id', $newOccupiedTables)->update(['status' => 'occupied']);
+                }
+
+                // Gom tất cả bàn mới lại để tạo OrderTable mới
+                $allNewTables = array_unique(array_merge($newAvailableTables, $newOccupiedTables));
+
+                // 5. Xóa OrderTable cũ
+                OrderTable::where('order_id', $order->id)->delete();
+
+                // 6. Tạo OrderTable mới cho các bàn đã chọn
+                foreach ($allNewTables as $tableId) {
                     $tableModel = Table::find($tableId);
                     if (!$tableModel) {
                         throw new \Exception("Bàn ID {$tableId} không tồn tại");
@@ -273,6 +319,14 @@ class OrderRepository implements OrderRepositoryInterface
                         'order_id' => $order->id,
                         'table_id' => $tableModel->id,
                     ]);
+                }
+            }
+
+            // 6. Nếu đơn hàng chuyển sang trạng thái hoàn thành, đưa bàn về cleaning
+            if (($orderData['status'] ?? $order->status) === 'completed') {
+                $currentTableIds = OrderTable::where('order_id', $order->id)->pluck('table_id')->toArray();
+                if (!empty($currentTableIds)) {
+                    Table::whereIn('id', $currentTableIds)->update(['status' => 'cleaning']);
                 }
             }
 

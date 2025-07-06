@@ -12,8 +12,8 @@ class UserSeeder extends Seeder
     {
         // Tạo user 1
         User::factory()->create([
-            'username' => 'quanglam',
-            'email' => 'quanglam5401@gmail.com',
+            'username' => 'Đỗ Quốc Huy',
+            'email' => 'huydonganh2005@gmail.com',
             'password' => Hash::make('123456'),
             'status' => User::STATUS_ACTIVE,
         ]);

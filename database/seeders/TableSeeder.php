@@ -16,14 +16,7 @@ class TableSeeder extends Seeder
         // Lấy danh sách table areas
         $tableAreas = TableArea::all();
 
-        if ($tableAreas->isEmpty()) {
-            // Nếu chưa có table areas, tạo một số khu vực mẫu
-            $tableAreas = TableArea::factory(3)->create();
-        }
-
-        // Tạo dữ liệu mẫu cho tables
         $tableData = [
-            // Khu vực 1 - Bàn 2 ghế
             [
                 'table_number' => 'A1',
                 'table_type' => '2_seats',
@@ -91,8 +84,5 @@ class TableSeeder extends Seeder
         foreach ($tableData as $data) {
             Table::create($data);
         }
-
-        // Tạo thêm một số bàn ngẫu nhiên
-        Table::factory(10)->create();
     }
 }

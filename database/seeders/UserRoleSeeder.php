@@ -14,7 +14,7 @@ class UserRoleSeeder extends Seeder
     public function run(): void
     {
         // Gán role Admin cho user đầu tiên
-        $admin = User::where('email', 'quanglam5401@gmail.com')->first();
+        $admin = User::where('email', 'huydonganh2005@gmail.com')->first();
 
         if ($admin) {
             UserRole::updateOrCreate(

@@ -18,12 +18,9 @@ class DatabaseSeeder extends Seeder
             CustomerSeeder::class,
             TableAreaSeeder::class,
             TableSeeder::class,
-            TableAreaSeeder::class, // nếu có
 
-            // Seed dish trước combo
             DishSeeder::class,
 
-            // Combo cần dish
             ComboSeeder::class,
 
             // combo_items cần cả combo + dish
