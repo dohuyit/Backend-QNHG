@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\OrderPaymentRequest\StoreOrderPaymentRequest;
 use App\Repositories\Order\OrderRepositoryInterface;
 use App\Services\OrderPayments\OrderPaymentService;
-use App\Services\PaymentGateways\MomoService;
-use App\Services\PaymentGateways\VnpayService;
+use App\Services\OrderPayments\MomoService;
+use App\Services\OrderPayments\VnpayService;
 use Illuminate\Http\Request;
 
 class OrderPaymentController  extends Controller
@@ -75,6 +75,7 @@ class OrderPaymentController  extends Controller
             'message' => $result->getMessage() ?: 'Thanh toán thất bại hoặc chữ ký không hợp lệ.',
         ], 400);
     }
+    
     public function momoReturn(Request $request)
     {
         $result = $this->momoService->handleMomoReturn($request->all());

@@ -7,11 +7,8 @@ use App\Common\ListAggregate;
 use App\Repositories\BillPayments\BillPaymentRepositoryInterface;
 use App\Repositories\Bills\BillRepositoryInterface;
 use App\Repositories\Order\OrderRepositoryInterface;
-use App\Services\PaymentGateways\MomoService;
-use App\Services\PaymentGateways\VnpayService;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
+
 
 class OrderPaymentService
 {

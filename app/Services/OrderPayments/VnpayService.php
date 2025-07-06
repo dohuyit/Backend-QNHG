@@ -1,15 +1,14 @@
 <?php
 
-namespace App\Services\PaymentGateways;
+namespace App\Services\OrderPayments;
 
 use App\Common\DataAggregate;
 use App\Repositories\Order\OrderRepositoryInterface;
 use App\Repositories\Bills\BillRepositoryInterface;
 use App\Repositories\BillPayments\BillPaymentRepositoryInterface;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 
-class MomoService
+class VnpayService
 {
     protected OrderRepositoryInterface $orderRepository;
     protected BillRepositoryInterface $billRepository;
@@ -25,11 +24,10 @@ class MomoService
         $this->billPaymentRepository = $billPaymentRepository;
     }
 
-    public function generateMomoUrl(int $orderId, float $amountPaid): DataAggregate
+    public function generateVnpayUrl(int $orderId, float $amountPaid): DataAggregate
     {
         $result = new DataAggregate();
         $order = $this->orderRepository->getByConditions(['id' => $orderId]);
-
         if (!$order) {
             $result->setMessage("Đơn hàng không tồn tại.");
             return $result;
@@ -48,95 +46,102 @@ class MomoService
             $result->setMessage("Bill đã được thanh toán đủ.");
             return $result;
         }
-
         if ($amountPaid <= 0 || $amountPaid > $remainingAmount) {
             $result->setMessage("Số tiền thanh toán không hợp lệ.");
             return $result;
         }
 
-        $endpoint = config('services.momo.endpoint');
-        $partnerCode = config('services.momo.partner_code');
-        $accessKey = config('services.momo.access_key');
-        $secretKey = config('services.momo.secret_key');
-        $redirectUrl = config('services.momo.return_url');
-        $ipnUrl = config('services.momo.notify_url');
-        $requestType = 'payWithMethod';
-        $orderInfo = "Thanh toán đơn hàng #" . $order->order_code;
+        date_default_timezone_set('Asia/Ho_Chi_Minh');
 
-        $requestId = uniqid();
-        $momoOrderId = $order->order_code . '-' . time();
-        $extraData = '';
+        $vnp_TmnCode = config('services.vnpay.tmn_code');
+        $vnp_HashSecret = config('services.vnpay.hash_secret');
+        $vnp_Url = config('services.vnpay.url');
+        $vnp_ReturnUrl = config('services.vnpay.return_url');
 
-        $amountInt = (int)$amountPaid;
-        $rawHash = "accessKey={$accessKey}&amount={$amountInt}&extraData={$extraData}&ipnUrl={$ipnUrl}&orderId={$momoOrderId}&orderInfo={$orderInfo}&partnerCode={$partnerCode}&redirectUrl={$redirectUrl}&requestId={$requestId}&requestType={$requestType}";
-        $signature = hash_hmac('sha256', $rawHash, $secretKey);
+        $vnp_TxnRef = $order->order_code . '-' . time();
 
-        $payload = [
-            'partnerCode' => $partnerCode,
-            'accessKey' => $accessKey,
-            'requestId' => $requestId,
-            'amount' => (string)$amountInt,
-            'orderId' => $momoOrderId,
-            'orderInfo' => $orderInfo,
-            'redirectUrl' => $redirectUrl,
-            'ipnUrl' => $ipnUrl,
-            'extraData' => $extraData,
-            'requestType' => $requestType,
-            'signature' => $signature,
-            'lang' => 'vi'
+        $vnp_OrderInfo = "Thanh toán phần còn thiếu đơn hàng #" . $order->order_code;
+        $vnp_OrderType = "billpayment";
+        $vnp_Amount = intval(round($amountPaid, 2) * 100);
+        $vnp_IpAddr = request()->ip();
+        $vnp_CreateDate = date('YmdHis');
+        $vnp_ExpireDate = date('YmdHis', strtotime('+15 minutes'));
+        $vnp_Locale = "vn";
+
+        $inputData = [
+            "vnp_Version" => "2.1.0",
+            "vnp_TmnCode" => $vnp_TmnCode,
+            "vnp_Amount" => $vnp_Amount,
+            "vnp_Command" => "pay",
+            "vnp_CreateDate" => $vnp_CreateDate,
+            "vnp_CurrCode" => "VND",
+            "vnp_IpAddr" => $vnp_IpAddr,
+            "vnp_Locale" => $vnp_Locale,
+            "vnp_OrderInfo" => $vnp_OrderInfo,
+            "vnp_OrderType" => $vnp_OrderType,
+            "vnp_ReturnUrl" => $vnp_ReturnUrl,
+            "vnp_TxnRef" => $vnp_TxnRef,
+            "vnp_ExpireDate" => $vnp_ExpireDate
         ];
 
-        $response = $this->callApi($endpoint, $payload);
-        Log::info('MoMo API Response: ' . json_encode($response));
+        ksort($inputData);
 
-        if (isset($response['payUrl']) && !empty($response['payUrl'])) {
-            $result->setResultSuccess(
-                message: "Vui lòng truy cập URL để thanh toán Momo",
-                data: [
-                    'payment_url' => $response['payUrl'],
-                    'bill' => $bill,
-                    'remaining' => $remainingAmount
-                ]
-            );
-        } else {
-            $result->setMessage("Tạo URL MoMo thất bại: " . ($response['message'] ?? 'Không rõ lỗi'));
+        $hashdata = '';
+        $query = '';
+        $i = 0;
+        foreach ($inputData as $key => $value) {
+            if ($i == 1) {
+                $hashdata .= '&' . urlencode($key) . '=' . urlencode($value);
+            } else {
+                $hashdata .= urlencode($key) . '=' . urlencode($value);
+                $i = 1;
+            }
+            $query .= urlencode($key) . '=' . urlencode($value) . '&';
         }
 
+        $vnp_SecureHash = hash_hmac('sha512', $hashdata, $vnp_HashSecret);
+        $vnp_Url .= '?' . $query . 'vnp_SecureHash=' . $vnp_SecureHash;
+
+        $result->setResultSuccess(
+            message: "Tạo URL VNPay thành công.",
+            data: [
+                'payment_url' => $vnp_Url,
+                'bill' => $bill,
+                'remaining' => $remainingAmount
+            ]
+        );
         return $result;
     }
-    public function handleMomoReturn($inputData): DataAggregate
+
+    public function handleVnpayReturn($request): DataAggregate
     {
         $result = new DataAggregate();
-        $secretKey = config('services.momo.secret_key');
-        $accessKey = config('services.momo.access_key'); 
+        $inputData = $request->all();
+        $vnp_HashSecret = config('services.vnpay.hash_secret');
+        $vnp_SecureHash = $inputData['vnp_SecureHash'] ?? '';
 
-        if (isset($inputData['signature'])) {
-            $rawHash = "accessKey={$accessKey}&amount={$inputData['amount']}&extraData={$inputData['extraData']}&message={$inputData['message']}&orderId={$inputData['orderId']}&orderInfo={$inputData['orderInfo']}&orderType={$inputData['orderType']}&partnerCode={$inputData['partnerCode']}&payType={$inputData['payType']}&requestId={$inputData['requestId']}&responseTime={$inputData['responseTime']}&resultCode={$inputData['resultCode']}&transId={$inputData['transId']}";
-            $calculatedSignature = hash_hmac('sha256', $rawHash, $secretKey);
-
-            if ($calculatedSignature !== $inputData['signature']) {
-                $result->setMessage("Chữ ký không hợp lệ.");
-                return $result;
-            }
+        unset($inputData['vnp_SecureHash'], $inputData['vnp_SecureHashType']);
+        ksort($inputData);
+        $hashData = '';
+        foreach ($inputData as $key => $value) {
+            $hashData .= ($hashData ? '&' : '') . urlencode($key) . '=' . urlencode($value);
         }
-
-        if ($inputData['resultCode'] != 0) {
-            $result->setMessage("Thanh toán thất bại: {$inputData['message']}");
+        $secureHash = hash_hmac('sha512', $hashData, $vnp_HashSecret);
+        if ($secureHash !== $vnp_SecureHash) {
+            $result->setMessage('Chữ ký không hợp lệ.');
             return $result;
         }
 
-        return $this->processPayment($inputData['orderId'], $inputData['amount'], $inputData['transId']);
-    }
-
-    private function processPayment($orderId, $amountPaid, $transactionRef): DataAggregate
-    {
-        $result = new DataAggregate();
-        $orderCode = implode('-', array_slice(explode('-', $orderId), 0, 2));
+        if ($inputData['vnp_ResponseCode'] !== '00') {
+            $result->setMessage('Thanh toán thất bại.');
+            return $result;
+        }
+        $orderCode = implode('-', array_slice(explode('-', $inputData['vnp_TxnRef']), 0, 2));
 
         $order = $this->orderRepository->getByConditions(['order_code' => $orderCode]);
 
         if (!$order) {
-            $result->setMessage("Đơn hàng không tồn tại.");
+            $result->setMessage('Đơn hàng không tồn tại.');
             return $result;
         }
 
@@ -150,9 +155,11 @@ class MomoService
                 'delivery_fee' => 0,
                 'final_amount' => round((float)$order->total_amount, 2),
                 'status' => 'unpaid',
-                'user_id' => $order->user_id ?? Auth::id(),
+                'user_id' => $order->user_id ?? Auth::id() ?? 1,
             ]);
         }
+
+        $transactionRef = $inputData['vnp_TransactionNo'] ?? null;
 
         $existingPayment = $this->billPaymentRepository->getByConditions([
             'transaction_ref' => $transactionRef
@@ -178,15 +185,15 @@ class MomoService
             return $result;
         }
 
-        $amountPaid = round((float)$amountPaid, 2);
+        $amountPaid = round((float)$inputData['vnp_Amount'] / 100, 2);
         $payment = $this->billPaymentRepository->createData([
             'bill_id' => $bill->id,
-            'payment_method' => 'momo',
+            'payment_method' => 'vnpay',
             'amount_paid' => $amountPaid,
             'payment_time' => now(),
             'transaction_ref' => $transactionRef,
-            'user_id' => $order->user_id ?? Auth::id(),
-            'notes' => 'Thanh toán MoMo thành công. Mã giao dịch: ' . $transactionRef,
+            'user_id' => $order->user_id ?? Auth::id() ?? 1,
+            'notes' => 'Thanh toán VNPay thành công. Mã giao dịch: ' . $transactionRef,
         ]);
 
         $totalPaidAfter = round((float)$this->billPaymentRepository->sumPaymentsForBill($bill->id), 2);
@@ -194,7 +201,6 @@ class MomoService
 
         if (abs($remainingAfter) < 1) {
             $this->billRepository->updateByConditions(['id' => $bill->id], ['status' => 'paid']);
-            $this->orderRepository->updateByConditions(['id' => $order->id], ['status' => 'completed']);
             $message = 'Đã thanh toán đủ, bill hoàn tất.';
             $remainingAfter = 0.0;
         } else {
@@ -210,23 +216,6 @@ class MomoService
                 'remaining' => $remainingAfter,
             ]
         );
-
         return $result;
-    }
-
-    private function callApi($endpoint, $data)
-    {
-        $ch = curl_init($endpoint);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Content-Type: application/json',
-            'Content-Length: ' . strlen(json_encode($data))
-        ]);
-        $result = curl_exec($ch);
-        curl_close($ch);
-
-        return json_decode($result, true);
     }
 }
