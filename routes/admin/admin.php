@@ -34,7 +34,7 @@ Route::prefix('admin')->group(function () {
     Route::delete('customers/{id}/soft/delete', [CustomerController::class, 'softDeleteCustomer']);
     Route::delete('customers/{id}/force/delete', [CustomerController::class, 'forceDeleteCustomer']);
     Route::post('customers/{id}/restore', [CustomerController::class, 'restoreCustomer']);
-
+    Route::get('customers/count-by-status', [CustomerController::class, 'countByStatus']);
 
     ## categories
     Route::get('categories/list', [CategoryController::class, 'getListCategories']);
@@ -165,7 +165,13 @@ Route::prefix('admin')->group(function () {
     Route::post('kitchen-orders/{id}/update-status', [KitchenOrderController::class, 'updateKitchenOrderStatus']);
     Route::post('kitchen-orders/{id}/cancel', [KitchenOrderController::class, 'cancelKitchenOrder']);
     Route::get('kitchen-orders/count-by-status', [KitchenOrderController::class, 'countByStatus']);
-    
+
     // Order Payment
     Route::post('orders/{id}/pay', [OrderPaymentController::class, 'pay']);
+    Route::get('/vnpay-return', [OrderPaymentController::class, 'vnpayReturn']);
+    Route::get('/momo-return', [OrderPaymentController::class, 'momoReturn']);
+    Route::get('bills/list', [OrderPaymentController::class, 'getListBills']);
+    Route::get('bills/count-by-status', [OrderPaymentController::class, 'countByStatus']);
+
+
 });
