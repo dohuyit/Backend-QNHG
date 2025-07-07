@@ -254,6 +254,6 @@ class TableService
         foreach ($listStatus as $status) {
             $counts[$status] = $this->tableRepository->countByConditions(['status' => $status]);
         }
-        return $counts;
+        return $counts; 
     }
 }

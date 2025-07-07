@@ -40,10 +40,6 @@ class TableAreaRepository implements TableAreaRepositoryInterface
             $query->where('name', 'like', '%' . $val . '%');
         }
 
-        if ($val = $filter['slug'] ?? null) {
-            $query->where('slug', 'like', '%' . $val . '%');
-        }
-
         if ($val = $filter['status'] ?? null) {
             $query->where('status', $val);
         }
@@ -65,7 +61,7 @@ class TableAreaRepository implements TableAreaRepositoryInterface
         return $this->model->create($data);
     }
 
-   public function countByConditions(array $conditions = []): int
+    public function countByConditions(array $conditions = []): int
     {
         $query = TableArea::query();
 
@@ -75,5 +71,4 @@ class TableAreaRepository implements TableAreaRepositoryInterface
 
         return $query->count();
     }
-
 }

@@ -19,4 +19,15 @@ class Bill extends Model
         'issued_at',           // Thời gian xuất hóa đơn, thường tự động set
         'user_id',             // Nhân viên xuất hóa đơn
     ];
+
+    public function order()
+    {
+        return $this->belongsTo(Order::class, 'order_id');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+    
 }

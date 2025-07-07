@@ -16,4 +16,7 @@ interface CustomerRepositoryInterface
     public function getTrashCustomerList(array $filter = [], int $limit = 10): LengthAwarePaginator;
 
     public function findOnlyTrashedById($id): ?Customer;
+
+    public function countByConditions(array $conditions): int;
+
 }

@@ -16,5 +16,10 @@ class BillPaymentRepository implements BillPaymentRepositoryInterface
     {
         return BillPayment::where('bill_id', $billId)->sum('amount_paid');
     }
+        public function getByConditions(array $conditions): ?BillPayment
+    {
+        $result = BillPayment::where($conditions)->first();
+        return $result;
+    }
     
 }

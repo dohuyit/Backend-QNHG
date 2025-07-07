@@ -6,19 +6,23 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\OrderPaymentRequest\StoreOrderPaymentRequest;
 use App\Repositories\Order\OrderRepositoryInterface;
 use App\Services\OrderPayments\OrderPaymentService;
+use App\Services\OrderPayments\MomoService;
+use App\Services\OrderPayments\VnpayService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class OrderPaymentController  extends Controller
 {
     protected OrderPaymentService $orderPaymentService;
     protected OrderRepositoryInterface $orderRepository;
+    protected VnpayService $vnpayService;
+    protected MomoService $momoService;
 
-    public function __construct(OrderPaymentService $orderPaymentService, OrderRepositoryInterface $orderRepository)
+    public function __construct(OrderPaymentService $orderPaymentService, OrderRepositoryInterface $orderRepository, VnpayService $vnpayService, MomoService $momoService)
     {
         $this->orderPaymentService = $orderPaymentService;
         $this->orderRepository = $orderRepository;
-
+        $this->vnpayService = $vnpayService;
+        $this->momoService = $momoService;
     }
 
     public function pay(StoreOrderPaymentRequest $request, int $id)
@@ -46,22 +50,73 @@ class OrderPaymentController  extends Controller
             $result->getMessage()
         );
     }
-      // FE gọi API này để lấy URL thanh toán
+
     public function createPaymentUrl(Request $request, int $orderId)
     {
-        return $this->orderPaymentService->generateVnpayUrl($orderId, $request);
+        $amountPaid = (float)$request->input('amount_paid', 0);
+
+        return $this->vnpayService->generateVnpayUrl($orderId, $amountPaid);
     }
 
-    // VNPay gọi về URL này khi thanh toán xong
-   public function vnpayReturn(Request $request)
-{
-    return $this->orderPaymentService->handleVnpayReturn($request);
-}
-
-
-    // API giả lập callback để test bằng Postman
-    public function fakeVnpayCallback(Request $request, int $orderId)
+    public function vnpayReturn(Request $request)
     {
-        return $this->orderPaymentService->fakeVnpayCallback($orderId, $request);
+        $result = $this->vnpayService->handleVnpayReturn($request);
+
+        if ($result->isSuccessCode()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => $result->getMessage(),
+                'data' => $result->getData(),
+            ], 200);
+        }
+
+        return response()->json([
+            'status' => 'fail',
+            'message' => $result->getMessage() ?: 'Thanh toán thất bại hoặc chữ ký không hợp lệ.',
+        ], 400);
+    }
+    
+    public function momoReturn(Request $request)
+    {
+        $result = $this->momoService->handleMomoReturn($request->all());
+
+        if ($result->isSuccessCode()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => $result->getMessage(),
+                'data' => $result->getData(),
+            ], 200);
+        }
+
+        return response()->json([
+            'status' => 'fail',
+            'message' => $result->getMessage() ?: 'Thanh toán Momo thất bại hoặc chữ ký không hợp lệ.',
+        ], 400);
+    }
+
+    public function getListBills()
+    {
+        $params = request()->only([
+            'page',
+            'limit',
+            'bill_code',
+            'order_id',
+            'status',
+            'user_id',
+            'issued_from',
+            'issued_to'
+        ]);
+
+        $result = $this->orderPaymentService->getListBill($params);
+        $data = $result->getResult();
+
+        return $this->responseSuccess($data);
+    }
+
+    public function countByStatus()
+    {
+        $result = $this->orderPaymentService->countByStatus();
+
+        return $this->responseSuccess($result);
     }
 }
