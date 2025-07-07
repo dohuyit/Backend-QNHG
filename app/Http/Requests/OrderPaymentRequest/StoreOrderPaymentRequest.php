@@ -15,7 +15,7 @@ class StoreOrderPaymentRequest extends BaseFormRequest
     {
         return [
             'payment_method'   => 'required|in:cash,credit_card,bank_transfer,momo,vnpay,points,other',
-            'amount_paid'      => 'required|numeric|min:0.01',
+            'amount_paid'      => 'nullable|numeric|min:0.01',
             'discount_amount'  => 'nullable|numeric|min:0',   
             'delivery_fee'     => 'nullable|numeric|min:0',    
             'notes'            => 'nullable|string|max:500',
