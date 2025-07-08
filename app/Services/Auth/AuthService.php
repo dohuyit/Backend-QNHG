@@ -45,12 +45,13 @@ class AuthService
             'updated_at' => Carbon::now(),
         ]);
 
-        $content = "
-             <h1>Yêu cầu đặt lại mật khẩu</h1>
-             <p>Chào bạn {$user->full_name},</p>
-             <p>Bạn đã yêu cầu đặt lại mật khẩu. Vui lòng nhấn vào liên kết bên dưới để đặt lại mật khẩu:</p>
-             <p><a href='" . url("/reset-password/{$user->id}?token={$token}") . "'>Đặt lại mật khẩu</a></p>
-             <p>Nếu bạn không yêu cầu, hãy bỏ qua email này.</p> ";
+        $link = env('FRONTEND_URL', 'http://localhost:5173') . "/admin/reset-password/{$user->id}?token={$token}";
+
+        $content = "<h1>Yêu cầu đặt lại mật khẩu</h1>
+                   <p>Chào bạn {$user->full_name},</p>
+                   <p>Bạn đã yêu cầu đặt lại mật khẩu. Vui lòng nhấn vào liên kết bên dưới để đặt lại mật khẩu:</p>
+                   <p><a href='{$link}'>Đặt lại mật khẩu</a></p>
+                   <p>Nếu bạn không yêu cầu, hãy bỏ qua email này.</p>";
 
         Mail::html($content, function ($message) use ($user) {
             $message->to($user->email);
