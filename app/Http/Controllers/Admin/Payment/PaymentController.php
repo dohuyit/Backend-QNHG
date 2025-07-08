@@ -1,31 +1,26 @@
 <?php
 
-namespace App\Http\Controllers\Admin\OrderPayment;
+namespace App\Http\Controllers\Admin\Payment;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\OrderPaymentRequest\StoreOrderPaymentRequest;
 use App\Repositories\Order\OrderRepositoryInterface;
-use App\Services\OrderPayments\OrderPaymentService;
-use App\Services\OrderPayments\MomoService;
-use App\Services\OrderPayments\VnpayService;
+use App\Services\Payments\PaymentService;
+
 use Illuminate\Http\Request;
 
-class OrderPaymentController  extends Controller
+class PaymentController  extends Controller
 {
-    protected OrderPaymentService $orderPaymentService;
+    protected PaymentService $paymentService;
     protected OrderRepositoryInterface $orderRepository;
-    protected VnpayService $vnpayService;
-    protected MomoService $momoService;
 
-    public function __construct(OrderPaymentService $orderPaymentService, OrderRepositoryInterface $orderRepository, VnpayService $vnpayService, MomoService $momoService)
+    public function __construct(PaymentService $paymentService, OrderRepositoryInterface $orderRepository)
     {
-        $this->orderPaymentService = $orderPaymentService;
+        $this->paymentService = $paymentService;
         $this->orderRepository = $orderRepository;
-        $this->vnpayService = $vnpayService;
-        $this->momoService = $momoService;
     }
 
-    public function pay(StoreOrderPaymentRequest $request, int $id)
+    public function payment(StoreOrderPaymentRequest $request, int $id)
     {
         $order = $this->orderRepository->getByConditions(['id' => $id]);
         if (!$order) {
@@ -40,7 +35,7 @@ class OrderPaymentController  extends Controller
             'user_id'
         ]);
 
-        $result = $this->orderPaymentService->handlePayment($id, $data);
+        $result = $this->paymentService->handlePayment($id, $data);
         if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage());
         }
@@ -55,12 +50,12 @@ class OrderPaymentController  extends Controller
     {
         $amountPaid = (float)$request->input('amount_paid', 0);
 
-        return $this->vnpayService->generateVnpayUrl($orderId, $amountPaid);
+        return $this->paymentService->generateVnpayUrl($orderId, $amountPaid);
     }
 
     public function vnpayReturn(Request $request)
     {
-        $result = $this->vnpayService->handleVnpayReturn($request);
+        $result = $this->paymentService->handleVnpayReturn($request);
 
         if ($result->isSuccessCode()) {
             return response()->json([
@@ -78,7 +73,7 @@ class OrderPaymentController  extends Controller
     
     public function momoReturn(Request $request)
     {
-        $result = $this->momoService->handleMomoReturn($request->all());
+        $result = $this->paymentService->handleMomoReturn($request->all());
 
         if ($result->isSuccessCode()) {
             return response()->json([
@@ -94,29 +89,4 @@ class OrderPaymentController  extends Controller
         ], 400);
     }
 
-    public function getListBills()
-    {
-        $params = request()->only([
-            'page',
-            'limit',
-            'bill_code',
-            'order_id',
-            'status',
-            'user_id',
-            'issued_from',
-            'issued_to'
-        ]);
-
-        $result = $this->orderPaymentService->getListBill($params);
-        $data = $result->getResult();
-
-        return $this->responseSuccess($data);
-    }
-
-    public function countByStatus()
-    {
-        $result = $this->orderPaymentService->countByStatus();
-
-        return $this->responseSuccess($result);
-    }
 }

@@ -32,8 +32,8 @@ class RepoServiceProvider extends ServiceProvider
         $this->app->bind(\App\Repositories\Auth\AuthClientRepositoryInterface::class, \App\Repositories\Auth\AuthClientRepository::class);
         
         $this->app->bind(\App\Repositories\KitchenOrders\KitchenOrderRepositoryInterface::class, \App\Repositories\KitchenOrders\KitchenOrderRepository::class);
-        $this->app->bind(\App\Repositories\Bills\BillRepositoryInterface::class, \App\Repositories\Bills\BillRepository::class);
-        $this->app->bind(\App\Repositories\BillPayments\BillPaymentRepositoryInterface::class, \App\Repositories\BillPayments\BillPaymentRepository::class);
+        $this->app->bind(\App\Repositories\Payment\PaymentRepositoryInterface::class, \App\Repositories\Payment\PaymentRepository::class);
+
 
     }
 
