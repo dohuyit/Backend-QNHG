@@ -8,8 +8,6 @@ use App\Http\Controllers\Admin\Category\CategoryController;
 use App\Http\Controllers\Admin\User\UserController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\Auth\AuthController;
-use App\Http\Controllers\Admin\Bill\BillController;
-use App\Http\Controllers\Admin\BillPayment\BillPaymentController;
 use App\Http\Controllers\Admin\PermissionGroup\PermissionGroupController;
 use App\Http\Controllers\Admin\Permission\PermissionController;
 use App\Http\Controllers\Admin\UserRole\UserRoleController;
@@ -19,6 +17,7 @@ use App\Http\Controllers\Admin\Customer\CustomerController;
 use App\Http\Controllers\Admin\Dish\DishController;
 use App\Http\Controllers\Admin\KitchenOrder\KitchenOrderController;
 use App\Http\Controllers\Admin\Order\OrderController;
+use App\Http\Controllers\Admin\Payment\PaymentController;
 use App\Http\Controllers\Admin\Reservation\ReservationController;
 
 Route::prefix('admin')->group(function () {
@@ -167,11 +166,9 @@ Route::prefix('admin')->group(function () {
     Route::get('kitchen-orders/count-by-status', [KitchenOrderController::class, 'countByStatus']);
 
     // Order Payment
-    Route::post('orders/{id}/pay', [OrderPaymentController::class, 'pay']);
-    Route::get('/vnpay-return', [OrderPaymentController::class, 'vnpayReturn']);
-    Route::get('/momo-return', [OrderPaymentController::class, 'momoReturn']);
-    Route::get('bills/list', [OrderPaymentController::class, 'getListBills']);
-    Route::get('bills/count-by-status', [OrderPaymentController::class, 'countByStatus']);
+    Route::post('orders/{id}/pay', [PaymentController::class, 'payment']);
+    Route::get('/vnpay-return', [PaymentController::class, 'vnpayReturn']);
+    Route::get('/momo-return', [PaymentController::class, 'momoReturn']);
 
 
 });
