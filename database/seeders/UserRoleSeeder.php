@@ -13,14 +13,12 @@ class UserRoleSeeder extends Seeder
      */
     public function run(): void
     {
-        // Gán role Admin cho user đầu tiên
-        $admin = User::where('email', 'quanglam5401@gmail.com')->first();
-
+        $admin = User::where('email', 'admin@gmail.com')->first();
         if ($admin) {
-            UserRole::updateOrCreate(
-                ['user_id' => $admin->id, 'role_id' => 1],
-                ['user_id' => $admin->id, 'role_id' => 1]
-            );
+            UserRole::updateOrCreate([
+                'user_id' => $admin->id,
+                'role_id' => 1 // role Admin
+            ]);
         }
     }
 }

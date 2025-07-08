@@ -30,7 +30,6 @@ class TableAreaService
             $data[] = [
                 'id' => (string) $item->id,
                 'name' => $item->name ?? null,
-                'slug' => $item->slug ?? null,
                 'description' => $item->description ?? null,
                 'capacity' => $item->capacity ?? null,
                 'status' => $item->status ?? null,
