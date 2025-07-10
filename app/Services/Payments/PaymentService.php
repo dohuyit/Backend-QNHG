@@ -5,24 +5,29 @@ namespace App\Services\Payments;
 use App\Common\DataAggregate;
 use App\Repositories\Order\OrderRepositoryInterface;
 use App\Repositories\Payment\PaymentRepositoryInterface;
+use App\Repositories\Table\TableRepositoryInterface;
 use Illuminate\Support\Facades\Auth;
 
 class PaymentService
 {
     protected OrderRepositoryInterface $orderRepository;
     protected PaymentRepositoryInterface $paymentRepository;
+    protected TableRepositoryInterface $tableRepository;
 
     public function __construct(
         OrderRepositoryInterface $orderRepository,
         PaymentRepositoryInterface $paymentRepository,
+        TableRepositoryInterface $tableRepository
     ) {
         $this->orderRepository = $orderRepository;
         $this->paymentRepository = $paymentRepository;
+        $this->tableRepository = $tableRepository;
     }
 
     public function handlePayment(int $orderId, array $data): DataAggregate
     {
         $result = new DataAggregate();
+        $userId = $data['user_id'] ?? Auth::id();
 
         $order = $this->orderRepository->getByConditions(['id' => $orderId]);
         if (!$order) {
@@ -31,27 +36,41 @@ class PaymentService
         }
 
         if ($order->status === 'cancelled') {
-            $bill = $this->paymentRepository->getBillByConditions(['order_id' => $order->id]);
-            if ($bill) {
-                if ($bill->status !== 'cancelled') {
-                    $this->paymentRepository->updateBillByConditions(['id' => $bill->id], ['status' => 'cancelled']);
-                    $result->setMessage('Đơn hàng đã huỷ. Bill cũng được cập nhật trạng thái huỷ, không thể thanh toán.');
-                } else {
-                    $result->setMessage('Đơn hàng và bill đều đã bị huỷ. Không thể thanh toán.');
-                }
-            } else {
-                $result->setMessage('Đơn hàng đã huỷ. Không thể tạo bill và tiến hành thanh toán.');
-            }
+            $result->setMessage('Đơn hàng đã huỷ.');
             return $result;
         }
 
         $bill = $this->paymentRepository->getBillByConditions(['order_id' => $order->id]);
-        if (!$bill) {
-            $subTotal = round((float)$order->total_amount, 2);
-            $discount = isset($data['discount_amount']) ? round((float)$data['discount_amount'], 2) : 0.0;
-            $deliveryFee = isset($data['delivery_fee']) ? round((float)$data['delivery_fee'], 2) : 0.0;
-            $finalAmount = round($subTotal + $deliveryFee - $discount, 2);
+        $isPaid = $bill && $bill->status === 'paid';
 
+        if ($order->status === 'completed' || $isPaid) {
+            $result->setMessage('Đơn hàng đã thanh toán.');
+            return $result;
+        }
+
+        $subTotal = round((float)$order->total_amount, 2);
+        $discount = isset($data['discount_amount']) ? round((float)$data['discount_amount'], 2) : 0.0;
+        $deliveryFee = isset($data['delivery_fee']) ? round((float)$data['delivery_fee'], 2) : 0.0;
+        $finalAmount = round($subTotal + $deliveryFee - $discount, 2);
+
+        if ($finalAmount <= 0) {
+            $result->setMessage('Số tiền thanh toán không hợp lệ.');
+            return $result;
+        }
+
+        $amountPaid = !empty($data['amount_paid']) && $data['amount_paid'] > 0
+            ? round((float)$data['amount_paid'], 2)
+            : $finalAmount;
+
+        if ($amountPaid > $finalAmount) {
+            $result->setMessage('Vượt quá số tiền cần thanh toán.');
+            return $result;
+        }
+
+        $paymentMethod = $data['payment_method'] ?? 'cash';
+
+        // Tạo bill nếu chưa có hoặc không còn hợp lệ
+        if (!$bill || $bill->status !== 'unpaid') {
             $bill = $this->paymentRepository->createBill([
                 'bill_code' => strtoupper('B' . now()->format('YmdHis') . rand(10, 99)),
                 'order_id' => $order->id,
@@ -60,167 +79,101 @@ class PaymentService
                 'delivery_fee' => $deliveryFee,
                 'final_amount' => $finalAmount,
                 'status' => 'unpaid',
-                'user_id' => $data['user_id'] ?? Auth::id(),
-            ]);
-            $this->orderRepository->updateByConditions(['id' => $order->id], [
-                'final_amount' => $finalAmount,
+                'user_id' => $userId,
             ]);
         }
 
-        $totalPaid = round((float)$this->paymentRepository->sumPaymentsForBill($bill->id), 2);
-        $finalAmount = round((float)$bill->final_amount, 2);
+        // Thanh toán VNPay
+        if ($paymentMethod === 'vnpay') {
+            if ($amountPaid < 10000) {
+                $result->setMessage('Số tiền tối thiểu cho VNPay là 10,000đ.');
+                return $result;
+            }
 
-        if ($bill->status === 'paid' || abs($totalPaid - $finalAmount) <= 1) {
-            $this->paymentRepository->updateBillByConditions(['id' => $bill->id], ['status' => 'paid']);
+            $paymentResult = $this->generateVnpayUrl($order->id, $amountPaid);
+            $paymentUrl = $paymentResult->getData()['payment_url'] ?? '';
+
+            if (!$paymentUrl) {
+                $result->setMessage('Không thể tạo URL VNPay.');
+                return $result;
+            }
+
             $result->setResultSuccess(
-                message: 'Bill đã được thanh toán đủ.',
+                message: 'Vui lòng thanh toán qua VNPay.',
+                data: [
+                    'payment_url' => $paymentUrl,
+                    'order' => $order,
+                    'bill' => $bill,
+                    'final_amount' => $finalAmount,
+                ]
+            );
+            return $result;
+        }
+
+        // Thanh toán MoMo
+        if ($paymentMethod === 'momo') {
+            if ($amountPaid < 10000) {
+                $result->setMessage('Số tiền tối thiểu cho MoMo là 10,000đ.');
+                return $result;
+            }
+
+            $paymentResult = $this->generateMomoUrl($order->id, $amountPaid);
+            $paymentUrl = $paymentResult->getData()['payment_url'] ?? '';
+
+            if (!$paymentUrl) {
+                $result->setMessage('Không thể tạo URL MoMo.');
+                return $result;
+            }
+
+            $result->setResultSuccess(
+                message: 'Vui lòng thanh toán qua MoMo.',
+                data: [
+                    'payment_url' => $paymentUrl,
+                    'order' => $order,
+                    'bill' => $bill,
+                    'final_amount' => $finalAmount,
+                ]
+            );
+            return $result;
+        }
+
+        // Nếu là tiền mặt hoặc QR nội bộ
+        $payment = $this->paymentRepository->createPayment([
+            'bill_id' => $bill->id,
+            'payment_method' => $paymentMethod,
+            'amount_paid' => $amountPaid,
+            'user_id' => $userId,
+            'payment_time' => now(),
+            'notes' => $data['notes'] ?? null,
+        ]);
+
+        $totalPaid = round($this->paymentRepository->sumPaymentsForBill($bill->id), 2);
+        $remaining = round($finalAmount - $totalPaid, 2);
+
+        if ($remaining <= 1) {
+            $this->paymentRepository->updateBillByConditions(['id' => $bill->id], ['status' => 'paid']);
+            $this->orderRepository->updateByConditions(['id' => $order->id], [
+                'status' => 'completed',
+                'final_amount' => $finalAmount,
+            ]);
+
+            $result->setResultSuccess(
+                message: 'Đã thanh toán đủ.',
                 data: [
                     'bill' => $bill->fresh(),
+                    'payment' => $payment,
                     'remaining' => 0.0,
                 ]
             );
             return $result;
         }
 
-        $remaining = round($finalAmount - $totalPaid, 2);
-        $amountPaid = (!isset($data['amount_paid']) || empty($data['amount_paid']) || $data['amount_paid'] <= 0)
-            ? $remaining
-            : round((float)$data['amount_paid'], 2);
-
-        if ($amountPaid > $remaining) {
-            $result->setMessage('Số tiền thanh toán vượt quá số tiền còn phải trả: ' . number_format($remaining, 2) . ' VND');
-            return $result;
-        }
-
-        if ($data['payment_method'] === 'vnpay') {
-            $amountPaidForVnpay = ($amountPaid > 0) ? $amountPaid : $remaining;
-
-            if ($amountPaidForVnpay < 10000) {
-                $payment = $this->paymentRepository->createPayment([
-                    'bill_id' => $bill->id,
-                    'payment_method' => 'cash',
-                    'amount_paid' => $amountPaidForVnpay,
-                    'user_id' => $data['user_id'] ?? Auth::id(),
-                    'payment_time' => now(),
-                    'notes' => 'Thanh toán bằng tiền mặt (auto fallback do số tiền nhỏ).',
-                ]);
-
-                $totalPaidAfter = round((float)$this->paymentRepository->sumPaymentsForBill($bill->id), 2);
-                $remainingAfter = round($finalAmount - $totalPaidAfter, 2);
-
-                if ($remainingAfter <= 1) {
-                    $this->paymentRepository->updateBillByConditions(['id' => $bill->id], ['status' => 'paid']);
-                    $message = 'Đã thanh toán đủ, bill hoàn tất.';
-                    $remainingAfter = 0.0;
-                } else {
-                    $message = 'Thanh toán một phần. Còn thiếu: ' . number_format($remainingAfter, 2) . ' VND';
-                }
-
-                $result->setResultSuccess(
-                    message: 'Số tiền quá nhỏ nên đã được thanh toán bằng tiền mặt.',
-                    data: [
-                        'bill' => $bill->fresh(),
-                        'payment' => $payment,
-                        'remaining' => $remainingAfter,
-                    ]
-                );
-                return $result;
-            }
-
-            $amountPaidForVnpay = round($amountPaidForVnpay, 2);
-            $paymentResult = $this->generateVnpayUrl($order->id, $amountPaidForVnpay);
-
-            $paymentUrl = $paymentResult->getData()['payment_url'] ?? '';
-
-            $result->setResultSuccess(
-                message: 'Vui lòng truy cập URL để thanh toán VNPay',
-                data: [
-                    'payment_url' => $paymentUrl,
-                    'bill' => $bill,
-                    'remaining' => $remaining,
-                ]
-            );
-            return $result;
-        }
-
-        if ($data['payment_method'] === 'momo') {
-            $amountPaidForMomo = ($amountPaid > 0) ? $amountPaid : $remaining;
-
-            if ($amountPaidForMomo < 10000) {
-                $payment = $this->paymentRepository->createPayment([
-                    'bill_id' => $bill->id,
-                    'payment_method' => 'cash',
-                    'amount_paid' => $amountPaidForMomo,
-                    'user_id' => $data['user_id'] ?? Auth::id(),
-                    'payment_time' => now(),
-                    'notes' => 'Thanh toán bằng tiền mặt (auto fallback do số tiền nhỏ).',
-                ]);
-
-                $totalPaidAfter = round((float)$this->paymentRepository->sumPaymentsForBill($bill->id), 2);
-                $remainingAfter = round($finalAmount - $totalPaidAfter, 2);
-
-                if ($remainingAfter <= 1) {
-                    $this->paymentRepository->updateBillByConditions(['id' => $bill->id], ['status' => 'paid']);
-                    $message = 'Đã thanh toán đủ, bill hoàn tất.';
-                    $remainingAfter = 0.0;
-                } else {
-                    $message = 'Thanh toán một phần. Còn thiếu: ' . number_format($remainingAfter, 2) . ' VND';
-                }
-
-                $result->setResultSuccess(
-                    message: 'Số tiền quá nhỏ nên đã được thanh toán bằng tiền mặt.',
-                    data: [
-                        'bill' => $bill->fresh(),
-                        'payment' => $payment,
-                        'remaining' => $remainingAfter,
-                    ]
-                );
-                return $result;
-            }
-
-            $amountPaidForMomo = round($amountPaidForMomo, 2);
-            $paymentResult = $this->generateMomoUrl($order->id, $amountPaidForMomo);
-
-            $paymentUrl = $paymentResult->getData()['payment_url'] ?? '';
-
-            $result->setResultSuccess(
-                message: 'Vui lòng truy cập URL để thanh toán Momo',
-                data: [
-                    'payment_url' => $paymentUrl,
-                    'bill' => $bill,
-                    'remaining' => $remaining,
-                ]
-            );
-            return $result;
-        }
-
-        $payment = $this->paymentRepository->createPayment([
-            'bill_id' => $bill->id,
-            'payment_method' => $data['payment_method'],
-            'amount_paid' => $amountPaid,
-            'user_id' => $data['user_id'] ?? Auth::id(),
-            'payment_time' => now(),
-            'notes' => $data['notes'] ?? null,
-        ]);
-
-        $totalPaidAfter = round((float)$this->paymentRepository->sumPaymentsForBill($bill->id), 2);
-        $remainingAfter = round($finalAmount - $totalPaidAfter, 2);
-
-        if ($remainingAfter <= 1) {
-            $this->paymentRepository->updateBillByConditions(['id' => $bill->id], ['status' => 'paid']);
-            $message = 'Đã thanh toán đủ, bill hoàn tất.';
-            $remainingAfter = 0.0;
-        } else {
-            $this->paymentRepository->updateBillByConditions(['id' => $bill->id], ['status' => 'unpaid']);
-            $message = 'Thanh toán một phần. Còn thiếu: ' . number_format($remainingAfter, 2) . ' VND';
-        }
-
         $result->setResultSuccess(
-            message: $message,
+            message: 'Thanh toán một phần. Còn lại: ' . number_format($remaining, 2) . ' VND',
             data: [
                 'bill' => $bill->fresh(),
                 'payment' => $payment,
-                'remaining' => $remainingAfter,
+                'remaining' => $remaining,
             ]
         );
         return $result;
@@ -236,11 +189,6 @@ class PaymentService
         }
 
         $bill = $this->paymentRepository->getBillByConditions(['order_id' => $order->id]);
-        if (!$bill) {
-            $result->setMessage("Bill không tồn tại cho đơn hàng #{$order->order_code}.");
-            return $result;
-        }
-
         $totalPaid = round((float)$this->paymentRepository->sumPaymentsForBill($bill->id), 2);
         $remainingAmount = round((float)$bill->final_amount - $totalPaid, 2);
 
@@ -338,8 +286,7 @@ class PaymentService
             $result->setMessage('Thanh toán thất bại.');
             return $result;
         }
-        $orderCode = implode('-', array_slice(explode('-', $inputData['vnp_TxnRef']), 0, 2));
-
+        $orderCode = explode('-', $inputData['vnp_TxnRef'])[0];
         $order = $this->orderRepository->getByConditions(['order_code' => $orderCode]);
 
         if (!$order) {
@@ -403,6 +350,10 @@ class PaymentService
 
         if (abs($remainingAfter) < 1) {
             $this->paymentRepository->updateBillByConditions(['id' => $bill->id], ['status' => 'paid']);
+            $this->orderRepository->updateByConditions(['id' => $order->id], ['status' => 'completed']);
+            if (!empty($order->table_id)) {
+                $this->tableRepository->updateByConditions(['id' => $order->table_id], ['status' => 'cleaning']);
+            }
             $message = 'Đã thanh toán đủ, bill hoàn tất.';
             $remainingAfter = 0.0;
         } else {
@@ -527,7 +478,7 @@ class PaymentService
     private function processMomoPayment($orderId, $amountPaid, $transactionRef): DataAggregate
     {
         $result = new DataAggregate();
-        $orderCode = implode('-', array_slice(explode('-', $orderId), 0, 2));
+        $orderCode = explode('-', $orderId)[0];
 
         $order = $this->orderRepository->getByConditions(['order_code' => $orderCode]);
 
@@ -623,5 +574,40 @@ class PaymentService
         curl_close($ch);
 
         return json_decode($result, true);
+    }
+
+    public function getBillDetail(string $orderId): DataAggregate
+    {
+        $result = new DataAggregate;
+
+        // Lấy đơn hàng
+        $order = $this->orderRepository->getByConditions(['id' => $orderId]);
+        if (!$order) {
+            $result->setResultError(message: 'Đơn hàng không tồn tại hoặc đã bị xóa');
+            return $result;
+        }
+
+        // Lấy hóa đơn gắn với đơn hàng
+        $bill = $this->paymentRepository->getBillByConditions(['order_id' => $order->id]);
+        if (!$bill) {
+            $result->setResultError(message: 'Hóa đơn không tồn tại hoặc đã bị khóa');
+            return $result;
+        }
+
+        // Load các quan hệ: bàn và thanh toán
+        $order->load(['orderTables.tableItem', 'items.menuItem', 'items.combo']);
+        $payments = $bill->billPayments ?? [];
+
+        $result->setResultSuccess(
+            message: 'Lấy chi tiết hóa đơn thành công',
+            data: [
+                'bill' => $bill,
+                'order' => $order,
+                'tables' => $order->orderTables ?? [],
+                'payments' => $payments
+            ]
+        );
+
+        return $result;
     }
 }

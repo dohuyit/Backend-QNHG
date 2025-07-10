@@ -29,5 +29,9 @@ class Bill extends Model
     {
         return $this->belongsTo(User::class, 'user_id');
     }
-    
+
+    public function billPayments()
+    {
+        return $this->hasMany(BillPayment::class, 'bill_id');
+    }
 }

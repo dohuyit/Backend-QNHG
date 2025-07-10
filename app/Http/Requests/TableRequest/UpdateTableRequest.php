@@ -42,7 +42,7 @@ class UpdateTableRequest extends BaseFormRequest
                 'sometimes',
                 'required',
                 'string',
-                Rule::in(['2_seats', '4_seats', '8_seats'])
+                Rule::in(['2_seats', '4_seats', '6_seats', '8_seats'])
             ],
             'tags' => [
                 'sometimes',
@@ -75,7 +75,7 @@ class UpdateTableRequest extends BaseFormRequest
             'description.max' => 'Mô tả không được vượt quá 1000 ký tự',
             'table_type.required' => 'Loại bàn không được để trống',
             'table_type.string' => 'Loại bàn phải là chuỗi ký tự',
-            'table_type.in' => 'Loại bàn không hợp lệ (chỉ cho phép: 2 ghế, 4 ghế, 8 ghế)',
+            'table_type.in' => 'Loại bàn không hợp lệ',
             'tags.array' => 'Tags phải là một mảng',
             'status.string' => 'Trạng thái phải là chuỗi ký tự',
             'status.in' => 'Trạng thái không hợp lệ',

@@ -70,4 +70,11 @@ class KitchenOrderRepository implements KitchenOrderRepositoryInterface
     {
         return \App\Models\KitchenOrder::create($data);
     }
+
+    public function areAllItemsReadyInOrder(int $orderId): bool
+    {
+        return OrderItem::where('order_id', $orderId)
+            ->where('kitchen_status', '!=', 'ready')
+            ->doesntExist();
+    }
 }

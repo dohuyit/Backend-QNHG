@@ -29,6 +29,11 @@ class StoreOrderRequest extends BaseFormRequest
             'tables.*.notes' => 'nullable|string|max:255',
             'delivery_address' => 'nullable|string|max:255',
             'notes' => 'nullable|string|max:500',
+
+            // validate liên hệ
+            'contact_name' => 'required|string|max:255',
+            'contact_phone' => 'required|string|regex:/^[0-9+\-\s]+$/|max:20',
+            'contact_email' => 'nullable|email|max:255',
         ];
     }
 
@@ -59,8 +64,21 @@ class StoreOrderRequest extends BaseFormRequest
             'delivery_address.string' => 'Địa chỉ giao hàng phải là chuỗi',
             'delivery_address.max' => 'Địa chỉ giao hàng không được vượt quá 255 ký tự',
             'notes.max' => 'Ghi chú đơn hàng không được vượt quá 500 ký tự',
+
+            'contact_name.required' => 'Tên người liên hệ không được để trống',
+            'contact_name.string' => 'Tên người liên hệ phải là chuỗi',
+            'contact_name.max' => 'Tên người liên hệ không được vượt quá 255 ký tự',
+
+            'contact_phone.required' => 'Số điện thoại người liên hệ không được để trống',
+            'contact_phone.string' => 'Số điện thoại người liên hệ phải là chuỗi',
+            'contact_phone.regex' => 'Số điện thoại người liên hệ không hợp lệ',
+            'contact_phone.max' => 'Số điện thoại không được vượt quá 20 ký tự',
+
+            'contact_email.email' => 'Email người liên hệ không hợp lệ',
+            'contact_email.max' => 'Email người liên hệ không được vượt quá 255 ký tự',
         ];
     }
+
 
     protected function withValidator($validator)
     {
