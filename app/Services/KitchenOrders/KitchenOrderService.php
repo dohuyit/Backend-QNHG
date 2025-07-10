@@ -4,19 +4,21 @@ namespace App\Services\KitchenOrders;
 
 use App\Common\DataAggregate;
 use App\Common\ListAggregate;
-use App\Helpers\ConvertHelper;
 use App\Models\OrderItem;
 use App\Repositories\KitchenOrders\KitchenOrderRepositoryInterface;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
+use App\Repositories\Order\OrderRepositoryInterface;
 
 class KitchenOrderService
 {
     protected KitchenOrderRepositoryInterface $kitchenOrderRepository;
-    public function __construct(KitchenOrderRepositoryInterface $kitchenOrderRepository)
+    protected OrderRepositoryInterface $orderRepository;
+
+    public function __construct(KitchenOrderRepositoryInterface $kitchenOrderRepository, OrderRepositoryInterface $orderRepository)
     {
+        $this->orderRepository = $orderRepository;
         $this->kitchenOrderRepository = $kitchenOrderRepository;
     }
+
     public function getListKitchenOrder(array $params): ListAggregate
     {
         $filter = $params;
@@ -75,8 +77,8 @@ class KitchenOrderService
         $allowedTransitions = [
             'pending' => ['preparing', 'cancelled'],
             'preparing' => ['ready', 'cancelled'],
-            'ready' => [], // ready không chuyển được nữa
-            'cancelled' => [], // cancelled không chuyển được nữa
+            'ready' => [],
+            'cancelled' => [],
         ];
 
         if (!in_array($newStatus, $allowedTransitions[$currentStatus])) {
@@ -84,6 +86,7 @@ class KitchenOrderService
             return $result;
         }
 
+        // Chuẩn bị dữ liệu cập nhật
         $updateData = ['status' => $newStatus];
         if ($newStatus === 'preparing' && $currentStatus === 'pending') {
             $updateData['received_at'] = now();
@@ -91,6 +94,7 @@ class KitchenOrderService
             $updateData['completed_at'] = now();
         }
 
+        // Cập nhật kitchen_order
         $updateSuccess = $this->kitchenOrderRepository->updateByConditions(['id' => $id], $updateData);
 
         if (!$updateSuccess) {
@@ -98,6 +102,7 @@ class KitchenOrderService
             return $result;
         }
 
+        // Cập nhật trạng thái món ăn (order_item)
         $orderItemId = $kitchenOrder->order_item_id;
         if ($orderItemId) {
             $updateItemSuccess = $this->kitchenOrderRepository->updateOrderItemStatus($orderItemId, $newStatus);
@@ -106,8 +111,23 @@ class KitchenOrderService
                 $result->setMessage('Cập nhật trạng thái món trong đơn hàng thất bại');
                 return $result;
             }
+
+            // Kiểm tra nếu toàn bộ món trong đơn đã 'ready' thì cập nhật đơn hàng
+            $orderItem = OrderItem::find($orderItemId);
+            if ($orderItem && $orderItem->order_id) {
+                $orderId = $orderItem->order_id;
+
+                $allItemsReady = $this->kitchenOrderRepository->areAllItemsReadyInOrder($orderId);
+                if ($allItemsReady) {
+                    $this->orderRepository->updateByConditions(['id' => $orderId], [
+                        'status' => 'ready',
+                        'updated_at' => now(),
+                    ]);
+                }
+            }
         }
 
+        // Thành công
         $result->setResultSuccess(
             message: 'Chuyển trạng thái thành công',
             data: [
@@ -119,6 +139,7 @@ class KitchenOrderService
 
         return $result;
     }
+
     public function cancelKitchenOrder(int $id): DataAggregate
     {
         $result = new DataAggregate();

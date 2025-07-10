@@ -169,6 +169,5 @@ Route::prefix('admin')->group(function () {
     Route::post('orders/{id}/pay', [PaymentController::class, 'payment']);
     Route::get('/vnpay-return', [PaymentController::class, 'vnpayReturn']);
     Route::get('/momo-return', [PaymentController::class, 'momoReturn']);
-
-
+    Route::get('bills/{id}/detail', [PaymentController::class, 'getBillDetailForOrder']);
 });

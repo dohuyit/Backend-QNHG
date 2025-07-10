@@ -58,35 +58,42 @@ class PaymentController  extends Controller
         $result = $this->paymentService->handleVnpayReturn($request);
 
         if ($result->isSuccessCode()) {
-            return response()->json([
-                'status' => 'success',
-                'message' => $result->getMessage(),
-                'data' => $result->getData(),
-            ], 200);
+            return $this->responseSuccess(
+                $result->getData(),
+                $result->getMessage()
+            );
         }
 
-        return response()->json([
-            'status' => 'fail',
-            'message' => $result->getMessage() ?: 'Thanh toán thất bại hoặc chữ ký không hợp lệ.',
-        ], 400);
+        return $this->responseFail(
+            message: $result->getMessage() ?: 'Thanh toán VNPAY thất bại hoặc chữ ký không hợp lệ.',
+            statusCode: 400
+        );
     }
-    
+
     public function momoReturn(Request $request)
     {
         $result = $this->paymentService->handleMomoReturn($request->all());
 
         if ($result->isSuccessCode()) {
-            return response()->json([
-                'status' => 'success',
-                'message' => $result->getMessage(),
-                'data' => $result->getData(),
-            ], 200);
+            return $this->responseSuccess(
+                $result->getData(),
+                $result->getMessage()
+            );
         }
 
-        return response()->json([
-            'status' => 'fail',
-            'message' => $result->getMessage() ?: 'Thanh toán Momo thất bại hoặc chữ ký không hợp lệ.',
-        ], 400);
+        return $this->responseFail(
+            message: $result->getMessage() ?: 'Thanh toán Momo thất bại hoặc chữ ký không hợp lệ.',
+            statusCode: 400
+        );
     }
 
+    public function getBillDetailForOrder(string $id)
+    {
+        $result = $this->paymentService->getBillDetail($id);
+        if (!$result->isSuccessCode()) {
+            return $this->responseFail(message: $result->getMessage(), statusCode: 404);
+        }
+        $data = $result->getData();
+        return $this->responseSuccess($data);
+    }
 }

@@ -8,6 +8,7 @@ use App\Models\Table;
 use App\Repositories\Table\TableRepositoryInterface;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+
 class TableService
 {
     protected TableRepositoryInterface $tableRepository;
@@ -23,6 +24,7 @@ class TableService
     private static $tableTypeLabels = [
         '2_seats' => '2 ghế',
         '4_seats' => '4 ghế',
+        '6_seats' => '6 ghế',
         '8_seats' => '8 ghế',
     ];
 
@@ -34,7 +36,7 @@ class TableService
     public function getListTables(array $params): ListAggregate
     {
         $filter = $params;
-        $limit = !empty($params['limit']) && $params['limit'] > 0 ? (int) $params['limit'] : 6;
+        $limit = !empty($params['limit']) && $params['limit'] > 0 ? (int) $params['limit'] : 1000;
 
         $pagination = $this->tableRepository->getTableList(filter: $filter, limit: $limit);
 
@@ -117,7 +119,7 @@ class TableService
             }
         }
 
-     
+
         $tableData = [
             'id' => (string) $table->id,
             'table_number' => $table->table_number ?? null,
@@ -254,6 +256,6 @@ class TableService
         foreach ($listStatus as $status) {
             $counts[$status] = $this->tableRepository->countByConditions(['status' => $status]);
         }
-        return $counts; 
+        return $counts;
     }
 }

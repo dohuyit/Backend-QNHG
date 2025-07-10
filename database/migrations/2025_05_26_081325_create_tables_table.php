@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id()->comment('Mã bàn ăn duy nhất');
             $table->foreignId('table_area_id')->comment('Mã khu vực chứa bàn')->constrained('table_areas', 'id');
             $table->string('table_number', 50)->comment('Số hiệu hoặc tên của bàn');
-            $table->enum('table_type', ['2_seats', '4_seats', '8_seats'])->comment('Loại bàn (2 ghế, 4 ghế, 8 ghế)');
+            $table->enum('table_type', ['2_seats', '4_seats', '6_seats', '8_seats'])->comment('Loại bàn (2 ghế, 4 ghế, 6 ghế, 8 ghế)');
             $table->string('description', 255)->nullable()->comment('Mô tả vị trí cụ thể của bàn');
             $table->json('tags')->nullable()->comment('Các tag cho bàn (VD: ["gần cửa sổ", "yên tĩnh", "phòng VIP"])');
             $table->enum('status', ['available', 'occupied', 'cleaning', 'out_of_service'])->nullable()->comment('Trạng thái');

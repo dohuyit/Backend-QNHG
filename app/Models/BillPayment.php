@@ -17,4 +17,14 @@ class BillPayment extends Model
         'user_id',              // Nhân viên nhận thanh toán
         'notes',
     ];
+
+    public function bill()
+    {
+        return $this->belongsTo(Bill::class, 'bill_id');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 }

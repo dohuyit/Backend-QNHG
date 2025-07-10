@@ -13,4 +13,6 @@ interface KitchenOrderRepositoryInterface
     public function countByConditions(array $conditions): int;
     public function updateOrderItemStatus(int $orderItemId, string $newStatus): bool;
     public function create(array $data);
+
+    public function areAllItemsReadyInOrder(int $orderId): bool;
 }
