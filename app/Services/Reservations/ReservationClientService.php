@@ -3,6 +3,7 @@
 namespace App\Services\Reservations;
 
 use App\Common\DataAggregate;
+use App\Events\Reservations\ReservationCreated;
 use App\Repositories\Reservations\ReservationRepositoryInterface;
 use App\Repositories\Table\TableRepositoryInterface;
 use App\Services\Mails\ReservationMailService;
@@ -42,6 +43,9 @@ class ReservationClientService
             return $result;
         }
         $result->setResultSuccess(message: 'Đặt bàn thành công!');
+
+        // Dispatch event cho realtime
+        event(new ReservationCreated($listDataCreate));
 
         $this->reservationMailService->sendClientConfirmMail($listDataCreate);
         return $result;

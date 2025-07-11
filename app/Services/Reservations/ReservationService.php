@@ -4,6 +4,8 @@ namespace App\Services\Reservations;
 
 use App\Common\DataAggregate;
 use App\Common\ListAggregate;
+use App\Events\Reservations\ReservationCreated;
+use App\Events\Reservations\ReservationStatusUpdated;
 use App\Models\Reservation;
 use App\Repositories\Reservations\ReservationRepositoryInterface;
 use App\Repositories\Table\TableRepositoryInterface;
@@ -91,6 +93,9 @@ class ReservationService
         }
         $result->setResultSuccess(message: 'Tạo đơn đặt bàn thành công!');
 
+        // Dispatch event cho realtime
+        event(new ReservationCreated($listDataCreate));
+
         $this->reservationMailService->sendClientConfirmMail($listDataCreate);
         return $result;
     }
@@ -160,6 +165,12 @@ class ReservationService
             return $result;
         }
         $result->setResultSuccess(message: 'Cập nhật thành công!');
+
+        // Dispatch event cho realtime khi thay đổi trạng thái
+        if ($newStatus !== $currentStatus) {
+            event(new ReservationStatusUpdated($reservation->toArray(), $currentStatus, $newStatus));
+        }
+
         return $result;
     }
     public function listTrashedReservation(array $params): ListAggregate
@@ -279,6 +290,9 @@ class ReservationService
             'user_id' => $userId,
             'confirmed_at' => now(),
         ]);
+
+        // Dispatch event cho realtime
+        event(new ReservationStatusUpdated($reservation->toArray(), 'pending', 'confirmed'));
 
         $result->setResultSuccess(message: 'Xác nhận đơn đặt bàn thành công', data: ['new_status' => 'confirmed']);
         return $result;
