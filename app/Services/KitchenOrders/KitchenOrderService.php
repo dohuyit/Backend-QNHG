@@ -128,6 +128,17 @@ class KitchenOrderService
         }
 
         // Thành công
+        // Lấy lại dữ liệu kitchenOrder mới nhất để broadcast
+        $kitchenOrderFresh = $this->kitchenOrderRepository->getByConditions(['id' => $id]);
+        event(new \App\Events\Orders\OrderItemUpdated([
+            'id' => $kitchenOrderFresh->id,
+            'order_id' => $kitchenOrderFresh->order_id,
+            'item_name' => $kitchenOrderFresh->item_name,
+            'status' => $kitchenOrderFresh->status,
+            'updated_at' => $kitchenOrderFresh->updated_at,
+            // ... các trường khác nếu cần
+        ]));
+
         $result->setResultSuccess(
             message: 'Chuyển trạng thái thành công',
             data: [

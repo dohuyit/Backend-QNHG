@@ -12,6 +12,16 @@ use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvi
 use Illuminate\Support\Facades\Event;
 use App\Events\Orders\OrderCreated;
 use App\Listeners\Orders\SendOrderNotification;
+use App\Events\Orders\OrderUpdated;
+use App\Listeners\Orders\SendOrderUpdatedNotification;
+use App\Events\Orders\OrderItemUpdated;
+use App\Listeners\Orders\SendOrderItemUpdatedNotification;
+use App\Events\Orders\OrderItemCreated;
+use App\Listeners\Orders\SendOrderItemCreatedNotification;
+use App\Events\Orders\OrderItemDeleted;
+use App\Listeners\Orders\SendOrderItemDeletedNotification;
+use App\Events\Tables\TableStatusUpdated;
+use App\Listeners\Tables\SendTableStatusUpdatedNotification;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -38,6 +48,21 @@ class EventServiceProvider extends ServiceProvider
         // Đăng ký events cho đơn hàng
         OrderCreated::class => [
             SendOrderNotification::class,
+        ],
+        OrderUpdated::class => [
+            SendOrderUpdatedNotification::class,
+        ],
+        OrderItemUpdated::class => [
+            SendOrderItemUpdatedNotification::class,
+        ],
+        OrderItemCreated::class => [
+            SendOrderItemCreatedNotification::class,
+        ],
+        OrderItemDeleted::class => [
+            SendOrderItemDeletedNotification::class,
+        ],
+        TableStatusUpdated::class => [
+            SendTableStatusUpdatedNotification::class,
         ],
     ];
 

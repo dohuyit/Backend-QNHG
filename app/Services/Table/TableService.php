@@ -211,6 +211,17 @@ class TableService
             $result->setResultError(message: 'Cập nhật thất bại, vui lòng thử lại!');
             return $result;
         }
+        // Nếu có cập nhật trạng thái thì broadcast event
+        if (isset($listDataUpdate['status'])) {
+            $tableFresh = $this->tableRepository->findById($table->id);
+            event(new \App\Events\Tables\TableStatusUpdated([
+                'id' => $tableFresh->id,
+                'table_number' => $tableFresh->table_number,
+                'status' => $tableFresh->status,
+                'updated_at' => $tableFresh->updated_at,
+                // ... các trường khác nếu cần
+            ]));
+        }
         $result->setResultSuccess(message: 'Cập nhật bàn thành công!');
         return $result;
     }
