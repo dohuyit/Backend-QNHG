@@ -56,36 +56,27 @@ class PaymentController  extends Controller
     public function vnpayReturn(Request $request)
     {
         $result = $this->paymentService->handleVnpayReturn($request);
+        $redirectBase = 'http://localhost:5173/payment-result';
 
         if ($result->isSuccessCode()) {
-            return $this->responseSuccess(
-                $result->getData(),
-                $result->getMessage()
-            );
+            return redirect()->away("{$redirectBase}?status=success&message=" . urlencode($result->getMessage()));
         }
 
-        return $this->responseFail(
-            message: $result->getMessage() ?: 'Thanh toán VNPAY thất bại hoặc chữ ký không hợp lệ.',
-            statusCode: 400
-        );
+        return redirect()->away("{$redirectBase}?status=fail&message=" . urlencode($result->getMessage()));
     }
 
     public function momoReturn(Request $request)
     {
         $result = $this->paymentService->handleMomoReturn($request->all());
+        $redirectBase = 'http://localhost:5173/payment-result';
 
         if ($result->isSuccessCode()) {
-            return $this->responseSuccess(
-                $result->getData(),
-                $result->getMessage()
-            );
+            return redirect()->away("{$redirectBase}?status=success&message=" . urlencode($result->getMessage()));
         }
 
-        return $this->responseFail(
-            message: $result->getMessage() ?: 'Thanh toán Momo thất bại hoặc chữ ký không hợp lệ.',
-            statusCode: 400
-        );
+        return redirect()->away("{$redirectBase}?status=fail&message=" . urlencode($result->getMessage()));
     }
+
 
     public function getBillDetailForOrder(string $id)
     {
