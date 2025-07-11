@@ -93,7 +93,7 @@ class OrderService
         return $result;
     }
 
-    public function createOrder(array $data): DataAggregate
+    public function createOrder(array $data): array
     {
         $result = new DataAggregate();
 
@@ -131,7 +131,7 @@ class OrderService
                     $menuItem = $menuItems->get($item['dish_id']);
                     if (!$menuItem) {
                         $result->setMessage("Món ăn ID {$item['dish_id']} không tồn tại");
-                        return $result;
+                        return ['result' => $result, 'order' => null];
                     }
 
                     $lineTotal = $menuItem->selling_price * $quantity;
@@ -151,7 +151,7 @@ class OrderService
                     $comboItem = $comboItems->get($item['combo_id']);
                     if (!$comboItem) {
                         $result->setMessage("Combo ID {$item['combo_id']} không tồn tại");
-                        return $result;
+                        return ['result' => $result, 'order' => null];
                     }
 
                     $lineTotal = $comboItem->selling_price * $quantity;
@@ -169,7 +169,7 @@ class OrderService
                     ];
                 } else {
                     $result->setMessage("Mỗi item phải có dish_id hoặc combo_id");
-                    return $result;
+                    return ['result' => $result, 'order' => null];
                 }
             }
         }
@@ -183,13 +183,11 @@ class OrderService
 
         if (!$order) {
             $result->setMessage('Tạo đơn hàng thất bại, vui lòng thử lại!');
-            return $result;
+            return ['result' => $result, 'order' => null];
         }
 
-
-
         $result->setResultSuccess(message: 'Tạo đơn hàng thành công!');
-        return $result;
+        return ['result' => $result, 'order' => $order];
     }
 
     public function getOrderDetail(string $id): DataAggregate

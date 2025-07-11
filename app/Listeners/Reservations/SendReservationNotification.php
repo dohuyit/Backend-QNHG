@@ -6,6 +6,8 @@ use App\Events\Reservations\ReservationCreated;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;
+use App\Models\Notification;
+use App\Models\User;
 
 class SendReservationNotification implements ShouldQueue
 {
@@ -24,18 +26,23 @@ class SendReservationNotification implements ShouldQueue
      */
     public function handle(ReservationCreated $event): void
     {
-        // Log thông báo đơn đặt bàn mới
-        Log::info('Đơn đặt bàn mới được tạo', [
-            'customer_name' => $event->reservation['customer_name'],
-            'customer_phone' => $event->reservation['customer_phone'],
-            'reservation_date' => $event->reservation['reservation_date'],
-            'reservation_time' => $event->reservation['reservation_time'],
-            'number_of_guests' => $event->reservation['number_of_guests'],
-        ]);
+        // Lấy thông tin đơn đặt bàn
+        $reservation = $event->reservation;
 
-        // Có thể thêm logic gửi email, SMS, push notification ở đây
-        // Ví dụ: gửi email thông báo cho admin
-        // Mail::to('admin@example.com')->send(new NewReservationNotification($event->reservation));
+        // Lấy danh sách admin (hoặc user nhận thông báo)
+        $admins = User::whereHas('roles', function ($q) {
+            $q->where('role_name', 'Admin'); // Phân biệt hoa thường!
+        })->get();
+
+        foreach ($admins as $admin) {
+            Notification::create([
+                'title' => 'Đơn đặt bàn mới',
+                'message' => "Khách hàng {$reservation['customer_name']} vừa đặt bàn lúc {$reservation['reservation_time']} ngày {$reservation['reservation_date']}.",
+                'type' => 'reservation',
+                'reservation_id' => $reservation['id'] ?? null,
+                'receiver_id' => $admin->id,
+            ]);
+        }
     }
 
     /**

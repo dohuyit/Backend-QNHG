@@ -151,7 +151,18 @@ class ReservationService
                     'status' => 'pending_confirmation',
                     'items' => [], // chưa có món
                 ];
-                $this->orderService->createOrder($orderData);
+                $orderResult = $this->orderService->createOrder($orderData);
+                if ($orderResult['order']) {
+                    $order = $orderResult['order'];
+                    event(new \App\Events\Orders\OrderCreated([
+                        'id' => $order->id,
+                        'order_code' => $order->order_code,
+                        'created_at' => $order->created_at,
+                        'status' => $order->status,
+                        'customer_name' => $order->contact_name,
+                        // ... các trường khác nếu cần
+                    ]));
+                }
             } elseif ($newStatus === 'cancelled' && !$reservation->cancelled_at) {
                 $listDataUpdate['cancelled_at'] = now();
             } elseif ($newStatus === 'completed' && !$reservation->completed_at) {
