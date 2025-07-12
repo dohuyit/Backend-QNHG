@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin\User;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\User\ChangePasswordRequest;
 use App\Http\Requests\User\CreateUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
 use App\Models\User;
@@ -139,4 +140,30 @@ class UserController extends Controller
         return $this->responseSuccess($result);
     }
 
+    public function getUserDetail(string $id)
+    {
+        $result = $this->userService->getUserDetail($id);
+
+        if (! $result->isSuccessCode()) {
+            return $this->responseFail(message: $result->getMessage(), statusCode: 404);
+        }
+
+        return $this->responseSuccess($result->getData());
+    }
+
+    public function changePassword(ChangePasswordRequest $request)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return $this->responseFail(message: 'Người dùng chưa được xác thực.');
+        }
+        $data = $request->only(['old_password', 'new_password']);
+        $result = $this->userService->changePassword($user->id, $data);
+
+        if (!$result->isSuccessCode()) {
+            return $this->responseFail(message: $result->getMessage());
+        }
+
+        return $this->responseSuccess(message: $result->getMessage());
+    }
 }
