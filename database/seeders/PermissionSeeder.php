@@ -103,6 +103,28 @@ class PermissionSeeder extends Seeder
                 'description' => 'Xem nhân viên (vai trò người dùng)',
                 'group' => 'Vai trò & Quyền'
             ],
+            // Thêm vào cuối danh sách:
+            [
+                'permission_name' => 'customer.view',
+                'description' => 'Xem danh sách khách hàng',
+                'group' => 'Khách hàng'
+            ],
+            [
+                'permission_name' => 'customer.update',
+                'description' => 'Cập nhật thông tin khách hàng',
+                'group' => 'Khách hàng'
+            ],
+            [
+                'permission_name' => 'customer.delete',
+                'description' => 'Xóa khách hàng',
+                'group' => 'Khách hàng'
+            ],
+            [
+                'permission_name' => 'customer.count-by-status',
+                'description' => 'Thống kê khách hàng theo trạng thái',
+                'group' => 'Khách hàng'
+            ],
+
         ];
 
         foreach ($permissions as $permission) {

@@ -59,6 +59,9 @@ Route::prefix('admin')->group(function () {
         Route::post('users/{id}/block', [UserController::class, 'blockUser']);
         Route::post('users/{id}/unblock', [UserController::class, 'unblockUser']);
         Route::get('users/count-by-status', [UserController::class, 'countByStatus']);
+        Route::post('users/change-password', [UserController::class, 'changePassword']);
+        Route::get('users/{id}/detail', [UserController::class, 'getUserDetail']);
+
 
 
         ## table areas
