@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
+
 // Routes for Admin
 require __DIR__.'/admin/auth.php';
 require __DIR__.'/admin/admin.php';

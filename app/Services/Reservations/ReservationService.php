@@ -4,6 +4,8 @@ namespace App\Services\Reservations;
 
 use App\Common\DataAggregate;
 use App\Common\ListAggregate;
+use App\Events\Reservations\ReservationCreated;
+use App\Events\Reservations\ReservationStatusUpdated;
 use App\Models\Reservation;
 use App\Repositories\Reservations\ReservationRepositoryInterface;
 use App\Repositories\Table\TableRepositoryInterface;
@@ -91,6 +93,9 @@ class ReservationService
         }
         $result->setResultSuccess(message: 'Tạo đơn đặt bàn thành công!');
 
+        // Dispatch event cho realtime
+        event(new ReservationCreated($listDataCreate));
+
         $this->reservationMailService->sendClientConfirmMail($listDataCreate);
         return $result;
     }
@@ -146,7 +151,18 @@ class ReservationService
                     'status' => 'pending_confirmation',
                     'items' => [], // chưa có món
                 ];
-                $this->orderService->createOrder($orderData);
+                $orderResult = $this->orderService->createOrder($orderData);
+                if ($orderResult['order']) {
+                    $order = $orderResult['order'];
+                    event(new \App\Events\Orders\OrderCreated([
+                        'id' => $order->id,
+                        'order_code' => $order->order_code,
+                        'created_at' => $order->created_at,
+                        'status' => $order->status,
+                        'customer_name' => $order->contact_name,
+                        // ... các trường khác nếu cần
+                    ]));
+                }
             } elseif ($newStatus === 'cancelled' && !$reservation->cancelled_at) {
                 $listDataUpdate['cancelled_at'] = now();
             } elseif ($newStatus === 'completed' && !$reservation->completed_at) {
@@ -160,6 +176,12 @@ class ReservationService
             return $result;
         }
         $result->setResultSuccess(message: 'Cập nhật thành công!');
+
+        // Dispatch event cho realtime khi thay đổi trạng thái
+        if ($newStatus !== $currentStatus) {
+            event(new ReservationStatusUpdated($reservation->toArray(), $currentStatus, $newStatus));
+        }
+
         return $result;
     }
     public function listTrashedReservation(array $params): ListAggregate
@@ -279,6 +301,9 @@ class ReservationService
             'user_id' => $userId,
             'confirmed_at' => now(),
         ]);
+
+        // Dispatch event cho realtime
+        event(new ReservationStatusUpdated($reservation->toArray(), 'pending', 'confirmed'));
 
         $result->setResultSuccess(message: 'Xác nhận đơn đặt bàn thành công', data: ['new_status' => 'confirmed']);
         return $result;

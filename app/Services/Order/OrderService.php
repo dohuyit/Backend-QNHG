@@ -93,7 +93,7 @@ class OrderService
         return $result;
     }
 
-    public function createOrder(array $data): DataAggregate
+    public function createOrder(array $data): array
     {
         $result = new DataAggregate();
 
@@ -131,7 +131,7 @@ class OrderService
                     $menuItem = $menuItems->get($item['dish_id']);
                     if (!$menuItem) {
                         $result->setMessage("Món ăn ID {$item['dish_id']} không tồn tại");
-                        return $result;
+                        return ['result' => $result, 'order' => null];
                     }
 
                     $lineTotal = $menuItem->selling_price * $quantity;
@@ -151,7 +151,7 @@ class OrderService
                     $comboItem = $comboItems->get($item['combo_id']);
                     if (!$comboItem) {
                         $result->setMessage("Combo ID {$item['combo_id']} không tồn tại");
-                        return $result;
+                        return ['result' => $result, 'order' => null];
                     }
 
                     $lineTotal = $comboItem->selling_price * $quantity;
@@ -169,7 +169,7 @@ class OrderService
                     ];
                 } else {
                     $result->setMessage("Mỗi item phải có dish_id hoặc combo_id");
-                    return $result;
+                    return ['result' => $result, 'order' => null];
                 }
             }
         }
@@ -183,13 +183,11 @@ class OrderService
 
         if (!$order) {
             $result->setMessage('Tạo đơn hàng thất bại, vui lòng thử lại!');
-            return $result;
+            return ['result' => $result, 'order' => null];
         }
 
-
-
         $result->setResultSuccess(message: 'Tạo đơn hàng thành công!');
-        return $result;
+        return ['result' => $result, 'order' => $order];
     }
 
     public function getOrderDetail(string $id): DataAggregate
@@ -311,6 +309,70 @@ class OrderService
             $result->setMessage('Cập nhật đơn hàng thất bại, vui lòng thử lại!');
             return $result;
         }
+
+        // Lấy lại danh sách món mới nhất
+        $orderItems = $updatedOrder->items;
+        if (!empty($data['items'])) {
+            foreach ($data['items'] as $item) {
+                // Nếu là món bị xóa (quantity <= 0 và có id)
+                if (isset($item['id']) && isset($item['quantity']) && $item['quantity'] <= 0) {
+                    // Lấy thông tin món vừa xóa từ $order hoặc $order->items trước khi update
+                    $deletedItem = null;
+                    $oldOrderItems = $order->items ?? collect();
+                    $deletedItem = $oldOrderItems->where('id', $item['id'])->first();
+                    if ($deletedItem) {
+                        event(new \App\Events\Orders\OrderItemDeleted([
+                            'id' => $deletedItem->id,
+                            'order_id' => $deletedItem->order_id,
+                            'item_name' => $deletedItem->menuItem->name ?? $deletedItem->combo->name ?? '',
+                            'status' => $deletedItem->kitchen_status,
+                            'quantity' => $deletedItem->quantity,
+                            'notes' => $deletedItem->notes,
+                        ]));
+                    }
+                } else if (empty($item['id'])) {
+                    // Nếu là món mới (không có id trước đó, nhưng đã được tạo ra)
+                    $createdItem = $orderItems->where('dish_id', $item['dish_id'] ?? null)
+                        ->where('combo_id', $item['combo_id'] ?? null)
+                        ->where('quantity', $item['quantity'])
+                        ->sortByDesc('id')->first();
+                    if ($createdItem) {
+                        event(new \App\Events\Orders\OrderItemCreated([
+                            'id' => $createdItem->id,
+                            'order_id' => $createdItem->order_id,
+                            'item_name' => $createdItem->menuItem->name ?? $createdItem->combo->name ?? '',
+                            'status' => $createdItem->kitchen_status,
+                            'quantity' => $createdItem->quantity,
+                            'notes' => $createdItem->notes,
+                            'updated_at' => $createdItem->updated_at,
+                        ]));
+                    }
+                } else {
+                    // Nếu là món sửa (có id), broadcast event update
+                    $updatedItem = $orderItems->where('id', $item['id'])->first();
+                    if ($updatedItem) {
+                        event(new \App\Events\Orders\OrderItemUpdated([
+                            'id' => $updatedItem->id,
+                            'order_id' => $updatedItem->order_id,
+                            'item_name' => $updatedItem->menuItem->name ?? $updatedItem->combo->name ?? '',
+                            'status' => $updatedItem->kitchen_status,
+                            'quantity' => $updatedItem->quantity,
+                            'notes' => $updatedItem->notes,
+                            'updated_at' => $updatedItem->updated_at,
+                        ]));
+                    }
+                }
+            }
+        }
+
+        // Dispatch event OrderUpdated
+        event(new \App\Events\Orders\OrderUpdated([
+            'id' => $updatedOrder->id,
+            'order_code' => $updatedOrder->order_code,
+            'status' => $updatedOrder->status,
+            'updated_at' => $updatedOrder->updated_at,
+            // ... các trường khác nếu cần
+        ]));
 
         $result->setResultSuccess(message: 'Cập nhật đơn hàng thành công!');
         return $result;
