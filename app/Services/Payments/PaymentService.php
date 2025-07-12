@@ -34,6 +34,7 @@ class PaymentService
             $result->setMessage('Đơn hàng không tồn tại.');
             return $result;
         }
+        $order->load('orderTables');
 
         if ($order->status === 'cancelled') {
             $result->setMessage('Đơn hàng đã huỷ.');
@@ -156,6 +157,12 @@ class PaymentService
                 'status' => 'completed',
                 'final_amount' => $finalAmount,
             ]);
+
+            $tableIds = $order->orderTables->pluck('table_id')->toArray();
+
+            foreach ($tableIds as $tableId) {
+                $this->tableRepository->updateByConditions(['id' => $tableId], ['status' => 'cleaning']);
+            }
 
             $result->setResultSuccess(
                 message: 'Đã thanh toán đủ.',
@@ -288,6 +295,7 @@ class PaymentService
         }
         $orderCode = explode('-', $inputData['vnp_TxnRef'])[0];
         $order = $this->orderRepository->getByConditions(['order_code' => $orderCode]);
+        $order->load('orderTables');
 
         if (!$order) {
             $result->setMessage('Đơn hàng không tồn tại.');
@@ -351,8 +359,10 @@ class PaymentService
         if (abs($remainingAfter) < 1) {
             $this->paymentRepository->updateBillByConditions(['id' => $bill->id], ['status' => 'paid']);
             $this->orderRepository->updateByConditions(['id' => $order->id], ['status' => 'completed']);
-            if (!empty($order->table_id)) {
-                $this->tableRepository->updateByConditions(['id' => $order->table_id], ['status' => 'cleaning']);
+
+            $tableIds = $order->orderTables->pluck('table_id')->toArray();
+            foreach ($tableIds as $tableId) {
+                $this->tableRepository->updateByConditions(['id' => $tableId], ['status' => 'cleaning']);
             }
             $message = 'Đã thanh toán đủ, bill hoàn tất.';
             $remainingAfter = 0.0;
@@ -541,6 +551,21 @@ class PaymentService
 
         if (abs($remainingAfter) < 1) {
             $this->paymentRepository->updateBillByConditions(['id' => $bill->id], ['status' => 'paid']);
+
+            // ✅ Cập nhật đơn hàng
+            $this->orderRepository->updateByConditions(['id' => $order->id], [
+                'status' => 'completed',
+                'final_amount' => $bill->final_amount,
+            ]);
+
+            // ✅ Cập nhật trạng thái bàn sang "cleaning"
+            $order->load('orderTables');
+            $tableIds = $order->orderTables->pluck('table_id')->toArray();
+
+            foreach ($tableIds as $tableId) {
+                $this->tableRepository->updateByConditions(['id' => $tableId], ['status' => 'cleaning']);
+            }
+
             $message = 'Đã thanh toán đủ, bill hoàn tất.';
             $remainingAfter = 0.0;
         } else {
