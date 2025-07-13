@@ -29,10 +29,10 @@ class CartService
         $customerId = $customerId ?? Auth::guard('customer')->id();
         $cart = $this->cartRepository->getByConditions(['customer_id' => $customerId]);
 
-        if (!$cart) {
-            $result->setMessage('Giỏ hàng trống.');
-            return $result;
-        }
+       if (!$cart || $cart->items->isEmpty()) {
+    $result->setMessage('Giỏ hàng trống.');
+    return $result;
+}
 
         $data = [
             'id' => $cart->id,

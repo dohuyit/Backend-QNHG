@@ -30,20 +30,23 @@ class ClientPaymentService
             $result->setMessage('Đơn hàng không tồn tại.');
             return $result;
         }
+        if ($order->status === 'cancelled') {
+            $result->setMessage('Đơn hàng đã huỷ.');
+            return $result;
+        }
 
         $userId = $data['user_id'] ?? Auth::id() ?? $order->user_id;
         $paymentMethod = $data['payment_method'] ?? 'cash';
 
         $bill = $this->paymentRepository->getBillByConditions(['order_id' => $order->id]);
 
-        // ✅ Nếu đã thanh toán rồi
         if ($bill && $bill->status === 'paid') {
             $result->setMessage('Đơn hàng đã được thanh toán.');
             return $result;
         }
 
         $subTotal = round((float)$order->total_amount, 2);
-        $deliveryFee = $subTotal >= 700000 ? 0.0 : 40000;
+        $deliveryFee = $subTotal >= 500000 ? 0.0 : 40000; // free ship nếu >= 500k
         $discount = 0.0;
         $finalAmount = round($subTotal + $deliveryFee - $discount, 2);
 
@@ -52,9 +55,7 @@ class ClientPaymentService
             return $result;
         }
 
-        // 👉 Nếu bill tồn tại và chưa thanh toán
         if ($bill && $bill->status === 'unpaid') {
-            // ✅ Với cash: báo lại thông tin
             if ($paymentMethod === 'cash') {
                 $result->setResultSuccess(
                     message: 'Đơn hàng đã được tạo trước đó. Vui lòng thanh toán ' . number_format($bill->final_amount) . ' VND khi nhận hàng.',
@@ -63,7 +64,6 @@ class ClientPaymentService
                 return $result;
             }
 
-            // ✅ Với vnpay/momo: tạo lại link thanh toán
             if ($paymentMethod === 'vnpay') {
                 return $this->generateVnpayUrl($order->id);
             }
@@ -72,7 +72,6 @@ class ClientPaymentService
             }
         }
 
-        // 🆕 Nếu bill chưa có → tạo mới
         $bill = $this->paymentRepository->createBill([
             'bill_code'       => strtoupper('B' . now()->format('YmdHis') . rand(10, 99)),
             'order_id'        => $order->id,
@@ -84,12 +83,10 @@ class ClientPaymentService
             'user_id'         => $userId,
         ]);
 
-        // 🔥 Update luôn final_amount của order
         $this->orderRepository->updateByConditions(['id' => $order->id], [
             'final_amount' => $finalAmount
         ]);
 
-        // ✅ Xử lý theo phương thức thanh toán
         if ($paymentMethod === 'cash') {
             $this->paymentRepository->createPayment([
                 'bill_id'      => $bill->id,
@@ -118,8 +115,6 @@ class ClientPaymentService
         $result->setMessage('Phương thức thanh toán không hợp lệ.');
         return $result;
     }
-
-
 
     public function generateVnpayUrl(int $orderId): DataAggregate
     {
@@ -207,12 +202,9 @@ class ClientPaymentService
     {
         $result = new DataAggregate();
         $inputData = $request->all();
-
-        // 🔥 Dùng VNPAY client config
         $vnp_HashSecret = config('services.vnpay_client.hash_secret');
         $vnp_SecureHash = $inputData['vnp_SecureHash'] ?? '';
 
-        // Check chữ ký
         unset($inputData['vnp_SecureHash'], $inputData['vnp_SecureHashType']);
         ksort($inputData);
 
@@ -365,22 +357,9 @@ class ClientPaymentService
         $secretKey = config('services.momo_client.secret_key');
         $accessKey = config('services.momo_client.access_key');
 
-        // Trim các giá trị để tránh lỗi khoảng trắng
-        foreach ($inputData as $key => $value) {
-            $inputData[$key] = trim((string)$value);
-        }
-
-        if (isset($inputData['signature'])) {
-            $rawHash = "accessKey={$accessKey}&amount={$inputData['amount']}&extraData={$inputData['extraData']}&ipnUrl={$inputData['ipnUrl']}&orderId={$inputData['orderId']}&orderInfo={$inputData['orderInfo']}&orderType={$inputData['orderType']}&partnerCode={$inputData['partnerCode']}&payType={$inputData['payType']}&requestId={$inputData['requestId']}&responseTime={$inputData['responseTime']}&resultCode={$inputData['resultCode']}&transId={$inputData['transId']}";
-
+         if (isset($inputData['signature'])) {
+            $rawHash = "accessKey={$accessKey}&amount={$inputData['amount']}&extraData={$inputData['extraData']}&message={$inputData['message']}&orderId={$inputData['orderId']}&orderInfo={$inputData['orderInfo']}&orderType={$inputData['orderType']}&partnerCode={$inputData['partnerCode']}&payType={$inputData['payType']}&requestId={$inputData['requestId']}&responseTime={$inputData['responseTime']}&resultCode={$inputData['resultCode']}&transId={$inputData['transId']}";
             $calculatedSignature = hash_hmac('sha256', $rawHash, $secretKey);
-
-            // 🔥 Log để so sánh
-            Log::info('📥 MoMo Signature Debug', [
-                'rawHash'              => $rawHash,
-                'calculatedSignature'  => $calculatedSignature,
-                'receivedSignature'    => $inputData['signature'],
-            ]);
 
             if ($calculatedSignature !== $inputData['signature']) {
                 $result->setMessage("Chữ ký không hợp lệ.");

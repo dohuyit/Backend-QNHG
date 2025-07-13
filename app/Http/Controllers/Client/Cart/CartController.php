@@ -28,8 +28,8 @@ class CartController extends Controller
         if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage());
         }
-
-        return $this->responseSuccess($result->getData(), 'Lấy giỏ hàng thành công.');
+       $data = $result->getData();
+        return $this->responseSuccess($data);
     }
 
     /**

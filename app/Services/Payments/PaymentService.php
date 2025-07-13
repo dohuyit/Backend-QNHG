@@ -34,6 +34,7 @@ class PaymentService
             $result->setMessage('Đơn hàng không tồn tại.');
             return $result;
         }
+        $order->load('orderTables');
 
         if ($order->status === 'cancelled') {
             $result->setMessage('Đơn hàng đã huỷ.');
@@ -157,6 +158,12 @@ class PaymentService
                 'final_amount' => $finalAmount,
             ]);
 
+            $tableIds = $order->orderTables->pluck('table_id')->toArray();
+
+            foreach ($tableIds as $tableId) {
+                $this->tableRepository->updateByConditions(['id' => $tableId], ['status' => 'cleaning']);
+            }
+
             $result->setResultSuccess(
                 message: 'Đã thanh toán đủ.',
                 data: [
@@ -203,10 +210,10 @@ class PaymentService
 
         date_default_timezone_set('Asia/Ho_Chi_Minh');
 
-        $vnp_TmnCode = config('services.vnpay_admin.tmn_code');
-        $vnp_HashSecret = config('services.vnpay_admin.hash_secret');
-        $vnp_Url = config('services.vnpay_admin.url');
-        $vnp_ReturnUrl = config('services.vnpay_admin.return_url');
+        $vnp_TmnCode = config('services.vnpay.tmn_code');
+        $vnp_HashSecret = config('services.vnpay.hash_secret');
+        $vnp_Url = config('services.vnpay.url');
+        $vnp_ReturnUrl = config('services.vnpay.return_url');
 
         $vnp_TxnRef = $order->order_code . '-' . time();
 
@@ -267,7 +274,7 @@ class PaymentService
     {
         $result = new DataAggregate();
         $inputData = $request->all();
-        $vnp_HashSecret = config('services.vnpay_admin.hash_secret');
+        $vnp_HashSecret = config('services.vnpay.hash_secret');
         $vnp_SecureHash = $inputData['vnp_SecureHash'] ?? '';
 
         unset($inputData['vnp_SecureHash'], $inputData['vnp_SecureHashType']);
@@ -288,6 +295,7 @@ class PaymentService
         }
         $orderCode = explode('-', $inputData['vnp_TxnRef'])[0];
         $order = $this->orderRepository->getByConditions(['order_code' => $orderCode]);
+        $order->load('orderTables');
 
         if (!$order) {
             $result->setMessage('Đơn hàng không tồn tại.');
@@ -351,8 +359,10 @@ class PaymentService
         if (abs($remainingAfter) < 1) {
             $this->paymentRepository->updateBillByConditions(['id' => $bill->id], ['status' => 'paid']);
             $this->orderRepository->updateByConditions(['id' => $order->id], ['status' => 'completed']);
-            if (!empty($order->table_id)) {
-                $this->tableRepository->updateByConditions(['id' => $order->table_id], ['status' => 'cleaning']);
+
+            $tableIds = $order->orderTables->pluck('table_id')->toArray();
+            foreach ($tableIds as $tableId) {
+                $this->tableRepository->updateByConditions(['id' => $tableId], ['status' => 'cleaning']);
             }
             $message = 'Đã thanh toán đủ, bill hoàn tất.';
             $remainingAfter = 0.0;
@@ -401,12 +411,12 @@ class PaymentService
             return $result;
         }
 
-        $endpoint = config('services.momo_admin.endpoint');
-        $partnerCode = config('services.momo_admin.partner_code');
-        $accessKey = config('services.momo_admin.access_key');
-        $secretKey = config('services.momo_admin.secret_key');
-        $redirectUrl = config('services.momo_admin.return_url');
-        $ipnUrl = config('services.momo_admin.notify_url');
+        $endpoint = config('services.momo.endpoint');
+        $partnerCode = config('services.momo.partner_code');
+        $accessKey = config('services.momo.access_key');
+        $secretKey = config('services.momo.secret_key');
+        $redirectUrl = config('services.momo.return_url');
+        $ipnUrl = config('services.momo.notify_url');
         $requestType = 'payWithMethod';
         $orderInfo = "Thanh toán đơn hàng #" . $order->order_code;
 
@@ -454,8 +464,8 @@ class PaymentService
     public function handleMomoReturn($inputData): DataAggregate
     {
         $result = new DataAggregate();
-        $secretKey = config('services.momo_admin.secret_key');
-        $accessKey = config('services.momo_admin.access_key');
+        $secretKey = config('services.momo.secret_key');
+        $accessKey = config('services.momo.access_key');
 
         if (isset($inputData['signature'])) {
             $rawHash = "accessKey={$accessKey}&amount={$inputData['amount']}&extraData={$inputData['extraData']}&message={$inputData['message']}&orderId={$inputData['orderId']}&orderInfo={$inputData['orderInfo']}&orderType={$inputData['orderType']}&partnerCode={$inputData['partnerCode']}&payType={$inputData['payType']}&requestId={$inputData['requestId']}&responseTime={$inputData['responseTime']}&resultCode={$inputData['resultCode']}&transId={$inputData['transId']}";
@@ -541,6 +551,21 @@ class PaymentService
 
         if (abs($remainingAfter) < 1) {
             $this->paymentRepository->updateBillByConditions(['id' => $bill->id], ['status' => 'paid']);
+
+            // ✅ Cập nhật đơn hàng
+            $this->orderRepository->updateByConditions(['id' => $order->id], [
+                'status' => 'completed',
+                'final_amount' => $bill->final_amount,
+            ]);
+
+            // ✅ Cập nhật trạng thái bàn sang "cleaning"
+            $order->load('orderTables');
+            $tableIds = $order->orderTables->pluck('table_id')->toArray();
+
+            foreach ($tableIds as $tableId) {
+                $this->tableRepository->updateByConditions(['id' => $tableId], ['status' => 'cleaning']);
+            }
+
             $message = 'Đã thanh toán đủ, bill hoàn tất.';
             $remainingAfter = 0.0;
         } else {

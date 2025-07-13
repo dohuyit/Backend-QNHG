@@ -34,21 +34,13 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
-    'vnpay_admin' => [
+    'vnpay' => [
         'tmn_code' => env('VNPAY_ADMIN_TMN_CODE'),
         'hash_secret' => env('VNPAY_ADMIN_HASH_SECRET'),
         'url' => env('VNPAY_ADMIN_URL'),
         'return_url' => env('VNPAY_ADMIN_RETURN_URL'),
     ],
-
-    'vnpay_client' => [
-        'tmn_code' => env('VNPAY_CLIENT_TMN_CODE'),
-        'hash_secret' => env('VNPAY_CLIENT_HASH_SECRET'),
-        'url' => env('VNPAY_CLIENT_URL'),
-        'return_url' => env('VNPAY_CLIENT_RETURN_URL'),
-    ],
-
-    'momo_admin' => [
+    'momo' => [
         'partner_code' => env('MOMO_ADMIN_PARTNER_CODE'),
         'access_key' => env('MOMO_ADMIN_ACCESS_KEY'),
         'secret_key' => env('MOMO_ADMIN_SECRET_KEY'),
@@ -56,7 +48,12 @@ return [
         'return_url' => env('MOMO_ADMIN_RETURN_URL'),
         'notify_url' => env('MOMO_ADMIN_NOTIFY_URL'),
     ],
-
+    'vnpay_client' => [
+        'tmn_code' => env('VNPAY_CLIENT_TMN_CODE'),
+        'hash_secret' => env('VNPAY_CLIENT_HASH_SECRET'),
+        'url' => env('VNPAY_CLIENT_URL'),
+        'return_url' => env('VNPAY_CLIENT_RETURN_URL'),
+    ],
     'momo_client' => [
         'partner_code' => env('MOMO_CLIENT_PARTNER_CODE'),
         'access_key' => env('MOMO_CLIENT_ACCESS_KEY'),
