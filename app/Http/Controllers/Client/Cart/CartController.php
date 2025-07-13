@@ -18,9 +18,6 @@ class CartController extends Controller
         $this->cartService = $cartService;
     }
 
-    /**
-     * Lấy thông tin giỏ hàng
-     */
     public function getCart()
     {
         $result = $this->cartService->getCart();
@@ -28,13 +25,10 @@ class CartController extends Controller
         if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage());
         }
-       $data = $result->getData();
+        $data = $result->getData();
         return $this->responseSuccess($data);
     }
 
-    /**
-     * Thêm nhiều món vào giỏ hàng
-     */
     public function addToCart(AddCartItemRequest $request)
     {
         $items = $request->input('items', []);
@@ -48,9 +42,6 @@ class CartController extends Controller
         return $this->responseSuccess(message: $result->getMessage());
     }
 
-    /**
-     * Cập nhật số lượng nhiều món cùng lúc
-     */
     public function updateCartItems(AddCartItemRequest $request)
     {
         $items = $request->input('items', []);
@@ -64,22 +55,19 @@ class CartController extends Controller
         return $this->responseSuccess(message: $result->getMessage());
     }
 
-    /**
-     * Xoá nhiều món trong giỏ
-     */
-public function removeCartItems(Request  $request)
-{
-    $items = $request->input('items', []);
-    $dishIds = collect($items)->pluck('dish_id')->toArray();
+    public function removeCartItems(Request  $request)
+    {
+        $items = $request->input('items', []);
+        $dishIds = collect($items)->pluck('dish_id')->toArray();
 
-    $result = $this->cartService->removeItems($dishIds);
+        $result = $this->cartService->removeItems($dishIds);
 
-    if (!$result->isSuccessCode()) {
-        return $this->responseFail(message: $result->getMessage());
+        if (!$result->isSuccessCode()) {
+            return $this->responseFail(message: $result->getMessage());
+        }
+
+        return $this->responseSuccess(message: $result->getMessage());
     }
-
-    return $this->responseSuccess(message: $result->getMessage());
-}
 
 
 

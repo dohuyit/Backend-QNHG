@@ -29,10 +29,10 @@ class CartService
         $customerId = $customerId ?? Auth::guard('customer')->id();
         $cart = $this->cartRepository->getByConditions(['customer_id' => $customerId]);
 
-       if (!$cart || $cart->items->isEmpty()) {
-    $result->setMessage('Giỏ hàng trống.');
-    return $result;
-}
+        if (!$cart || $cart->items->isEmpty()) {
+            $result->setMessage('Giỏ hàng trống.');
+            return $result;
+        }
 
         $data = [
             'id' => $cart->id,
@@ -72,7 +72,7 @@ class CartService
 
             $dish = $this->dishRepository->getByConditions(['id' => $dishId]);
             if (!$dish) {
-                continue; // Skip nếu món không tồn tại
+                continue; 
             }
 
             $existingItem = $cart->items()->where('dish_id', $dishId)->first();
@@ -150,17 +150,6 @@ class CartService
         $result->setResultSuccess(message: 'Xoá món ăn thành công!');
         return $result;
     }
-
-
-
-
-
-
-
-
-
-
-
 
     public function clearCart(?int $customerId = null): DataAggregate
     {
