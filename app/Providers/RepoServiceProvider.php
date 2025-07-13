@@ -33,6 +33,7 @@ class RepoServiceProvider extends ServiceProvider
         
         $this->app->bind(\App\Repositories\KitchenOrders\KitchenOrderRepositoryInterface::class, \App\Repositories\KitchenOrders\KitchenOrderRepository::class);
         $this->app->bind(\App\Repositories\Payment\PaymentRepositoryInterface::class, \App\Repositories\Payment\PaymentRepository::class);
+        $this->app->bind(\App\Repositories\Carts\CartRepositoryInterface::class, \App\Repositories\Carts\CartRepository::class);
 
 
     }

@@ -203,10 +203,10 @@ class PaymentService
 
         date_default_timezone_set('Asia/Ho_Chi_Minh');
 
-        $vnp_TmnCode = config('services.vnpay.tmn_code');
-        $vnp_HashSecret = config('services.vnpay.hash_secret');
-        $vnp_Url = config('services.vnpay.url');
-        $vnp_ReturnUrl = config('services.vnpay.return_url');
+        $vnp_TmnCode = config('services.vnpay_admin.tmn_code');
+        $vnp_HashSecret = config('services.vnpay_admin.hash_secret');
+        $vnp_Url = config('services.vnpay_admin.url');
+        $vnp_ReturnUrl = config('services.vnpay_admin.return_url');
 
         $vnp_TxnRef = $order->order_code . '-' . time();
 
@@ -267,7 +267,7 @@ class PaymentService
     {
         $result = new DataAggregate();
         $inputData = $request->all();
-        $vnp_HashSecret = config('services.vnpay.hash_secret');
+        $vnp_HashSecret = config('services.vnpay_admin.hash_secret');
         $vnp_SecureHash = $inputData['vnp_SecureHash'] ?? '';
 
         unset($inputData['vnp_SecureHash'], $inputData['vnp_SecureHashType']);
@@ -401,12 +401,12 @@ class PaymentService
             return $result;
         }
 
-        $endpoint = config('services.momo.endpoint');
-        $partnerCode = config('services.momo.partner_code');
-        $accessKey = config('services.momo.access_key');
-        $secretKey = config('services.momo.secret_key');
-        $redirectUrl = config('services.momo.return_url');
-        $ipnUrl = config('services.momo.notify_url');
+        $endpoint = config('services.momo_admin.endpoint');
+        $partnerCode = config('services.momo_admin.partner_code');
+        $accessKey = config('services.momo_admin.access_key');
+        $secretKey = config('services.momo_admin.secret_key');
+        $redirectUrl = config('services.momo_admin.return_url');
+        $ipnUrl = config('services.momo_admin.notify_url');
         $requestType = 'payWithMethod';
         $orderInfo = "Thanh toán đơn hàng #" . $order->order_code;
 
@@ -454,8 +454,8 @@ class PaymentService
     public function handleMomoReturn($inputData): DataAggregate
     {
         $result = new DataAggregate();
-        $secretKey = config('services.momo.secret_key');
-        $accessKey = config('services.momo.access_key');
+        $secretKey = config('services.momo_admin.secret_key');
+        $accessKey = config('services.momo_admin.access_key');
 
         if (isset($inputData['signature'])) {
             $rawHash = "accessKey={$accessKey}&amount={$inputData['amount']}&extraData={$inputData['extraData']}&message={$inputData['message']}&orderId={$inputData['orderId']}&orderInfo={$inputData['orderInfo']}&orderType={$inputData['orderType']}&partnerCode={$inputData['partnerCode']}&payType={$inputData['payType']}&requestId={$inputData['requestId']}&responseTime={$inputData['responseTime']}&resultCode={$inputData['resultCode']}&transId={$inputData['transId']}";
