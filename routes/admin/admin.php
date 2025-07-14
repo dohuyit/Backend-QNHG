@@ -60,6 +60,10 @@ Route::prefix('admin')->group(function () {
         Route::post('users/{id}/unblock', [UserController::class, 'unblockUser']);
         Route::get('users/count-by-status', [UserController::class, 'countByStatus']);
 
+        Route::post('users/change-password', [UserController::class, 'changePassword']);
+        Route::get('users/{id}/detail', [UserController::class, 'getUserDetail']);
+
+
 
         ## table areas
         Route::get('table-areas/list', [TableAreaController::class, 'getListTableArea']);
@@ -77,6 +81,7 @@ Route::prefix('admin')->group(function () {
         Route::delete('tables/{id}/delete', [TableController::class, 'destroyTable']);
         Route::get('tables/count-by-status', [TableController::class, 'countByStatus']);
         Route::get('/tables/get-by-status', [TableController::class, 'getTablesByStatus']);
+      
         ##resetpass
         Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
         Route::post('/reset-password/{id}', [AuthController::class, 'resetPassword']);
