@@ -46,12 +46,6 @@ Route::post('carts/remove', [CartController::class, 'removeCartItems']);
 // http://127.0.0.1:8000/api/carts/clear
 Route::delete('carts/clear', [CartController::class, 'clearCart']);
 
- Route::post('orders/{id}/pay', [PaymentController::class, 'handlePayment']);
- Route::get('/vnpay-return', [PaymentController::class, 'vnpayReturn']);
+Route::post('orders/{id}/pay', [PaymentController::class, 'handlePayment']);
+Route::get('/vnpay-return', [PaymentController::class, 'vnpayReturn']);
 Route::get('/momo-return', [PaymentController::class, 'momoReturn']);
-
-    // Route::get('orders/{id}/vnpay-url', [PaymentController::class, 'createVnpayUrl']);
-
-    // Route::get('orders/{id}/momo-url', [PaymentController::class, 'createMomoUrl']);
-
-

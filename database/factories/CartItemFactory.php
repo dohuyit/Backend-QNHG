@@ -22,11 +22,15 @@ class CartItemFactory extends Factory
 
     public function definition(): array
     {
+        // Random chọn 0 = dish, 1 = combo
+        $isCombo = rand(0, 1);
+
         return [
-            'cart_id' => Cart::factory(),
-            'dish_id' => Dish::inRandomOrder()->value('id'),
-            'quantity' => rand(1, 5),
-            'price' => $this->faker->randomFloat(2, 10, 500),
+            'cart_id'   => Cart::factory(),
+            'dish_id'   => $isCombo ? null : Dish::inRandomOrder()->value('id'),
+            'combo_id'  => $isCombo ? Combo::inRandomOrder()->value('id') : null,
+            'quantity'  => rand(1, 5),
+            'price'     => $this->faker->randomFloat(2, 10, 500),
         ];
     }
 }

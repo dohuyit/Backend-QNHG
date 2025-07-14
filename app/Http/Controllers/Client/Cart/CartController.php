@@ -58,9 +58,8 @@ class CartController extends Controller
     public function removeCartItems(Request  $request)
     {
         $items = $request->input('items', []);
-        $dishIds = collect($items)->pluck('dish_id')->toArray();
 
-        $result = $this->cartService->removeItems($dishIds);
+        $result = $this->cartService->removeItems($items);
 
         if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage());
@@ -69,15 +68,6 @@ class CartController extends Controller
         return $this->responseSuccess(message: $result->getMessage());
     }
 
-
-
-
-
-
-
-    /**
-     * Xoá toàn bộ giỏ hàng
-     */
     public function clearCart()
     {
         $result = $this->cartService->clearCart();

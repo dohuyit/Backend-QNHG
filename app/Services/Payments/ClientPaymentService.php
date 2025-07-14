@@ -56,6 +56,15 @@ class ClientPaymentService
         }
 
         if ($bill && $bill->status === 'unpaid') {
+            $payment = $this->paymentRepository->getPaymentByConditions([
+                'bill_id' => $bill->id
+            ]);
+
+            if ($payment && $payment->payment_method === 'cash' && $paymentMethod !== 'cash') {
+                $result->setMessage('Đơn hàng đang chờ thanh toán bằng tiền mặt. Không thể đổi sang thanh toán online.');
+                return $result;
+            }
+
             if ($paymentMethod === 'cash') {
                 $result->setResultSuccess(
                     message: 'Đơn hàng đã được tạo trước đó. Vui lòng thanh toán ' . number_format($bill->final_amount) . ' VND khi nhận hàng.',
@@ -357,7 +366,7 @@ class ClientPaymentService
         $secretKey = config('services.momo_client.secret_key');
         $accessKey = config('services.momo_client.access_key');
 
-         if (isset($inputData['signature'])) {
+        if (isset($inputData['signature'])) {
             $rawHash = "accessKey={$accessKey}&amount={$inputData['amount']}&extraData={$inputData['extraData']}&message={$inputData['message']}&orderId={$inputData['orderId']}&orderInfo={$inputData['orderInfo']}&orderType={$inputData['orderType']}&partnerCode={$inputData['partnerCode']}&payType={$inputData['payType']}&requestId={$inputData['requestId']}&responseTime={$inputData['responseTime']}&resultCode={$inputData['resultCode']}&transId={$inputData['transId']}";
             $calculatedSignature = hash_hmac('sha256', $rawHash, $secretKey);
 

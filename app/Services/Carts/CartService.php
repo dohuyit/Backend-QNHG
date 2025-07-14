@@ -7,6 +7,7 @@ use App\Repositories\Carts\CartRepositoryInterface;
 use App\Repositories\Dishes\DishRepositoryInterface;
 use Illuminate\Support\Facades\Auth;
 use App\Models\CartItem;
+use App\Repositories\Combos\ComboRepositoryInterface;
 use Illuminate\Support\Facades\Log;
 
 class CartService
@@ -14,12 +15,16 @@ class CartService
     protected CartRepositoryInterface $cartRepository;
     protected DishRepositoryInterface $dishRepository;
 
+    protected ComboRepositoryInterface $comboRepository;
+
     public function __construct(
         CartRepositoryInterface $cartRepository,
-        DishRepositoryInterface $dishRepository
+        DishRepositoryInterface $dishRepository,
+        ComboRepositoryInterface $comboRepository
     ) {
         $this->cartRepository = $cartRepository;
         $this->dishRepository = $dishRepository;
+        $this->comboRepository = $comboRepository;
     }
 
     public function getCart(?int $customerId = null): DataAggregate
@@ -43,6 +48,8 @@ class CartService
                     'id' => $item->id,
                     'dish_id' => $item->dish_id,
                     'dish_name' => optional($item->dish)->name,
+                    'combo_id' => $item->combo_id,
+                    'combo_name' => optional($item->combo)->name,
                     'quantity' => $item->quantity,
                     'price' => $item->price,
                 ];
@@ -68,25 +75,45 @@ class CartService
 
         foreach ($items as $item) {
             $dishId = $item['dish_id'] ?? null;
+            $comboId = $item['combo_id'] ?? null;
             $quantity = $item['quantity'] ?? 1;
-
-            $dish = $this->dishRepository->getByConditions(['id' => $dishId]);
-            if (!$dish) {
-                continue; 
+            if (empty($dishId) && empty($comboId)) {
+                $result->setMessage('Vui lòng chọn món hoặc combo.');
+                return $result;
             }
+            if ($dishId) {
+                $dish = $this->dishRepository->getByConditions(['id' => $dishId]);
+                if ($dish) {
+                    $existingItem = $cart->items()->where('dish_id', $dishId)->first();
+                    if ($existingItem) {
+                        $newQuantity = $existingItem->quantity + $quantity;
+                        $this->cartRepository->updateItem($existingItem->id, ['quantity' => $newQuantity]);
+                    } else {
+                        $this->cartRepository->createItem([
+                            'cart_id'  => $cart->id,
+                            'dish_id'  => $dishId,
+                            'quantity' => $quantity,
+                            'price'    => $dish->selling_price,
+                        ]);
+                    }
+                }
+            } elseif ($comboId) {
+                $combo = $this->comboRepository->getByConditions(['id' => $comboId]);
 
-            $existingItem = $cart->items()->where('dish_id', $dishId)->first();
-
-            if ($existingItem) {
-                $newQuantity = $existingItem->quantity + $quantity;
-                $this->cartRepository->updateItem($existingItem->id, ['quantity' => $newQuantity]);
-            } else {
-                $this->cartRepository->createItem([
-                    'cart_id'  => $cart->id,
-                    'dish_id'  => $dishId,
-                    'quantity' => $quantity,
-                    'price'    => $dish->selling_price,
-                ]);
+                if ($combo) {
+                    $existingItem = $cart->items()->where('combo_id', $comboId)->first();
+                    if ($existingItem) {
+                        $newQuantity = $existingItem->quantity + $quantity;
+                        $this->cartRepository->updateItem($existingItem->id, ['quantity' => $newQuantity]);
+                    } else {
+                        $this->cartRepository->createItem([
+                            'cart_id'  => $cart->id,
+                            'combo_id'  => $comboId,
+                            'quantity' => $quantity,
+                            'price'    => $combo->selling_price,
+                        ]);
+                    }
+                }
             }
         }
 
@@ -109,11 +136,19 @@ class CartService
         foreach ($items as $item) {
             $dishId = $item['dish_id'] ?? null;
             $quantity = $item['quantity'] ?? null;
+            $comboId = $item['combo_id'] ?? null;
 
-            if ($dishId && is_numeric($quantity) && $quantity > 0) {
-                $cartItem = $cart->items()->where('dish_id', $dishId)->first();
-                if ($cartItem) {
-                    $this->cartRepository->updateItem($cartItem->id, ['quantity' => $quantity]);
+            if (is_numeric($quantity) && $quantity > 0) {
+                if ($dishId) {
+                    $cartItem = $cart->items()->where('dish_id', $dishId)->first();
+                    if ($cartItem) {
+                        $this->cartRepository->updateItem($cartItem->id, ['quantity' => $quantity]);
+                    }
+                } elseif ($comboId) {
+                    $cartItem = $cart->items()->where('combo_id', $comboId)->first();
+                    if ($cartItem) {
+                        $this->cartRepository->updateItem($cartItem->id, ['quantity' => $quantity]);
+                    }
                 }
             }
         }
@@ -123,7 +158,7 @@ class CartService
         return $result;
     }
 
-    public function removeItems(array $dishIds): DataAggregate
+    public function removeItems(array $items): DataAggregate
     {
         $result = new DataAggregate();
         $customerId = Auth::guard('customer')->id();
@@ -134,20 +169,33 @@ class CartService
             return $result;
         }
 
-        $cartItems = $cart->items()->whereIn('dish_id', $dishIds)->get();
+        $hasDeleted = false;
+        foreach ($items as $item) {
+            $dishId = $item['dish_id'] ?? null;
+            $comboId = $item['combo_id'] ?? null;
 
-        if ($cartItems->isEmpty()) {
-            $result->setMessage('Không tìm thấy món ăn để xoá.');
-            return $result;
-        }
-
-        foreach ($cartItems as $item) {
-            $this->cartRepository->deleteItems($item->id);
+            if ($dishId) {
+                $cartItem = $cart->items()->where('dish_id', $dishId)->first();
+                if ($cartItem) {
+                    $this->cartRepository->deleteItems($cartItem->id);
+                    $hasDeleted = true;
+                }
+            } elseif ($comboId) {
+                $cartItem = $cart->items()->where('combo_id', $comboId)->first();
+                if ($cartItem) {
+                    $this->cartRepository->deleteItems($cartItem->id);
+                    $hasDeleted = true;
+                }
+            }
         }
 
         $this->updateCartTotal($cart->id);
 
-        $result->setResultSuccess(message: 'Xoá món ăn thành công!');
+        if ($hasDeleted) {
+            $result->setResultSuccess(message: 'Xoá thành công!');
+        } else {
+            $result->setMessage('Không tìm thấy món ăn hoặc combo để xoá.');
+        }
         return $result;
     }
 
