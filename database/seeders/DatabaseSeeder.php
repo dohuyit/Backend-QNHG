@@ -52,6 +52,10 @@ class DatabaseSeeder extends Seeder
 
             BillSeeder::class,
             BillPaymentSeeder::class,
+
+            
+            CartSeeder::class,
+            CartItemSeeder::class,
         ]);
     }
 }
