@@ -7,6 +7,7 @@ use App\Common\ListAggregate;
 use App\Models\User;
 use App\Repositories\UserRole\UserRoleRepositoryInterface;
 use App\Repositories\Users\UserRepositoryInterface;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
@@ -243,5 +244,67 @@ class UserService
             $counts[$status] = $this->userRepository->countByConditions(['status' => $status]);
         }
         return $counts;
+    }
+
+    public function getUserDetail(string $id): DataAggregate
+    {
+        $result = new DataAggregate;
+
+        $user = $this->userRepository->getByConditions(['id' => $id]);
+
+        if (! $user) {
+            $result->setResultError(message: 'Người dùng không tồn tại');
+            return $result;
+        }
+
+        $user->load('roles.permissions');
+
+        $user->makeHidden([
+            'created_at',
+            'updated_at',
+            'deleted_at',
+            'email_verified_at',
+            'remember_token',
+            'roles',
+        ]);
+
+        $data = [
+            'user' => $user,
+            'role' => $user->getPrimaryRoleName(),
+            'permissions' => $user->getAllPermissions(),
+        ];
+
+        $result->setResultSuccess(data: $data);
+        return $result;
+    }
+
+    public function changePassword(string $userId, array $data): DataAggregate
+    {
+        $result = new DataAggregate();
+
+        $user = $this->userRepository->getByConditions(['id' => $userId]);
+        if (!$user) {
+            $result->setMessage('Người dùng không tồn tại.');
+            return $result;
+        }
+
+        if (!Hash::check($data['old_password'], $user->password)) {
+            $result->setMessage('Mật khẩu cũ không đúng.');
+            return $result;
+        }
+
+        $newHashedPassword = bcrypt($data['new_password']);
+        $updated = $this->userRepository->updateByConditions(
+            ['id' => $userId],
+            ['password' => bcrypt($data['new_password'])]
+        );
+
+        if (!$updated) {
+            $result->setMessage('Đổi mật khẩu thất bại. Vui lòng thử lại.');
+            return $result;
+        }
+
+        $result->setResultSuccess(message: 'Đổi mật khẩu thành công!');
+        return $result;
     }
 }

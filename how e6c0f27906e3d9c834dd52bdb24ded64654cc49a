@@ -1,0 +1,44 @@
+[33mcommit 4300c80893ec5d7e784f8548711c554d6ba3b039[m
+Merge: dbd3754 e1b344f
+Author: quang lam <danglam540101@gmail.com>
+Date:   Sat Jul 5 09:54:53 2025 +0700
+
+    WIP on lamdq: dbd3754 Merge branch 'master' of https://github.com/dohuyit/Backend-QNHG into lamdq
+
+[1mdiff --cc database/seeders/UserSeeder.php[m
+[1mindex 7e9b37b,7e9b37b..e35ffcb[m
+[1m--- a/database/seeders/UserSeeder.php[m
+[1m+++ b/database/seeders/UserSeeder.php[m
+[36m@@@ -4,19 -4,19 +4,26 @@@[m [mnamespace Database\Seeders[m
+  [m
+  use Illuminate\Database\Seeder;[m
+  use App\Models\User;[m
+[32m++use Illuminate\Support\Facades\Hash;[m
+  [m
+  class UserSeeder extends Seeder[m
+  {[m
+      public function run(): void[m
+      {[m
+[31m--        // Tạo 10 user ngẫu nhiên[m
+[31m--        User::factory()->count(10)->create();[m
+[32m++        // Tạo user 1[m
+[32m++        User::factory()->create([[m
+[32m++            'username' => 'quanglam',[m
+[32m++            'email' => 'quanglam5401@gmail.com',[m
+[32m++            'password' => Hash::make('123456'),[m
+[32m++            'status' => User::STATUS_ACTIVE,[m
+[32m++        ]);[m
+  [m
+[31m--        // Tạo 1 admin cố định nếu cần[m
+[32m++        // Tạo user 2[m
+          User::factory()->create([[m
+[31m--            'username' => 'admin',[m
+[31m--            'email' => 'admin@example.com',[m
+[32m++            'username' => 'lam222',[m
+[32m++            'email' => 'lamdqph53571@gmail.com',[m
+[32m++            'password' => Hash::make('123456'),[m
+              'status' => User::STATUS_ACTIVE,[m
+          ]);[m
+      }[m
+[31m--}[m
+[32m++}[m

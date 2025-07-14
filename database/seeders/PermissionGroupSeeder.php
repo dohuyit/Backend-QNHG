@@ -24,6 +24,7 @@ class PermissionGroupSeeder extends Seeder
             ['group_name' => 'Khu vực bàn', 'description' => 'Quản lý khu vực bàn'],
             ['group_name' => 'Bếp', 'description' => 'Quản lý đơn bếp và cập nhật trạng thái món ăn'],
             ['group_name' => 'Vai trò & Quyền', 'description' => 'Phân quyền và vai trò hệ thống'],
+            ['group_name' => 'Khách hàng', 'description' => 'Quản lý khách hàng'],
         ];
 
         foreach ($groups as $group) {
