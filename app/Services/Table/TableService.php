@@ -73,7 +73,7 @@ class TableService
     public function getTableDetail(string $id): DataAggregate
     {
         $result = new DataAggregate;
-        $table = $this->tableRepository->findById($id);
+        $table = $this->tableRepository->getByConditions(['id' => $id]);
         if (!$table) {
             $result->setResultError(message: 'Bàn không tồn tại hoặc đã bị khóa');
             return $result;
@@ -213,7 +213,7 @@ class TableService
         }
         // Nếu có cập nhật trạng thái thì broadcast event
         if (isset($listDataUpdate['status'])) {
-            $tableFresh = $this->tableRepository->findById($table->id);
+            $tableFresh = $this->tableRepository->getByConditions(['id' => $table->id]);
             event(new \App\Events\Tables\TableStatusUpdated([
                 'id' => $tableFresh->id,
                 'table_number' => $tableFresh->table_number,
@@ -245,7 +245,7 @@ class TableService
     public function deleteTable($id): DataAggregate
     {
         $result = new DataAggregate;
-        $table = $this->tableRepository->findById($id);
+        $table = $this->tableRepository->getByConditions(['id' => $id]);
         if (!$table) {
             $result->setResultError(message: 'Bàn không tồn tại');
             return $result;
@@ -268,5 +268,31 @@ class TableService
             $counts[$status] = $this->tableRepository->countByConditions(['status' => $status]);
         }
         return $counts;
+    }
+
+    public function getTablesGroupedByStatusByTableNumber(string $tableNumber): DataAggregate
+    {
+        $result = new DataAggregate;
+
+        $table = $this->tableRepository->getByConditions(['table_number' => $tableNumber]);
+
+        if (!$table) {
+            $result->setResultError(message: 'Bàn không tồn tại');
+            return $result;
+        }
+
+        $tables = $this->getListTables([
+            'table_area_id' => $table->table_area_id,
+            'limit' => 1000, // lấy tất cả bàn trong khu vực
+        ]);
+
+        $item = [
+            'table_area_id' => $table->table_area_id,
+            'requested_table' => $table->only(['id', 'table_number', 'status']),
+            'tables' => $tables->items // lấy mảng các bàn
+        ];
+
+        $result->setResultSuccess(data: ['table' => $item]);
+        return $result;
     }
 }

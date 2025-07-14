@@ -76,7 +76,7 @@ Route::prefix('admin')->group(function () {
         Route::post('tables/{id}/update', [TableController::class, 'updateTable']);
         Route::delete('tables/{id}/delete', [TableController::class, 'destroyTable']);
         Route::get('tables/count-by-status', [TableController::class, 'countByStatus']);
-
+        Route::get('/tables/get-by-status', [TableController::class, 'getTablesByStatus']);
         ##resetpass
         Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
         Route::post('/reset-password/{id}', [AuthController::class, 'resetPassword']);
