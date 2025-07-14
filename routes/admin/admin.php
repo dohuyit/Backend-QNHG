@@ -59,6 +59,7 @@ Route::prefix('admin')->group(function () {
         Route::post('users/{id}/block', [UserController::class, 'blockUser']);
         Route::post('users/{id}/unblock', [UserController::class, 'unblockUser']);
         Route::get('users/count-by-status', [UserController::class, 'countByStatus']);
+
         Route::post('users/change-password', [UserController::class, 'changePassword']);
         Route::get('users/{id}/detail', [UserController::class, 'getUserDetail']);
 
@@ -79,7 +80,8 @@ Route::prefix('admin')->group(function () {
         Route::post('tables/{id}/update', [TableController::class, 'updateTable']);
         Route::delete('tables/{id}/delete', [TableController::class, 'destroyTable']);
         Route::get('tables/count-by-status', [TableController::class, 'countByStatus']);
-
+        Route::get('/tables/get-by-status', [TableController::class, 'getTablesByStatus']);
+      
         ##resetpass
         Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
         Route::post('/reset-password/{id}', [AuthController::class, 'resetPassword']);

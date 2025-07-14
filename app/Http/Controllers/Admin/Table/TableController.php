@@ -123,4 +123,19 @@ class TableController extends Controller
         $statuses = Table::getStatuses();
         return $this->responseSuccess($statuses);
     }
+
+    public function getTablesByStatus(Request $request)
+    {
+        $request->validate([
+            'table_number' => 'required|string'
+        ]);
+
+        $result = $this->tableService->getTablesGroupedByStatusByTableNumber($request->table_number);
+
+        if (!$result->isSuccessCode()) {
+            return $this->responseFail(message: $result->getMessage(), statusCode: 404);
+        }
+
+        return $this->responseSuccess(data: $result->getData(), message: $result->getMessage());
+    }
 }

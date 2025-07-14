@@ -5,6 +5,7 @@ namespace App\Repositories\Table;
 use App\Models\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class TableRepository implements TableRepositoryInterface
@@ -59,9 +60,11 @@ class TableRepository implements TableRepositoryInterface
         return $query;
     }
 
-    public function findById($id)
+
+    public function getByConditions(array $conditions): ?Table
     {
-        return $this->model->with('tableArea')->findOrFail($id);
+        $result = Table::where($conditions)->with('tableArea')->first();
+        return $result;
     }
 
     public function createTable(array $data)
