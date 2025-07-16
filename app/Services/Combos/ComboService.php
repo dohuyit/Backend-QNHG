@@ -311,4 +311,23 @@ class ComboService
 
         return $counts;
     }
+    public function updateStatus(int $id): DataAggregate
+    {
+        $result = new DataAggregate();
+        $combo =  $this->comboRepository->getByConditions(['id' => $id]);
+        if (!$combo) {
+            $result->setMessage('Combo không tồn tại!');
+            return $result;
+        }
+        $newValue = !$combo->is_active;
+        $ok = $this->comboRepository->updateByConditions(['id'  => $id], ['is_active' => $newValue]);
+
+        $message = $newValue ? 'Combo đã được kích hoạt thành công!' : 'Combo đã hủy kích hoạt thành công!';
+        if (!$ok) {
+            $result->setMessage('Cập nhật món ăn nổi bật thất bại, vui lòng thử lại!');
+            return $result;
+        }
+        $result->setResultSuccess(message: $message);
+        return $result;
+    }
 }

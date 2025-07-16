@@ -142,6 +142,7 @@ Route::prefix('admin')->group(function () {
         Route::delete('dishes/{id}/force/delete', [DishController::class, 'forceDeleteDish']);
         Route::post('dishes/{id}/restore', [DishController::class, 'restoreDish']);
         Route::get('dishes/count-by-status', [DishController::class, 'countByStatus']);
+        Route::post('dishes/{id}/update-featured', [DishController::class, 'updateFeaturedDish']);
 
         // combos
         Route::get('combos/list', [ComboController::class, 'getListCombos']);
@@ -153,6 +154,7 @@ Route::prefix('admin')->group(function () {
         Route::delete('combos/{id}/force/delete', [ComboController::class, 'forceDeleteCombo']);
         Route::post('combos/{id}/restore', [ComboController::class, 'restoreCombo']);
         Route::get('combos/count-by-status', [ComboController::class, 'countByStatus']);
+        Route::post('combos/{id}/update-status', [ComboController::class, 'updateStatusCombo']);
 
         Route::post('combos/{id}/add-items', [ComboController::class, 'addItemToCombo']);
         Route::post('combos/{comboId}/{dishId}/update-quantity', [ComboController::class, 'updateItemQuantity']);
