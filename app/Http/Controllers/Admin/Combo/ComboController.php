@@ -197,4 +197,12 @@ class ComboController extends Controller
 
         return $this->responseSuccess($result);
     }
+     public function updateStatusCombo(int $id)
+    {
+        $result = $this->comboService->updateStatus($id);
+        if (!$result->isSuccessCode()) {
+            return $this->responseFail(message: $result->getMessage());
+        }
+        return $this->responseSuccess(message: $result->getMessage());
+    }
 }
