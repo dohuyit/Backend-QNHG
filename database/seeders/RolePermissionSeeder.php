@@ -35,7 +35,7 @@ class RolePermissionSeeder extends Seeder
             'combo.view',
             'category.view',
             'dashboard.view',
-            'customer.view',
+            'customer.view',c
         ];
         $staffPermissionIds = Permission::whereIn('permission_name', $staffPermissionNames)->pluck('id');
         $staffRole = Role::find($staffRoleId);
