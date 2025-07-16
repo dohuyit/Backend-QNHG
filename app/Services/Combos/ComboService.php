@@ -324,7 +324,7 @@ class ComboService
 
         $message = $newValue ? 'Combo đã được kích hoạt thành công!' : 'Combo đã hủy kích hoạt thành công!';
         if (!$ok) {
-            $result->setMessage('Cập nhật món ăn nổi bật thất bại, vui lòng thử lại!');
+            $result->setMessage('Cập nhật trạng thái combo thất bại, vui lòng thử lại!');
             return $result;
         }
         $result->setResultSuccess(message: $message);
