@@ -51,14 +51,6 @@ class KitchenOrderController extends Controller
         }
         return $this->responseSuccess(message: $result->getMessage(), data: $result->getData());
     }
-    public function cancelKitchenOrder(int $id)
-    {
-        $result = $this->kitchenOrderService->cancelKitchenOrder($id);
-        if (!$result->isSuccessCode()) {
-            return $this->responseFail(message: $result->getMessage(), statusCode: 400);
-        }
-        return $this->responseSuccess(message: $result->getMessage());
-    }
     public function countByStatus()
     {
         $result = $this->kitchenOrderService->countByStatus();

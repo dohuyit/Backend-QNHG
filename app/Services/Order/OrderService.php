@@ -145,6 +145,7 @@ class OrderService
                         'kitchen_status' => $item['kitchen_status'] ?? 'pending',
                         'notes' => $item['notes'] ?? null,
                         'is_priority' => $item['is_priority'] ?? false,
+                        'is_additional' => $item['is_additional'] ?? false,
                         'item_name' => $menuItem->name,
                     ];
                 } elseif (!empty($item['combo_id'])) {
@@ -165,6 +166,7 @@ class OrderService
                         'kitchen_status' => $item['kitchen_status'] ?? 'pending',
                         'notes' => $item['notes'] ?? null,
                         'is_priority' => $item['is_priority'] ?? false,
+                        'is_additional' => $item['is_additional'] ?? false,
                         'item_name' => $comboItem->name,
                     ];
                 } else {
@@ -251,6 +253,7 @@ class OrderService
                     'quantity' => $item->quantity,
                     'notes' => $item->notes,
                     'kitchen_status' => $item->kitchen_status,
+                    'is_additional' => $item->is_additional,
                 ];
             })->toArray(),
             'bill' => $order->bill ? [
@@ -287,7 +290,6 @@ class OrderService
         $items = [];
         if (!empty($data['items'])) {
             foreach ($data['items'] as $item) {
-
                 $items[] = [
                     'id' => isset($item['id']) ? (int)$item['id'] : null,
                     'dish_id' => isset($item['dish_id']) ? (int)$item['dish_id'] : null,
@@ -295,11 +297,11 @@ class OrderService
                     'quantity' => (int)$item['quantity'],
                     'kitchen_status' => $item['kitchen_status'] ?? 'pending',
                     'notes' => $item['notes'] ?? null,
-                    'is_priority' => isset($item['is_priority']) ? (bool)$item['is_priority'] : false,
+                    'is_priority' => isset($item['is_priority']) ? (int)$item['is_priority'] : 0,
+                    'is_additional' => isset($item['is_additional']) ? (int)$item['is_additional'] : 0,
                 ];
             }
         }
-
 
         $tables = $data['tables'] ?? [];
 
@@ -328,6 +330,7 @@ class OrderService
                             'status' => $deletedItem->kitchen_status,
                             'quantity' => $deletedItem->quantity,
                             'notes' => $deletedItem->notes,
+                            'is_additional' => $deletedItem->is_additional,
                         ]));
                     }
                 } else if (empty($item['id'])) {
@@ -335,6 +338,7 @@ class OrderService
                     $createdItem = $orderItems->where('dish_id', $item['dish_id'] ?? null)
                         ->where('combo_id', $item['combo_id'] ?? null)
                         ->where('quantity', $item['quantity'])
+                        ->where('is_additional', $item['is_additional'] ?? false)
                         ->sortByDesc('id')->first();
                     if ($createdItem) {
                         event(new \App\Events\Orders\OrderItemCreated([
@@ -344,6 +348,7 @@ class OrderService
                             'status' => $createdItem->kitchen_status,
                             'quantity' => $createdItem->quantity,
                             'notes' => $createdItem->notes,
+                            'is_additional' => $createdItem->is_additional,
                             'updated_at' => $createdItem->updated_at,
                         ]));
                     }
@@ -358,6 +363,7 @@ class OrderService
                             'status' => $updatedItem->kitchen_status,
                             'quantity' => $updatedItem->quantity,
                             'notes' => $updatedItem->notes,
+                            'is_additional' => $updatedItem->is_additional,
                             'updated_at' => $updatedItem->updated_at,
                         ]));
                     }
@@ -371,13 +377,11 @@ class OrderService
             'order_code' => $updatedOrder->order_code,
             'status' => $updatedOrder->status,
             'updated_at' => $updatedOrder->updated_at,
-            // ... các trường khác nếu cần
         ]));
 
         $result->setResultSuccess(message: 'Cập nhật đơn hàng thành công!');
         return $result;
     }
-
 
     public function listTrashedOrders(array $params): ListAggregate
     {

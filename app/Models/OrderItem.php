@@ -21,6 +21,7 @@ class OrderItem extends Model
         'notes',                // Ghi chú cho món này
         'kitchen_status',       // 'pending', 'preparing', 'ready', 'served', 'cancelled'
         'is_priority',
+        'is_additional',
     ];
 
     /**
