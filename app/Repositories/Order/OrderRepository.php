@@ -178,6 +178,7 @@ class OrderRepository implements OrderRepositoryInterface
     public function updateOrder(Order $order, array $orderData, array $items, array $tables): ?Order
     {
         try {
+            DB::beginTransaction();
             // Fetch all existing OrderItems for the order, keyed by ID
             $existingItems = OrderItem::where('order_id', $order->id)->get()->keyBy('id');
 
@@ -224,6 +225,7 @@ class OrderRepository implements OrderRepositoryInterface
                         'combo_id' => $item['combo_id'] ?? null,
                         'quantity' => max(1, $quantity),
                         'unit_price' => $unitPrice,
+                        'is_additional' => $item['is_additional'] ?? 0,
                     ]);
 
                     // Update corresponding KitchenOrder
@@ -242,6 +244,7 @@ class OrderRepository implements OrderRepositoryInterface
                         'quantity' => max(1, $quantity),
                         'unit_price' => $unitPrice,
                         'kitchen_status' => $item['kitchen_status'] ?? 'pending',
+                        'is_additional' => $item['is_additional'] ?? 0,
                     ]);
 
                     // Tạo KitchenOrder tương ứng

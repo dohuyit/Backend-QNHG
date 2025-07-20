@@ -151,40 +151,6 @@ class KitchenOrderService
         return $result;
     }
 
-    public function cancelKitchenOrder(int $id): DataAggregate
-    {
-        $result = new DataAggregate();
-
-        $kitchenOrder = $this->kitchenOrderRepository->getByConditions(['id' => $id]);
-        if (!$kitchenOrder) {
-            $result->setMessage('Đơn bếp không tồn tại');
-            return $result;
-        }
-
-        if ($kitchenOrder->status === 'ready') {
-            $result->setMessage('Đơn đã hoàn tất, không thể hủy');
-            return $result;
-        }
-
-        if ($kitchenOrder->status === 'preparing') {
-            $result->setMessage('Đơn đang chế biến, không thể hủy');
-            return $result;
-        }
-
-        if ($kitchenOrder->status === 'cancelled') {
-            $result->setMessage('Đơn đã bị hủy rồi');
-            return $result;
-        }
-
-        $kitchenOrder->status = 'cancelled';
-        $kitchenOrder->save();
-
-        $result->setResultSuccess(
-            message: 'Hủy đơn thành công',
-            data: ['new_status' => 'cancelled']
-        );
-        return $result;
-    }
     public function countByStatus(): array
     {
         $listStatus = ['pending', 'preparing', 'ready', 'cancelled'];

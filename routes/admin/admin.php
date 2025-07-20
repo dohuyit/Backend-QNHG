@@ -81,7 +81,7 @@ Route::prefix('admin')->group(function () {
         Route::delete('tables/{id}/delete', [TableController::class, 'destroyTable']);
         Route::get('tables/count-by-status', [TableController::class, 'countByStatus']);
         Route::get('/tables/get-by-status', [TableController::class, 'getTablesByStatus']);
-      
+
         ##resetpass
         Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
         Route::post('/reset-password/{id}', [AuthController::class, 'resetPassword']);
@@ -174,7 +174,6 @@ Route::prefix('admin')->group(function () {
         // Kitchen Order
         Route::get('kitchen-orders/list', [KitchenOrderController::class, 'getListKitchenOrders']);
         Route::post('kitchen-orders/{id}/update-status', [KitchenOrderController::class, 'updateKitchenOrderStatus']);
-        Route::post('kitchen-orders/{id}/cancel', [KitchenOrderController::class, 'cancelKitchenOrder']);
         Route::get('kitchen-orders/count-by-status', [KitchenOrderController::class, 'countByStatus']);
 
         // Order Payment

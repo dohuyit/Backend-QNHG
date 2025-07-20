@@ -20,7 +20,7 @@ class ComboSeeder extends Seeder
                 'description' => 'Thỏa sức lựa chọn các món ăn yêu thích từ thực đơn đa dạng của chúng tôi.',
                 'original_total_price' => 1200000.00,
                 'selling_price' => 999000.00,
-                'image_url' => fake()->imageUrl(),
+                'image_url' => null,
                 'is_active' => true,
             ],
             [
@@ -28,7 +28,7 @@ class ComboSeeder extends Seeder
                 'description' => 'Combo hoàn hảo cho gia đình với các món ăn ngon miệng và tiết kiệm.',
                 'original_total_price' => 800000.00,
                 'selling_price' => 699000.00,
-                'image_url' => fake()->imageUrl(),
+                'image_url' => null,
                 'is_active' => true,
             ],
             [
@@ -36,7 +36,7 @@ class ComboSeeder extends Seeder
                 'description' => 'Thỏa sức lựa chọn các món ăn yêu thích từ thực đơn đa dạng của chúng tôi.',
                 'original_total_price' => 1200000.00,
                 'selling_price' => 999000.00,
-                'image_url' => fake()->imageUrl(),
+                'image_url' => null,
                 'is_active' => true,
             ],
             [
@@ -44,7 +44,7 @@ class ComboSeeder extends Seeder
                 'description' => 'Combo lẩu với nước dùng đậm đà, hải sản tươi ngon và rau củ tươi mát.',
                 'original_total_price' => 600000.00,
                 'selling_price' => 499000.00,
-                'image_url' => fake()->imageUrl(),
+                'image_url' => null,
                 'is_active' => true,
             ],
         ]);
