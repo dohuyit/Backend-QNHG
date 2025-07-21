@@ -135,7 +135,8 @@ class UserController extends Controller
     }
     public function countByStatus()
     {
-        $result = $this->userService->countByStatus();
+        $filter = request()->all();
+        $result = $this->userService->countByStatus($filter);
 
         return $this->responseSuccess($result);
     }

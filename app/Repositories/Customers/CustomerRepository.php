@@ -75,7 +75,6 @@ class CustomerRepository implements CustomerRepositoryInterface
         return $query;
     }
 
-
     public function findOnlyTrashedById($id): ?Customer
     {
         $result = Customer::onlyTrashed()->where('id', $id)->firstOrFail();
@@ -94,16 +93,16 @@ class CustomerRepository implements CustomerRepositoryInterface
         return $query->orderBy('deleted_at', 'desc')->paginate($limit);
     }
 
-    public function countByConditions(array $conditions = []): int
-    {
-        $query = Customer::query();
+public function countByConditions(array $conditions = []): int
+{
+    $query = Customer::query();
 
-        if (!empty($conditions)) {
-            foreach ($conditions as $key => $value) {
-                $query->where($key, $value);
-            }
-        }
-
-        return $query->count();
+    // ✅ Không filter status_customer ở đây nữa
+    foreach ($conditions as $key => $value) {
+        $query->where($key, $value);
     }
+
+    return $query->count();
+}
+
 }

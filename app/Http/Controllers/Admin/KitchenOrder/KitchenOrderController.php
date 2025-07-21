@@ -51,9 +51,11 @@ class KitchenOrderController extends Controller
         }
         return $this->responseSuccess(message: $result->getMessage(), data: $result->getData());
     }
-    public function countByStatus()
+  public function countByStatus()
     {
-        $result = $this->kitchenOrderService->countByStatus();
+        $filter = request()->all();
+
+        $result = $this->kitchenOrderService->countByStatus($filter);
 
         return $this->responseSuccess($result);
     }

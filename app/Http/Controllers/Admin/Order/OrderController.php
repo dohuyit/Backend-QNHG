@@ -168,7 +168,8 @@ class OrderController extends Controller
 
     public function countByStatus()
     {
-        $result = $this->orderService->countByStatus();
+        $filter = request()->all();
+        $result = $this->orderService->countByStatus($filter);
         return $this->responseSuccess($result);
     }
 

@@ -80,7 +80,7 @@ class CategoryRepository implements CategoryRepositoryInterface
         $query = Category::query();
 
         if (!empty($conditions)) {
-            $this->filterCategoryList($query, $conditions);
+            $query = $this->filterCategoryList($query, $conditions);
         }
         return $query->count();
     }

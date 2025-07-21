@@ -151,13 +151,14 @@ class KitchenOrderService
         return $result;
     }
 
-    public function countByStatus(): array
+    public function countByStatus(array $filter): array
     {
         $listStatus = ['pending', 'preparing', 'ready', 'cancelled'];
         $counts = [];
-
+        unset($filter['status']);
         foreach ($listStatus as $status) {
-            $counts[$status] = $this->kitchenOrderRepository->countByConditions(['status' => $status]);
+            $conditions  = array_merge(['status' => $status], $filter);
+            $counts[$status] = $this->kitchenOrderRepository->countByConditions($conditions);
         }
         return $counts;
     }

@@ -152,10 +152,13 @@ class DishController extends Controller
     }
     public function countByStatus()
     {
-        $result = $this->dishService->countByStatus();
+        $filter = request()->all();
+
+        $result = $this->dishService->countByStatus($filter);
 
         return $this->responseSuccess($result);
     }
+
     public function updateFeaturedDish(int $id)
     {
         $result = $this->dishService->updateFeatured($id);

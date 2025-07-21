@@ -259,13 +259,14 @@ class TableService
         return $result;
     }
 
-    public function countByStatus(): array
+    public function countByStatus(array $filter): array
     {
         $listStatus = ['available', 'occupied', 'reserved', 'cleaning', 'out_of_service'];
         $counts = [];
-
+        unset($filter['status']);
         foreach ($listStatus as $status) {
-            $counts[$status] = $this->tableRepository->countByConditions(['status' => $status]);
+            $conditions  = array_merge(['status' => $status], $filter);
+            $counts[$status] = $this->tableRepository->countByConditions($conditions);
         }
         return $counts;
     }
