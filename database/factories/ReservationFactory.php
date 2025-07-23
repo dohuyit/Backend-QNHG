@@ -23,7 +23,7 @@ class ReservationFactory extends Factory
             'number_of_guests' => rand(1, 10),
             'table_id' => $table->id,
             'notes' => $this->faker->optional()->sentence,
-            'status' => $this->faker->randomElement(['pending', 'confirmed', 'cancelled', 'completed', 'no_show', 'seated']),
+            'status' => $this->faker->randomElement(['pending', 'confirmed', 'cancelled', 'completed']),
             'user_id' => User::factory(),
             'confirmed_at' => $this->faker->optional()->dateTimeBetween('-1 days', 'now'),
             'cancelled_at' => null,
