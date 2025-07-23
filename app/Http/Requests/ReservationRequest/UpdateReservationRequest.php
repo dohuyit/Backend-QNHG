@@ -31,7 +31,7 @@ class UpdateReservationRequest extends BaseFormRequest
             'number_of_guests'  => 'required|integer|min:1',
             'table_id'          => 'nullable|integer|exists:tables,id',
             'notes'             => 'nullable|string',
-            'status'            => 'nullable|in:pending,confirmed,cancelled,completed,no_show,seated',
+            'status'            => 'nullable|in:pending,confirmed,cancelled,completed',
             'user_id'           => 'nullable|integer|exists:users,id',
         ];
     }
