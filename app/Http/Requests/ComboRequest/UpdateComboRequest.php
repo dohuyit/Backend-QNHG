@@ -33,13 +33,14 @@ class UpdateComboRequest extends BaseFormRequest
     {
         $comboId = $this->route('id');
         return [
-            'name' => 'required|string|max:255' . $comboId,
-            'image_url' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'name' => 'required|string|max:255',
+            'image_url' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:5120',
             'description' => 'nullable|string',
             'original_total_price' => 'required|numeric|min:0',
             'selling_price' => 'required|numeric|min:0',
             'is_active' => 'required|boolean',
             'items' => 'nullable|array',
+            'items.*.dish_id' => 'required|integer|exists:dishes,id',
             'items.*.quantity' => 'required|integer|min:1',
         ];
     }
