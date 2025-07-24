@@ -36,4 +36,9 @@ class Reservation extends Model
     {
         return $this->belongsTo(User::class, 'created_by_user_id');
     }
+
+    public function tables()
+    {
+        return $this->belongsToMany(Table::class, 'reservation_tables', 'reservation_id', 'table_id');
+    }
 }

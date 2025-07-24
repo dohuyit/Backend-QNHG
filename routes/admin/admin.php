@@ -179,6 +179,10 @@ Route::prefix('admin')->group(function () {
         // Order Payment
         Route::post('orders/{id}/pay', [PaymentController::class, 'payment']);
         Route::get('bills/{id}/detail', [PaymentController::class, 'getBillDetailForOrder']);
+
+        // Notification
+        Route::get('notifications/list', [\App\Http\Controllers\Admin\NotificationController\NotificationController::class, 'getList']);
+        Route::post('notifications/mark-all-read', [\App\Http\Controllers\Admin\NotificationController\NotificationController::class, 'markAllRead']);
     });
     Route::get('/vnpay-return', [PaymentController::class, 'vnpayReturn']);
     Route::get('/momo-return', [PaymentController::class, 'momoReturn']);

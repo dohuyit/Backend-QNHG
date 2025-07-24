@@ -59,19 +59,17 @@ class ComboService
             'is_active' => $data['is_active'] ?? true,
         ];
 
-        if (!empty($data['image_url'])) {
+        // Xử lý upload ảnh nếu có
+        if (!empty($data['image_url']) && $data['image_url'] instanceof \Illuminate\Http\UploadedFile) {
             $file = $data['image_url'];
             $extension = $file->getClientOriginalExtension();
-
             $filename = 'combo_' . uniqid() . '.' . $extension;
-
             $path = $file->storeAs('combos', $filename, 'public');
             $listDataCreate['image_url'] = $path;
         }
 
         // Sử dụng model Combo để tạo mới combo và các item liên quan
         try {
-            // Giả sử đã import model Combo ở đầu file: use App\Models\Combo;
             $combo = \App\Models\Combo::create($listDataCreate);
 
             if ($combo && !empty($items)) {
@@ -139,27 +137,23 @@ class ComboService
     {
         $result = new DataAggregate();
 
-        // Kiểm tra combo có tồn tại không
         if (!$combo) {
             $result->setMessage('Không tìm thấy combo!');
             return $result;
         }
 
         try {
-            // Lấy tất cả các trường từ bảng combos (dựa vào hình ảnh)
             $listDataUpdate = [
                 'name' => $data['name'] ?? $combo->name,
                 'description' => $data['description'] ?? $combo->description,
                 'original_total_price' => $data['original_total_price'] ?? $combo->original_total_price,
                 'selling_price' => $data['selling_price'] ?? $combo->selling_price,
                 'is_active' => array_key_exists('is_active', $data) ? $data['is_active'] : $combo->is_active,
-
             ];
 
-            // Xử lý upload ảnh mới
-            if (!empty($data['image_url'])) {
+            // Xử lý upload ảnh mới nếu có
+            if (!empty($data['image_url']) && $data['image_url'] instanceof \Illuminate\Http\UploadedFile) {
                 $file = $data['image_url'];
-
                 // Xóa ảnh cũ nếu có
                 if (!empty($combo->image_url) && Storage::disk('public')->exists($combo->image_url)) {
                     Storage::disk('public')->delete($combo->image_url);
@@ -168,12 +162,10 @@ class ComboService
                 // Upload ảnh mới
                 $extension = $file->getClientOriginalExtension();
                 $filename = 'combo_' . uniqid() . '.' . $extension;
-                $path = Storage::disk('public')->putFileAs('combos', $file, $filename);
+                $path = $file->storeAs('combos', $filename, 'public');
                 $listDataUpdate['image_url'] = $path;
-            } else {
-                // Nếu không upload ảnh mới, giữ nguyên ảnh cũ
-                $listDataUpdate['image_url'] = $combo->image_url;
             }
+            // Nếu không upload ảnh mới, KHÔNG ghi đè image_url (giữ nguyên ảnh cũ)
 
             // Cập nhật thông tin combo
             $ok = $this->comboRepository->updateByConditions(['id' => $combo->id], $listDataUpdate);
@@ -183,28 +175,21 @@ class ComboService
             }
 
             // Cập nhật từng món ăn trong combo (combo items)
-            // Giả sử combo item có các trường: id, combo_id, dish_id, quantity, created_at, updated_at, deleted_at
             if (is_array($items)) {
-                // Lấy danh sách dish_id hiện tại trong DB
                 $oldItems = $combo->items()->get()->keyBy('dish_id');
                 $newDishIds = [];
-
                 foreach ($items as $item) {
                     $dishId = $item['dish_id'];
                     $quantity = $item['quantity'];
-
                     $newDishIds[] = $dishId;
-
                     if ($oldItems->has($dishId)) {
-                        // Cập nhật tất cả các trường: id, combo_id, dish_id, quantity, created_at
                         $oldItem = $oldItems[$dishId];
-                        $oldItem->id = $oldItem->id; // giữ nguyên id
+                        $oldItem->id = $oldItem->id;
                         $oldItem->combo_id = $combo->id;
                         $oldItem->dish_id = $dishId;
                         $oldItem->quantity = $quantity;
                         $oldItem->save();
                     } else {
-                        // Thêm mới nếu chưa có, cập nhật đủ các trường
                         $combo->items()->create([
                             'combo_id' => $combo->id,
                             'dish_id' => $dishId,
@@ -212,8 +197,6 @@ class ComboService
                         ]);
                     }
                 }
-
-                // Xóa những món không còn trong danh sách mới
                 $combo->items()->whereNotIn('dish_id', $newDishIds)->delete();
             }
 

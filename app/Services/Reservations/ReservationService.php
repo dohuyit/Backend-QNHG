@@ -67,7 +67,8 @@ class ReservationService
     public function createReservation(array $data): DataAggregate
     {
         $result = new DataAggregate();
-        $table = $this->tableRepository->findById($data['table_id']);
+        $tableId = is_array($data['table_id']) ? ($data['table_id'][0] ?? null) : $data['table_id'];
+        $table = $tableId ? $this->tableRepository->getByConditions(['id' => $tableId]) : null;
 
 
         $listDataCreate = [
@@ -125,7 +126,8 @@ class ReservationService
             'reservation_time' => $data['reservation_time'],
             'reservation_date' => $data['reservation_date'],
             'number_of_guests' => $data['number_of_guests'],
-            'table_id' => $data['table_id'],
+            // Nếu muốn giữ table_id trong bảng reservations thì lấy bàn đầu tiên, còn không thì bỏ dòng này
+            'table_id' => is_array($data['table_id']) ? ($data['table_id'][0] ?? null) : $data['table_id'],
             'notes' => $data['notes'],
             'status' => $data['status'] ?? $reservation->status,
             'user_id' => $data['user_id'],
@@ -147,13 +149,14 @@ class ReservationService
                     'contact_phone' => $reservation->customer_phone,
                     'contact_email' => $reservation->customer_email,
                     'user_id' => $reservation->user_id,
-                    'tables' => $reservation->table_id ? [['table_id' => $reservation->table_id]] : [],
+                    'tables' => is_array($data['table_id']) ? array_map(fn($id) => ['table_id' => $id], $data['table_id']) : ($data['table_id'] ? [['table_id' => $data['table_id']]] : []),
                     'status' => 'pending_confirmation',
                     'items' => [], // chưa có món
                 ];
                 $orderResult = $this->orderService->createOrder($orderData);
-                if ($orderResult['order']) {
-                    $order = $orderResult['order'];
+                $orderDataArr = $orderResult->getData();
+                if (isset($orderDataArr['order'])) {
+                    $order = $orderDataArr['order'];
                     event(new \App\Events\Orders\OrderCreated([
                         'id' => $order->id,
                         'order_code' => $order->order_code,
@@ -171,6 +174,10 @@ class ReservationService
         }
 
         $ok = $this->reservationRepository->updateByConditions(['id' => $reservation->id], $listDataUpdate);
+        if ($ok && isset($data['table_id']) && is_array($data['table_id'])) {
+            // Đồng bộ nhiều bàn với bảng reservation_tables
+            $reservation->tables()->sync($data['table_id']);
+        }
         if (!$ok) {
             $result->setMessage(message: 'Cập nhật thất bại, vui lòng thử lại!');
             return $result;

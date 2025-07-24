@@ -33,7 +33,7 @@ class StoreComboRequest extends BaseFormRequest
     {
         return [
             'name' => 'required|string|max:255|unique:combos,name',
-            'image_url' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'image_url' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:5120',
             'description' => 'nullable|string',
             'original_total_price' => 'required|numeric|min:0',
             'selling_price' => 'required|numeric|min:0',
@@ -53,7 +53,7 @@ class StoreComboRequest extends BaseFormRequest
 
             'image_url.image' => 'Ảnh phải là tệp hình ảnh.',
             'image_url.mimes' => 'Ảnh phải có định dạng jpeg, png, jpg hoặc webp.',
-            'image_url.max' => 'Ảnh không được vượt quá 2MB.',
+            'image_url.max' => 'Ảnh không được vượt quá 5MB.',
 
             'description.string' => 'Mô tả phải là chuỗi.',
 
