@@ -30,6 +30,7 @@ class OrderController extends Controller
             'page',
             'limit',
             'order_type',
+            'order_code',
             'status',
             'date_from',
             'date_to',
