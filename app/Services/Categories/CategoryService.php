@@ -26,13 +26,24 @@ class CategoryService
 
         $data = [];
         foreach ($pagination->items() as $item) {
+
+            $parent = null;
+
+            // Nếu có parent_id thì lấy thông tin cha từ repository
+            if (!empty($item->parent_id)) {
+                $parent = $this->categoryRepository->getByConditions(['id' => $item->parent_id]);
+            }
+
             $data[] = [
                 'id' => (string)$item->id,
                 'name' => $item->name,
                 'description' => $item->description,
                 'image_url' => $item->image_url,
                 'is_active' => (bool)$item->is_active,
-                'parent_id' => $item->parent_id,
+                'parent' => [
+                    'id' => (string)$parent?->id,
+                    'name' => $parent?->name,
+                ],
                 'created_at' => $item->created_at,
                 'updated_at' => $item->updated_at,
             ];
@@ -275,7 +286,7 @@ class CategoryService
             $key = $status ? 'active' : 'inactive';
             $counts[$key] = $this->categoryRepository->countByConditions(['is_active' => $status]);
         }
-        
+
         return $counts;
     }
 }
