@@ -7,6 +7,7 @@ use App\Common\ListAggregate;
 use App\Models\User;
 use App\Repositories\UserRole\UserRoleRepositoryInterface;
 use App\Repositories\Users\UserRepositoryInterface;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -169,6 +170,28 @@ class UserService
             return $result;
         }
 
+        if ($user->id === Auth::id()) {
+            $result->setResultError(
+                message: 'Không thể xóa chính tài khoản đang đăng nhập.',
+                errors: ['user' => ['Không thể xóa tài khoản đang dùng.']]
+            );
+            return $result;
+        }
+
+        if ($user->hasRole('admin')) {
+            $adminCount = User::whereHas('roles', function ($query) {
+                $query->where('name', 'admin');
+            })->where('status', User::STATUS_ACTIVE)->count();
+
+            if ($adminCount <= 1) {
+                $result->setResultError(
+                    message: 'Không thể xóa admin cuối cùng trong hệ thống.',
+                    errors: ['user' => ['Bạn cần ít nhất một admin hoạt động.']]
+                );
+                return $result;
+            }
+        }
+
         $updated = $this->userRepository->updateByConditions(
             ['id' => $user->id],
             ['status' => User::STATUS_INACTIVE]
@@ -182,6 +205,7 @@ class UserService
         $result->setResultSuccess(message: 'Người dùng đã được chuyển sang trạng thái ngừng hoạt động!');
         return $result;
     }
+
 
     public function blockUser(User $user): DataAggregate
     {

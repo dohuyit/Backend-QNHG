@@ -22,9 +22,7 @@ class KitchenOrderRepository implements KitchenOrderRepositoryInterface
         }
 
         if ($val = $filter['item_name'] ?? null) {
-            $query->whereHas('item_name', function ($q) use ($val) {
-                $q->where('name', 'like', "%$val%");
-            });
+            $query->where('item_name', 'like', "%$val%");
         }
 
         return $query;

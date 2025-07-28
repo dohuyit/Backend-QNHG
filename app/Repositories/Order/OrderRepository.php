@@ -30,6 +30,10 @@ class OrderRepository implements OrderRepositoryInterface
             $query->where('order_type', $filter['order_type']);
         }
 
+        if (isset($filter['order_code'])) {
+            $query->where('order_code', $filter['order_code']);
+        }
+
         if (isset($filter['status'])) {
             $query->where('status', $filter['status']);
         }
