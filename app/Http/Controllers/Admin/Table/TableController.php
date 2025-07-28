@@ -78,7 +78,9 @@ class TableController extends Controller
             'table_area_id'
         ]);
 
-        $table = $this->tableRepository->findById($id);
+        $table = $this->tableRepository->getByConditions([
+            'id' => $id
+        ]);
         if (!$table) {
             return $this->responseFail(message: 'Bàn không tồn tại', statusCode: 404);
         }

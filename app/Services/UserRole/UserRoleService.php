@@ -128,6 +128,13 @@ class UserRoleService
     {
         $result = new DataAggregate;
 
+        $user = $this->userRepository->getByConditions(['id' => $userRole->user_id]);
+
+        if ($user) {
+            $result->setMessage('Không thể xóa: Người dùng vẫn đang tồn tại trong hệ thống.');
+            return $result;
+        }
+
         $ok = $this->userRoleRepository->delete($userRole);
 
         if (!$ok) {

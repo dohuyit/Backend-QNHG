@@ -11,7 +11,7 @@ class CreateAdminUser extends Command
 {
     protected $signature = 'create:admin';
     protected $description = 'Tạo tài khoản admin test';
-
+    // Anh Lam có yêu em không???
     public function handle()
     {
         $adminRole = Role::firstOrCreate([
