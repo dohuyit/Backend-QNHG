@@ -81,7 +81,7 @@ Route::prefix('admin')->group(function () {
         Route::delete('tables/{id}/delete', [TableController::class, 'destroyTable']);
         Route::get('tables/count-by-status', [TableController::class, 'countByStatus']);
         Route::get('/tables/get-by-status', [TableController::class, 'getTablesByStatus']);
-      
+
         ##resetpass
         Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
         Route::post('/reset-password/{id}', [AuthController::class, 'resetPassword']);
@@ -142,6 +142,7 @@ Route::prefix('admin')->group(function () {
         Route::delete('dishes/{id}/force/delete', [DishController::class, 'forceDeleteDish']);
         Route::post('dishes/{id}/restore', [DishController::class, 'restoreDish']);
         Route::get('dishes/count-by-status', [DishController::class, 'countByStatus']);
+        Route::post('dishes/{id}/update-featured', [DishController::class, 'updateFeaturedDish']);
 
         // combos
         Route::get('combos/list', [ComboController::class, 'getListCombos']);
@@ -153,6 +154,7 @@ Route::prefix('admin')->group(function () {
         Route::delete('combos/{id}/force/delete', [ComboController::class, 'forceDeleteCombo']);
         Route::post('combos/{id}/restore', [ComboController::class, 'restoreCombo']);
         Route::get('combos/count-by-status', [ComboController::class, 'countByStatus']);
+        Route::post('combos/{id}/update-status', [ComboController::class, 'updateStatusCombo']);
 
         Route::post('combos/{id}/add-items', [ComboController::class, 'addItemToCombo']);
         Route::post('combos/{comboId}/{dishId}/update-quantity', [ComboController::class, 'updateItemQuantity']);
@@ -172,12 +174,15 @@ Route::prefix('admin')->group(function () {
         // Kitchen Order
         Route::get('kitchen-orders/list', [KitchenOrderController::class, 'getListKitchenOrders']);
         Route::post('kitchen-orders/{id}/update-status', [KitchenOrderController::class, 'updateKitchenOrderStatus']);
-        Route::post('kitchen-orders/{id}/cancel', [KitchenOrderController::class, 'cancelKitchenOrder']);
         Route::get('kitchen-orders/count-by-status', [KitchenOrderController::class, 'countByStatus']);
 
         // Order Payment
         Route::post('orders/{id}/pay', [PaymentController::class, 'payment']);
         Route::get('bills/{id}/detail', [PaymentController::class, 'getBillDetailForOrder']);
+
+        // Notification
+        Route::get('notifications/list', [\App\Http\Controllers\Admin\NotificationController\NotificationController::class, 'getList']);
+        Route::post('notifications/mark-all-read', [\App\Http\Controllers\Admin\NotificationController\NotificationController::class, 'markAllRead']);
     });
     Route::get('/vnpay-return', [PaymentController::class, 'vnpayReturn']);
     Route::get('/momo-return', [PaymentController::class, 'momoReturn']);

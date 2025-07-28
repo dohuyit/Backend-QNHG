@@ -429,4 +429,24 @@ class DishService
         $result->setResultSuccess(data: ['dish' => $data]);
         return $result;
     }
+
+    public function updateFeatured(int $id): DataAggregate
+    {
+        $result = new DataAggregate();
+        $dish =  $this->dishRepository->getByConditions(['id' => $id]);
+        if (!$dish) {
+            $result->setMessage('Món ăn không tồn tại!');
+            return $result;
+        }
+        $newValue = !$dish->is_featured;
+        $ok = $this->dishRepository->updateByConditions(['id'  => $id], ['is_featured' => $newValue]);
+
+        $message = $newValue ? 'Món ăn đã được bật trạng thái nổi bật!' : 'Món ăn đã được tắt trạng thái nổi bật!';
+        if (!$ok) {
+            $result->setMessage('Cập nhật món ăn nổi bật thất bại, vui lòng thử lại!');
+            return $result;
+        }
+        $result->setResultSuccess(message: $message);
+        return $result;
+    }
 }

@@ -21,6 +21,7 @@ return new class extends Migration
             $table->text('notes')->nullable()->comment('Ghi chú cho món');
             $table->enum('kitchen_status', ['pending', 'preparing', 'ready', 'cancelled'])->default('pending')->comment('Trạng thái món ở bếp');
             $table->boolean('is_priority')->default(false)->comment('Món ưu tiên');
+            $table->boolean('is_additional')->default(false)->comment('Món được bổ sung (gọi thêm)');
             $table->timestamps();
             $table->comment('Chi tiết món ăn/combo trong đơn hàng');
         });
