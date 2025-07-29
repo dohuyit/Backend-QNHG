@@ -8,6 +8,7 @@ use App\Models\Combo;
 use App\Models\Dish;
 use App\Models\Order;
 use App\Repositories\Order\OrderRepositoryInterface;
+use App\Services\Notifications\NotificationService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
@@ -15,10 +16,14 @@ use Illuminate\Support\Str;
 class OrderService
 {
     protected OrderRepositoryInterface $orderRepository;
+    protected NotificationService $notificationService;
 
-    public function __construct(OrderRepositoryInterface $orderRepository)
-    {
+    public function __construct(
+        OrderRepositoryInterface $orderRepository,
+        NotificationService $notificationService
+    ) {
         $this->orderRepository = $orderRepository;
+        $this->notificationService = $notificationService;
     }
 
     public function getListOrders(array $params): ListAggregate
@@ -188,6 +193,24 @@ class OrderService
             return $result;
         }
 
+        // Tạo thông báo cho đơn hàng mới
+        // $orderNotificationData = [
+        //     'id' => $order->id,
+        //     'order_code' => $order->order_code,
+        //     'total_amount' => $order->total_amount,
+        //     'reservation_id' => $order->reservation_id,
+        // ];
+        // $this->notificationService->createOrderNotification($orderNotificationData);
+
+        // Fire event OrderCreated để trigger listener và broadcast
+        event(new \App\Events\Orders\OrderCreated([
+            'id' => $order->id,
+            'order_code' => $order->order_code,
+            'created_at' => $order->created_at,
+            'status' => $order->status,
+            'customer_name' => $order->customer->full_name ?? null,
+        ]));
+
         $result->setResultSuccess(message: 'Tạo đơn hàng thành công!');
         return $result;
     }
@@ -287,6 +310,12 @@ class OrderService
             'contact_email' => $data['contact_email'] ?? $order->contact_email,
             'contact_phone' => $data['contact_phone'] ?? $order->contact_phone,
         ];
+
+        // Kiểm tra nếu có thay đổi trạng thái
+        $previousStatus = $order->status;
+        $newStatus = $data['status'] ?? $order->status;
+        $statusChanged = $previousStatus !== $newStatus;
+
         $items = [];
         if (!empty($data['items'])) {
             foreach ($data['items'] as $item) {
@@ -311,6 +340,16 @@ class OrderService
             $result->setMessage('Cập nhật đơn hàng thất bại, vui lòng thử lại!');
             return $result;
         }
+
+        // Tạo thông báo nếu có thay đổi trạng thái
+        // if ($statusChanged) {
+        //     $orderNotificationData = [
+        //         'id' => $updatedOrder->id,
+        //         'order_code' => $updatedOrder->order_code,
+        //         'reservation_id' => $updatedOrder->reservation_id,
+        //     ];
+        //     $this->notificationService->createOrderStatusNotification($orderNotificationData, $previousStatus, $newStatus);
+        // }
 
         // Lấy lại danh sách món mới nhất
         $orderItems = $updatedOrder->items;
@@ -494,6 +533,19 @@ class OrderService
             $result->setMessage(message: 'Cập nhật trạng thái món thất bại, vui lòng thử lại!');
             return $result;
         }
+
+        // Tạo thông báo cho việc cập nhật trạng thái món ăn
+        // $orderItem = $ok->getData();
+        // if ($orderItem) {
+        //     $kitchenOrderData = [
+        //         'id' => $orderItem->id,
+        //         'order_id' => $orderItem->order_id,
+        //         'item_name' => $orderItem->menuItem->name ?? $orderItem->combo->name ?? 'Món ăn',
+        //         'quantity' => $orderItem->quantity,
+        //     ];
+        //     $this->notificationService->createKitchenOrderStatusNotification($kitchenOrderData, $orderItem->kitchen_status, $status);
+        // }
+
         $result->setResultSuccess(data: $ok->getData(), message: 'Cập nhật trạng thái món thành công!');
         return $result;
     }
@@ -501,16 +553,14 @@ class OrderService
     public function countByStatus(array $filter = []): array
     {
         $listStatus = [
-            'pending_confirmation',
+            'pending',
             'confirmed',
             'preparing',
-            'ready_to_serve',
+            'ready',
             'served',
-            'ready_for_pickup',
             'delivering',
             'completed',
-            'cancelled',
-            'payment_failed'
+            'cancelled'
         ];
         $counts = [];
         unset($filter['status']);

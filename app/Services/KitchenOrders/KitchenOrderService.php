@@ -7,16 +7,22 @@ use App\Common\ListAggregate;
 use App\Models\OrderItem;
 use App\Repositories\KitchenOrders\KitchenOrderRepositoryInterface;
 use App\Repositories\Order\OrderRepositoryInterface;
+use App\Services\Notifications\NotificationService;
 
 class KitchenOrderService
 {
     protected KitchenOrderRepositoryInterface $kitchenOrderRepository;
     protected OrderRepositoryInterface $orderRepository;
+    protected NotificationService $notificationService;
 
-    public function __construct(KitchenOrderRepositoryInterface $kitchenOrderRepository, OrderRepositoryInterface $orderRepository)
-    {
+    public function __construct(
+        KitchenOrderRepositoryInterface $kitchenOrderRepository,
+        OrderRepositoryInterface $orderRepository,
+        NotificationService $notificationService
+    ) {
         $this->orderRepository = $orderRepository;
         $this->kitchenOrderRepository = $kitchenOrderRepository;
+        $this->notificationService = $notificationService;
     }
 
     public function getListKitchenOrder(array $params): ListAggregate
@@ -127,16 +133,34 @@ class KitchenOrderService
             }
         }
 
+        // Tạo thông báo cho việc cập nhật trạng thái
+        $kitchenOrderData = [
+            'id' => $kitchenOrder->id,
+            'order_id' => $kitchenOrder->order_id,
+            'item_name' => $kitchenOrder->item_name,
+            'quantity' => $kitchenOrder->quantity,
+        ];
+        $this->notificationService->createKitchenOrderStatusNotification($kitchenOrderData, $currentStatus, $newStatus);
+
         // Thành công
         // Lấy lại dữ liệu kitchenOrder mới nhất để broadcast
         $kitchenOrderFresh = $this->kitchenOrderRepository->getByConditions(['id' => $id]);
+        // Fire event realtime cho KitchenOrder cập nhật trạng thái
+        // event(new \App\Events\KitchenOrders\KitchenOrderCreated([
+        //     'id' => $kitchenOrderFresh->id,
+        //     'order_id' => $kitchenOrderFresh->order_id,
+        //     'item_name' => $kitchenOrderFresh->item_name,
+        //     'status' => $kitchenOrderFresh->status,
+        //     'updated_at' => $kitchenOrderFresh->updated_at,
+        // ]));
+
+        // Event cập nhật OrderItem cũ
         event(new \App\Events\Orders\OrderItemUpdated([
             'id' => $kitchenOrderFresh->id,
             'order_id' => $kitchenOrderFresh->order_id,
             'item_name' => $kitchenOrderFresh->item_name,
             'status' => $kitchenOrderFresh->status,
             'updated_at' => $kitchenOrderFresh->updated_at,
-            // ... các trường khác nếu cần
         ]));
 
         $result->setResultSuccess(
@@ -170,6 +194,25 @@ class KitchenOrderService
             $result->setMessage('Tạo đơn bếp thất bại');
             return $result;
         }
+
+        // Tạo thông báo cho đơn bếp mới
+        $kitchenOrderData = [
+            'id' => $kitchenOrder->id,
+            'order_id' => $kitchenOrder->order_id,
+            'item_name' => $kitchenOrder->item_name,
+            'quantity' => $kitchenOrder->quantity,
+        ];
+        $this->notificationService->createKitchenOrderStatusNotification($kitchenOrderData, '', 'pending');
+
+        // Broadcast event & notification
+        event(new \App\Events\KitchenOrders\KitchenOrderCreated([
+            'id' => $kitchenOrder->id,
+            'order_id' => $kitchenOrder->order_id,
+            'item_name' => $kitchenOrder->item_name,
+            'quantity' => $kitchenOrder->quantity,
+            'status' => $kitchenOrder->status,
+        ]));
+
         $result->setResultSuccess(data: $kitchenOrder, message: 'Tạo đơn bếp thành công');
         return $result;
     }

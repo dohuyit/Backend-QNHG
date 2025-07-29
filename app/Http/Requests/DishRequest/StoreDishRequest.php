@@ -22,7 +22,7 @@ class StoreDishRequest extends BaseFormRequest
             'selling_price' => 'required|numeric|min:0',
             'status' => 'required|in:active,inactive',
             'is_featured' => 'nullable|boolean',
-            'tags' => 'nullable|string|max:255',
+            'tags' => 'nullable|array|max:255',
             'unit' => 'nullable|in:bowl,plate,cup,glass,large_bowl,other',
         ];
     }

@@ -112,6 +112,4 @@ class UserRepository implements UserRepositoryInterface
         return $query->count();
     }
 
-
-
 }
