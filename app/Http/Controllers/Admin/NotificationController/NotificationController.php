@@ -6,18 +6,22 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Notification;
 use Illuminate\Support\Facades\Auth;
+use App\Services\Notifications\NotificationService;
 
 class NotificationController extends Controller
 {
-    // Lấy danh sách thông báo cho user hiện tại
+    protected NotificationService $notificationService;
+
+    public function __construct(NotificationService $notificationService)
+    {
+        $this->notificationService = $notificationService;
+    }
+    // Lấy danh sách thông báo cho user hiện tại hoặc tất cả
     public function getList(Request $request)
     {
-        $user = Auth::user();
         $limit = (int)($request->input('limit', 10));
-        $notifications = Notification::where('receiver_id', $user->id)
-            ->orderBy('created_at', 'desc')
-            ->limit($limit)
-            ->get();
+        $receiverId = $request->input('receiver_id');
+        $notifications = $this->notificationService->getListNotification($receiverId, $limit);
         return response()->json([
             'success' => true,
             'data' => $notifications,

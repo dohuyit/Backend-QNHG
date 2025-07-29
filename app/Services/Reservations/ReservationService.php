@@ -88,16 +88,32 @@ class ReservationService
         ];
 
         $ok  = $this->reservationRepository->createData($listDataCreate);
+        if ($ok) {
+            $this->reservationRepository->createReservationChangeLog([
+                'reservation_id' => $ok->id,
+                'user_id' => $ok->user_id,
+                'change_timestamp' => now(),
+                'change_type' => 'CREATE',
+                'field_changed' => null,
+                'old_value' => null,
+                'new_value' => null,
+                'description' => 'Tạo mới đơn đặt bàn',
+            ]);
+        }
         if (!$ok) {
             $result->setMessage(message: 'Tạo đơn đặt bàn thất bại, vui lòng thử lại!');
             return $result;
         }
         $result->setResultSuccess(message: 'Tạo đơn đặt bàn thành công!');
 
+
+
         // Dispatch event cho realtime
         event(new ReservationCreated($listDataCreate));
 
         $this->reservationMailService->sendClientConfirmMail($listDataCreate);
+
+        // }
         return $result;
     }
     public function getReservationDetail(int $id): DataAggregate
@@ -186,6 +202,25 @@ class ReservationService
 
         // Dispatch event cho realtime khi thay đổi trạng thái
         if ($newStatus !== $currentStatus) {
+            // Lấy danh sách admin từ bảng users, user_roles, roles
+            $admins = \App\Models\User::select('users.id')
+                ->join('user_roles', 'users.id', '=', 'user_roles.user_id')
+                ->join('roles', 'user_roles.role_id', '=', 'roles.id')
+                ->where('roles.role_name', 'Admin')
+                ->get();
+            foreach ($admins as $admin) {
+                \App\Models\Notification::create([
+                    'title' => 'Cập nhật trạng thái đơn đặt bàn',
+                    'message' => 'Đơn đặt bàn của ' . $reservation->customer_name . ' chuyển từ ' . $currentStatus . ' sang ' . $newStatus,
+                    'type' => 'reservation',
+                    'reservation_id' => $reservation->id,
+                    'order_id' => null,
+                    'bill_id' => null,
+                    'kitchen_order_id' => null,
+                    'receiver_id' => $admin->id,
+                    'read_at' => null,
+                ]);
+            }
             event(new ReservationStatusUpdated($reservation->toArray(), $currentStatus, $newStatus));
         }
 
@@ -325,5 +360,13 @@ class ReservationService
             $counts[$status] = $this->reservationRepository->countByConditions(['status' => $status]);
         }
         return $counts;
+    }
+
+    /**
+     * Lấy lịch sử thay đổi của đơn đặt bàn
+     */
+    public function getReservationChangeLogs(int $reservationId)
+    {
+        return $this->reservationRepository->getReservationChangeLogs($reservationId);
     }
 }

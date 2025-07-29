@@ -181,4 +181,13 @@ class ReservationController extends Controller
 
         return $this->responseSuccess($result);
     }
+
+    /**
+     * API lấy lịch sử thay đổi đơn đặt bàn
+     */
+    public function getChangeLogs($id)
+    {
+        $logs = $this->reservationService->getReservationChangeLogs($id);
+        return $this->responseSuccess($logs->toArray());
+    }
 }
