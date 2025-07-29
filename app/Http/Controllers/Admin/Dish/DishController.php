@@ -10,6 +10,7 @@ use App\Repositories\Dishes\DishRepositoryInterface;
 use App\Services\Dishes\DishService;
 use Illuminate\Contracts\Cache\Store;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class DishController extends Controller
 {
@@ -89,6 +90,8 @@ class DishController extends Controller
             'is_featured',
             'status'
         ]);
+
+        Log::error($data);
 
         $dish = $this->dishRepository->getByConditions(['id' => $id]);
         if (!$dish) {
