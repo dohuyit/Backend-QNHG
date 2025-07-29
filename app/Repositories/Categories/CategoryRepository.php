@@ -48,6 +48,10 @@ class CategoryRepository implements CategoryRepositoryInterface
             $query->where('is_active', $filter['is_active']);
         }
 
+        if (!empty($filter['parent_id'])) {
+            $query->where('parent_id', $filter['parent_id']);
+        }
+
         return $query;
     }
 
