@@ -501,16 +501,14 @@ class OrderService
     public function countByStatus(): array
     {
         $listStatus = [
-            'pending_confirmation',
+            'pending',
             'confirmed',
             'preparing',
-            'ready_to_serve',
+            'ready',
             'served',
-            'ready_for_pickup',
             'delivering',
             'completed',
-            'cancelled',
-            'payment_failed'
+            'cancelled'
         ];
         $counts = [];
 
