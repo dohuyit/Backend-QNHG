@@ -158,6 +158,7 @@ class UserService
 
         return $result;
     }
+
     public function deleteUser(User $user): DataAggregate
     {
         $result = new DataAggregate();
@@ -170,41 +171,33 @@ class UserService
             return $result;
         }
 
+        // Không cho xóa tài khoản đang đăng nhập
         if ($user->id === Auth::id()) {
             $result->setResultError(
                 message: 'Không thể xóa chính tài khoản đang đăng nhập.',
-                errors: ['user' => ['Không thể xóa tài khoản đang dùng.']]
+                errors: ['user' => ['Không thể xóa tài khoản đang đăng nhâp.']]
             );
             return $result;
         }
 
-        if ($user->hasRole('admin')) {
-            $adminCount = User::whereHas('roles', function ($query) {
-                $query->where('name', 'admin');
-            })->where('status', User::STATUS_ACTIVE)->count();
-
-            if ($adminCount <= 1) {
-                $result->setResultError(
-                    message: 'Không thể xóa admin cuối cùng trong hệ thống.',
-                    errors: ['user' => ['Bạn cần ít nhất một admin hoạt động.']]
-                );
-                return $result;
-            }
-        }
-
-        $updated = $this->userRepository->updateByConditions(
-            ['id' => $user->id],
-            ['status' => User::STATUS_INACTIVE]
-        );
-
-        if (!$updated) {
-            $result->setResultError(message: 'Cập nhật trạng thái người dùng thất bại.');
+        // Không cho xóa tài khoản có vai trò admin
+        if ($user->roles()->pluck('role_name')->contains('admin')) {
+            $result->setResultError(message: 'Không thể xóa tài khoản có vai trò Admin.', errors: ['user' => ['Tài khoản này có quyền admin, không được phép xóa.']]);
             return $result;
         }
 
-        $result->setResultSuccess(message: 'Người dùng đã được chuyển sang trạng thái ngừng hoạt động!');
+        // Xóa hẳn khỏi DB (hard delete)
+        try {
+            $user->delete();
+        } catch (\Throwable $e) {
+            $result->setResultError(message: 'Xóa người dùng thất bại: ' . $e->getMessage());
+            return $result;
+        }
+
+        $result->setResultSuccess(message: 'Người dùng đã được xóa khỏi hệ thống!');
         return $result;
     }
+
 
 
     public function blockUser(User $user): DataAggregate

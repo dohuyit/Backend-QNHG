@@ -86,6 +86,7 @@ class UserController extends Controller
         $data = $result->getResult();
         return $this->responseSuccess($data);
     }
+
     public function deleteUser($id)
     {
         $user = $this->userRepository->getByConditions(['id' => $id]);
@@ -102,6 +103,7 @@ class UserController extends Controller
 
         return $this->responseSuccess(message: $result->getMessage());
     }
+
     public function blockUser(string $id, Request $request)
     {
         $user = $this->userRepository->getByConditions(['id' => $id]);
