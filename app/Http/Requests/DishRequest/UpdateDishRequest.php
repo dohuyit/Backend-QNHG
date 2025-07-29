@@ -17,7 +17,7 @@ class UpdateDishRequest extends BaseFormRequest
 
         return [
             'name' => 'required|string|max:255|unique:dishes,name,' . $dishId,
-            'image_url' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'image_url' => 'nullable|mimes:jpeg,png,jpg,webp|max:2048',
             'description' => 'nullable|string',
             'category_id' => 'required|integer|exists:categories,id',
             'original_price' => 'required|numeric|min:0',
