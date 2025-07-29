@@ -21,6 +21,8 @@ use App\Listeners\Orders\SendOrderItemCreatedNotification;
 use App\Events\Orders\OrderItemDeleted;
 use App\Listeners\Orders\SendOrderItemDeletedNotification;
 use App\Events\Tables\TableStatusUpdated;
+use App\Events\KitchenOrders\KitchenOrderCreated;
+use App\Listeners\KitchenOrders\SendKitchenOrderNotification;
 use App\Listeners\Tables\SendTableStatusUpdatedNotification;
 
 class EventServiceProvider extends ServiceProvider
@@ -63,6 +65,10 @@ class EventServiceProvider extends ServiceProvider
         ],
         TableStatusUpdated::class => [
             SendTableStatusUpdatedNotification::class,
+        ],
+        // Đăng ký event cho đơn bếp
+        KitchenOrderCreated::class => [
+            SendKitchenOrderNotification::class,
         ],
     ];
 

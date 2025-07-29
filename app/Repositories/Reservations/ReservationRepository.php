@@ -5,6 +5,7 @@ namespace App\Repositories\Reservations;
 use App\Models\Reservation;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use App\Models\ReservationChangeLog;
 
 class ReservationRepository implements ReservationRepositoryInterface
 {
@@ -85,5 +86,17 @@ class ReservationRepository implements ReservationRepositoryInterface
             $this->filterReservationList($query, $conditions);
         }
         return $query->count();
+    }
+
+    public function getReservationChangeLogs(int $reservationId): \Illuminate\Support\Collection
+    {
+        return ReservationChangeLog::where('reservation_id', $reservationId)
+            ->orderByDesc('change_timestamp')
+            ->get();
+    }
+
+    public function createReservationChangeLog(array $data)
+    {
+        return ReservationChangeLog::create($data);
     }
 }
