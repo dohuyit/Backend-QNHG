@@ -252,14 +252,13 @@ class UserService
         );
         return $result;
     }
-    public function countByStatus(array $filter): array
+    public function countByStatus(): array
     {
-        $listStatus = ['active', 'inactive', 'pending_activation', 'blocked'];
+        $listStatus = ['active', 'inactive', 'pending_activation','blocked'];
         $counts = [];
-        unset($filter['status']);
-        foreach ($listStatus as $status) {
-            $conditions  = array_merge(['status' => $status], $filter);
-            $counts[$status] = $this->userRepository->countByConditions($conditions);
+
+        foreach($listStatus as $status) {
+            $counts[$status] = $this->userRepository->countByConditions(['status' => $status]);
         }
         return $counts;
     }

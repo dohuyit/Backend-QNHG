@@ -100,10 +100,12 @@ class DishRepository implements DishRepositoryInterface
     {
         $query = Dish::query();
 
-        $query = $this->filterDishList($query, $conditions);
-
+        if (!empty($conditions)) {
+            $this->filterDishList($query, $conditions);
+        }
         return $query->count();
     }
+
     public function getAllActiveDishes(): Collection
     {
         return Dish::where('status', 1)

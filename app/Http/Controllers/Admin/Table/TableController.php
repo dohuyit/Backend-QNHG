@@ -103,8 +103,7 @@ class TableController extends Controller
 
     public function countByStatus()
     {
-        $filter = request()->all();
-        $result = $this->tableService->countByStatus($filter);
+        $result = $this->tableService->countByStatus();
 
         return $this->responseSuccess($result);
     }

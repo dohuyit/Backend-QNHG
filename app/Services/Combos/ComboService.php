@@ -282,18 +282,14 @@ class ComboService
         $result->setResultSuccess(message: 'Khôi phục thành công!');
         return $result;
     }
-    public function countByStatus(array $filter): array
+    public function countByStatus(): array
     {
-        $listStatus = [
-            'active' => 1,
-            'inactive' => 0
-        ];
+        $listStatus = [true, false];
         $counts = [];
-        unset($filter['is_active']);
-        foreach ($listStatus as $key => $value) {
-            $conditions = array_merge($filter, ['is_active' => $value]);
 
-            $counts[$key] = $this->comboRepository->countByConditions($conditions);
+        foreach ($listStatus as $status) {
+            $key = $status ? 'active' : 'inactive';
+            $counts[$key] = $this->comboRepository->countByConditions(['is_active' => $status]);
         }
 
         return $counts;

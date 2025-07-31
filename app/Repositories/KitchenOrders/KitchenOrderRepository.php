@@ -22,7 +22,7 @@ class KitchenOrderRepository implements KitchenOrderRepositoryInterface
         }
 
         if ($val = $filter['item_name'] ?? null) {
-            $query->where('item_name', $val);
+            $query->where('item_name', 'like', "%$val%");
         }
 
         return $query;
@@ -52,7 +52,7 @@ class KitchenOrderRepository implements KitchenOrderRepositoryInterface
         $query = KitchenOrder::query();
 
         if (!empty($conditions)) {
-            $query = $this->filterKitchenOrders($query, $conditions);
+            $this->filterKitchenOrders($query, $conditions);
         }
         return $query->count();
     }

@@ -96,8 +96,7 @@ class TableAreaController extends Controller
 
     public function countByStatus()
     {
-        $filter = request()->all();
-        $result = $this->tableAreaService->countByStatus($filter);
+        $result = $this->tableAreaService->countByStatus();
 
         return $this->responseSuccess($result);
     }

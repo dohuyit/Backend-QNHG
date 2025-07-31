@@ -138,9 +138,7 @@ class CategoryController extends Controller
     }
     public function countByStatus()
     {
-        $filter = request()->all();
-
-        $result = $this->categoryService->countByStatus($filter);
+        $result = $this->categoryService->countByStatus();
 
         return $this->responseSuccess($result);
     }

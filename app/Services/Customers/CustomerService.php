@@ -220,16 +220,14 @@ class CustomerService
 
         return $result;
     }
-    public function countByStatus(array $filter): array
+     public function countByStatus(): array
     {
         $listStatus = ['active', 'inactive', 'blocked'];
         $counts = [];
-        unset($filter['status_customer']);
-        foreach ($listStatus as $status) {
-            $conditions = array_merge($filter, ['status_customer' => $status]);
-            $counts[$status] = $this->customerRepository->countByConditions($conditions);
-        }
 
+        foreach($listStatus as $status) {
+            $counts[$status] = $this->customerRepository->countByConditions(['status_customer' => $status]);
+        }
         return $counts;
     }
 }

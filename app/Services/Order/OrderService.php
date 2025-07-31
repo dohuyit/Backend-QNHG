@@ -550,7 +550,7 @@ class OrderService
         return $result;
     }
 
-    public function countByStatus(array $filter = []): array
+    public function countByStatus(): array
     {
         $listStatus = [
             'pending',
@@ -563,10 +563,9 @@ class OrderService
             'cancelled'
         ];
         $counts = [];
-        unset($filter['status']);
+
         foreach ($listStatus as $status) {
-            $conditions  = array_merge(['status' => $status], $filter);
-            $counts[$status] = $this->orderRepository->countByConditions($conditions);
+            $counts[$status] = $this->orderRepository->countByConditions(['status' => $status]);
         }
         return $counts;
     }

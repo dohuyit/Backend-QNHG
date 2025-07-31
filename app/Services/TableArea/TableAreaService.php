@@ -124,14 +124,13 @@ class TableAreaService
         return $result;
     }
 
-    public function countByStatus(array $filter): array
+    public function countByStatus(): array
     {
         $listStatus = ['active', 'inactive'];
         $counts = [];
-        unset($filter['status']);
+
         foreach ($listStatus as $status) {
-            $conditions  = array_merge(['status' => $status], $filter);
-            $counts[$status] = $this->tableAreaRepository->countByConditions($conditions);
+            $counts[$status] = $this->tableAreaRepository->countByConditions(['status' => $status]);
         }
 
         return $counts;

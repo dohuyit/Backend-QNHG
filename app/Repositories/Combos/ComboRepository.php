@@ -59,7 +59,7 @@ class ComboRepository implements ComboRepositoryInterface
         $query = Combo::query();
 
         if (!empty($conditions)) {
-            $query  = $this->filterComboList($query, $conditions);
+            $this->filterComboList($query, $conditions);
         }
         return $query->count();
     }

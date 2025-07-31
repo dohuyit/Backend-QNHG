@@ -313,14 +313,13 @@ class DishService
         $result->setResultSuccess(data: $data);
         return $result;
     }
-    public function countByStatus(array $filter = []): array
+    public function countByStatus(): array
     {
         $listStatus = ['active', 'inactive'];
         $counts = [];
 
         foreach ($listStatus as $status) {
-            $conditions  = array_merge(['status' => $status], $filter);
-            $counts[$status] = $this->dishRepository->countByConditions($conditions);
+            $counts[$status] = $this->dishRepository->countByConditions(['status' => $status]);
         }
         return $counts;
     }

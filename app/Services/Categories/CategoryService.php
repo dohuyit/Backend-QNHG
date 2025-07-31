@@ -277,19 +277,14 @@ class CategoryService
         $result->setResultSuccess(data: $data);
         return $result;
     }
-    public function countByStatus(array $filter = []): array
+    public function countByStatus(): array
     {
-        $listStatus = [
-            'active' => 1,
-            'inactive' => 0
-        ];
-
+        $listStatus = [true, false];
         $counts = [];
-        unset($filter['is_active']);
-        foreach ($listStatus as $key => $value) {
-            $conditions = array_merge($filter, ['is_active' => $value]);
 
-            $counts[$key] = $this->categoryRepository->countByConditions($conditions);
+        foreach ($listStatus as $status) {
+            $key = $status ? 'active' : 'inactive';
+            $counts[$key] = $this->categoryRepository->countByConditions(['is_active' => $status]);
         }
 
         return $counts;

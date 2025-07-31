@@ -191,11 +191,9 @@ class ComboController extends Controller
         }
         return $this->responseSuccess(message: $result->getMessage());
     }
-     public function countByStatus()
+      public function countByStatus()
     {
-        $filter = request()->all();
-
-        $result = $this->comboService->countByStatus($filter);
+        $result = $this->comboService->countByStatus();
 
         return $this->responseSuccess($result);
     }

@@ -154,8 +154,7 @@ class CustomerController extends Controller
 
     public function countByStatus()
     {
-        $filter = request()->all();
-        $result = $this->customerService->countByStatus($filter);
+        $result = $this->customerService->countByStatus();
 
         return $this->responseSuccess($result);
     }
