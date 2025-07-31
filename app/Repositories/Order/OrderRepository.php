@@ -229,6 +229,7 @@ class OrderRepository implements OrderRepositoryInterface
                         'combo_id' => $item['combo_id'] ?? null,
                         'quantity' => max(1, $quantity),
                         'unit_price' => $unitPrice,
+                        'is_priority' => $item['is_priority'] ?? false,
                         'is_additional' => $item['is_additional'] ?? 0,
                     ]);
 
@@ -248,6 +249,7 @@ class OrderRepository implements OrderRepositoryInterface
                         'quantity' => max(1, $quantity),
                         'unit_price' => $unitPrice,
                         'kitchen_status' => $item['kitchen_status'] ?? 'pending',
+                        'is_priority' => $item['is_priority'] ?? false,
                         'is_additional' => $item['is_additional'] ?? 0,
                     ]);
 

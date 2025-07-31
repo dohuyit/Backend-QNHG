@@ -275,6 +275,7 @@ class OrderService
                     'unit_price' => $item->unit_price,
                     'quantity' => $item->quantity,
                     'notes' => $item->notes,
+                    'is_priority' => $item->is_priority,
                     'kitchen_status' => $item->kitchen_status,
                     'is_additional' => $item->is_additional,
                 ];
