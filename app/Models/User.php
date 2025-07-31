@@ -40,6 +40,7 @@ class User extends Authenticatable
     public const STATUS_ACTIVE = 'active';
     public const STATUS_INACTIVE = 'inactive';
     public const STATUS_BLOCKED = 'blocked';
+    const ROLE_ADMIN = 'admin';
     /**
      * The attributes that should be hidden for serialization.
      *

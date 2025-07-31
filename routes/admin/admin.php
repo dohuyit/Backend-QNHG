@@ -25,7 +25,7 @@ Route::prefix('admin')->group(function () {
     ##login admin
     Route::post('login', [AuthController::class, 'login']);
 
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware(['auth:sanctum', 'check.status'])->group(function () {
         // Logout
         Route::post('logout', [AuthController::class, 'logout']);
 
