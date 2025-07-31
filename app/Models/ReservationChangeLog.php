@@ -18,4 +18,6 @@ class ReservationChangeLog extends Model
         'new_value',            // Ví dụ: "confirmed"
         'description',          // Ví dụ: "Khách hàng gọi điện xác nhận đặt bàn."
     ];
+
+    public $timestamps = false;
 }

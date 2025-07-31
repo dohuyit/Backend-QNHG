@@ -83,6 +83,24 @@ class OrderController extends Controller
         return $this->responseSuccess($data);
     }
 
+    /**
+     * API lấy lịch sử thay đổi đơn hàng
+     */
+    public function getOrderChangeLogs($orderId)
+    {
+        $logs = $this->orderService->getOrderChangeLogs($orderId);
+        return $this->responseSuccess($logs->toArray());
+    }
+
+    /**
+     * API lấy toàn bộ lịch sử thay đổi đơn hàng
+     */
+    public function getAllOrderChangeLogs()
+    {
+        $logs = $this->orderService->getAllOrderChangeLogs();
+        return $this->responseSuccess($logs->toArray());
+    }
+
     public function updateOrder(UpdateOrderRequest $request, string $id)
     {
         $data = $request->only([

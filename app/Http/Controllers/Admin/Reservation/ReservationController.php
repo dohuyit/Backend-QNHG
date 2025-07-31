@@ -59,12 +59,11 @@ class ReservationController extends Controller
             'table_id',
             'notes',
             'status',
-            'user_id',
             'confirmed_at',
             'cancelled_at',
             'completed_at',
         ]);
-
+        $data['user_id'] = auth()->id();
         $result = $this->reservationService->createReservation($data);
         if (!$result->isSuccessCode()) {
             return $this->responseFail(message: $result->getMessage());
@@ -93,11 +92,11 @@ class ReservationController extends Controller
             'table_id',
             'notes',
             'status',
-            'user_id',
             'confirmed_at',
             'cancelled_at',
             'completed_at',
         ]);
+        $data['user_id'] = auth()->id();
 
         $reservation  = $this->reservationRepository->getByConditions(['id' => $id]);
         if (!$reservation) {
