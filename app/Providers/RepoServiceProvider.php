@@ -35,9 +35,9 @@ class RepoServiceProvider extends ServiceProvider
         $this->app->bind(\App\Repositories\Payment\PaymentRepositoryInterface::class, \App\Repositories\Payment\PaymentRepository::class);
         $this->app->bind(\App\Repositories\Carts\CartRepositoryInterface::class, \App\Repositories\Carts\CartRepository::class);
         $this->app->bind(\App\Repositories\Notifications\NotificationRepositoryInterface::class, \App\Repositories\Notifications\NotificationRepository::class);
+        $this->app->bind(\App\Repositories\Order\OrderChangeLogRepositoryInterface::class, \App\Repositories\Order\OrderChangeLogRepository::class);
         $this->app->bind(\App\Repositories\DiscountCodes\DiscountCodeRepositoryInterface::class, \App\Repositories\DiscountCodes\DiscountCodeRepository::class);
         
-
     }
 
     /**

@@ -121,6 +121,7 @@ Route::prefix('admin')->group(function () {
 
         ##order
         Route::get('orders/list', [OrderController::class, 'getListOrders']);
+        Route::get('orders/change-logs', [OrderController::class, 'getAllOrderChangeLogs']);
         Route::get('orders/{id}/detail', [OrderController::class, 'getOrderDetail']);
         Route::post('orders/create', [OrderController::class, 'createOrder']);
         Route::post('orders/{id}/update', [OrderController::class, 'updateOrder']);
@@ -178,6 +179,9 @@ Route::prefix('admin')->group(function () {
         Route::get('kitchen-orders/list', [KitchenOrderController::class, 'getListKitchenOrders']);
         Route::post('kitchen-orders/{id}/update-status', [KitchenOrderController::class, 'updateKitchenOrderStatus']);
         Route::get('kitchen-orders/count-by-status', [KitchenOrderController::class, 'countByStatus']);
+
+        // Lịch sử thay đổi đơn hàng
+        Route::get('orders/{id}/change-logs', [OrderController::class, 'getOrderChangeLogs']);
 
         // Order Payment
         Route::post('orders/{id}/pay', [PaymentController::class, 'payment']);

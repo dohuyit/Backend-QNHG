@@ -15,15 +15,18 @@ use Illuminate\Support\Str;
 
 class OrderService
 {
+    protected \App\Repositories\Order\OrderChangeLogRepositoryInterface $orderChangeLogRepository;
     protected OrderRepositoryInterface $orderRepository;
     protected NotificationService $notificationService;
 
     public function __construct(
         OrderRepositoryInterface $orderRepository,
-        NotificationService $notificationService
+        NotificationService $notificationService,
+        \App\Repositories\Order\OrderChangeLogRepositoryInterface $orderChangeLogRepository
     ) {
         $this->orderRepository = $orderRepository;
         $this->notificationService = $notificationService;
+        $this->orderChangeLogRepository = $orderChangeLogRepository;
     }
 
     public function getListOrders(array $params): ListAggregate
@@ -56,6 +59,7 @@ class OrderService
                     'id' => (string)$item->user->id,
                     'name' => $item->user->name,
                 ] : null,
+                'user_name' => $item->user ? ($item->user->username ?: $item->user->full_name) : null,
                 'items' => $item->items->map(function ($item) {
                     return [
                         'id' => (string)$item->id,
@@ -371,6 +375,23 @@ class OrderService
                             'notes' => $deletedItem->notes,
                             'is_additional' => $deletedItem->is_additional,
                         ]));
+                        // GHI LOG XOÁ MÓN
+                        $this->orderChangeLogRepository->createOrderChangeLog([
+                            'order_id' => $updatedOrder->id,
+                            'user_id' => Auth::id(),
+                            'change_timestamp' => now(),
+                            'change_type' => 'DELETE_ITEM',
+                            'field_changed' => 'item',
+                            'old_value' => json_encode([
+                                'id' => $deletedItem->id,
+                                'dish_id' => $deletedItem->dish_id,
+                                'combo_id' => $deletedItem->combo_id,
+                                'quantity' => $deletedItem->quantity,
+                                'notes' => $deletedItem->notes,
+                            ]),
+                            'new_value' => null,
+                            'description' => 'Xóa món khỏi đơn hàng',
+                        ]);
                     }
                 } else if (empty($item['id'])) {
                     // Nếu là món mới (không có id trước đó, nhưng đã được tạo ra)
@@ -390,6 +411,23 @@ class OrderService
                             'is_additional' => $createdItem->is_additional,
                             'updated_at' => $createdItem->updated_at,
                         ]));
+                        // GHI LOG THÊM MÓN
+                        $this->orderChangeLogRepository->createOrderChangeLog([
+                            'order_id' => $updatedOrder->id,
+                            'user_id' => Auth::id(),
+                            'change_timestamp' => now(),
+                            'change_type' => 'ADD_ITEM',
+                            'field_changed' => 'item',
+                            'old_value' => null,
+                            'new_value' => json_encode([
+                                'id' => $createdItem->id,
+                                'dish_id' => $createdItem->dish_id,
+                                'combo_id' => $createdItem->combo_id,
+                                'quantity' => $createdItem->quantity,
+                                'notes' => $createdItem->notes,
+                            ]),
+                            'description' => 'Thêm món vào đơn hàng',
+                        ]);
                     }
                 } else {
                     // Nếu là món sửa (có id), broadcast event update
@@ -405,6 +443,25 @@ class OrderService
                             'is_additional' => $updatedItem->is_additional,
                             'updated_at' => $updatedItem->updated_at,
                         ]));
+                        // GHI LOG CẬP NHẬT MÓN
+                        $oldItem = ($order->items ?? collect())->where('id', $item['id'])->first();
+                        if ($oldItem) {
+                            $fieldsItem = ['quantity', 'notes', 'is_priority', 'is_additional'];
+                            foreach ($fieldsItem as $f) {
+                                if ($oldItem->$f != $updatedItem->$f) {
+                                    $this->orderChangeLogRepository->createOrderChangeLog([
+                                        'order_id' => $updatedOrder->id,
+                                        'user_id' => Auth::id(),
+                                        'change_timestamp' => now(),
+                                        'change_type' => 'UPDATE_ITEM',
+                                        'field_changed' => 'item.' . $f,
+                                        'old_value' => $oldItem->$f,
+                                        'new_value' => $updatedItem->$f,
+                                        'description' => 'Cập nhật thuộc tính món: ' . $f,
+                                    ]);
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -418,6 +475,148 @@ class OrderService
             'updated_at' => $updatedOrder->updated_at,
         ]));
 
+        // GHI LOG THAY ĐỔI ĐƠN HÀNG
+        $userId = Auth::id();
+        $now = now();
+        $orderId = $updatedOrder->id;
+        // 1. Log thay đổi trạng thái
+        if ($statusChanged) {
+            $this->orderChangeLogRepository->createOrderChangeLog([
+                'order_id' => $orderId,
+                'user_id' => $userId,
+                'change_timestamp' => $now,
+                'change_type' => 'UPDATE_STATUS',
+                'field_changed' => 'status',
+                'old_value' => $previousStatus,
+                'new_value' => $newStatus,
+                'description' => 'Cập nhật trạng thái đơn hàng',
+            ]);
+        }
+        // 2. Log thay đổi các trường chính
+        // Tự động log mọi thay đổi trường của đơn hàng (kể cả trường mới phát sinh)
+        $ignoreFields = ['id', 'created_at', 'updated_at'];
+        $allFields = array_keys((array)$order->getAttributes());
+        foreach ($allFields as $field) {
+            if (in_array($field, $ignoreFields)) continue;
+            $oldValue = $order->$field;
+            $newValue = $updatedOrder->$field;
+            if ($oldValue != $newValue) {
+                // Nếu là dạng object/array thì lưu JSON
+                $isComplex = is_array($oldValue) || is_object($oldValue) || is_array($newValue) || is_object($newValue);
+                $logOld = $isComplex ? json_encode($oldValue, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT) : $oldValue;
+                $logNew = $isComplex ? json_encode($newValue, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT) : $newValue;
+                $this->orderChangeLogRepository->createOrderChangeLog([
+                    'order_id' => $orderId,
+                    'user_id' => $userId,
+                    'change_timestamp' => $now,
+                    'change_type' => 'UPDATE_FIELD',
+                    'field_changed' => $field,
+                    'old_value' => $logOld,
+                    'new_value' => $logNew,
+                    'description' => 'Cập nhật trường ' . $field,
+                ]);
+            }
+        }
+        // 3. Log thay đổi món ăn (thêm/xóa/sửa)
+        // Xóa
+        if (!empty($data['items'])) {
+            foreach ($data['items'] as $item) {
+                if (isset($item['id']) && isset($item['quantity']) && $item['quantity'] <= 0) {
+                    $deletedItem = ($order->items ?? collect())->where('id', $item['id'])->first();
+                    if ($deletedItem) {
+                        $this->orderChangeLogRepository->createOrderChangeLog([
+                            'order_id' => $orderId,
+                            'user_id' => $userId,
+                            'change_timestamp' => $now,
+                            'change_type' => 'DELETE_ITEM',
+                            'field_changed' => 'item',
+                            'old_value' => json_encode([
+                                'id' => $deletedItem->id,
+                                'dish_id' => $deletedItem->dish_id,
+                                'combo_id' => $deletedItem->combo_id,
+                                'quantity' => $deletedItem->quantity,
+                                'notes' => $deletedItem->notes,
+                            ]),
+                            'new_value' => null,
+                            'description' => 'Xóa món khỏi đơn hàng',
+                        ]);
+                    }
+                } else if (empty($item['id'])) {
+                    // Thêm mới
+                    $createdItem = $updatedOrder->items->where('dish_id', $item['dish_id'] ?? null)
+                        ->where('combo_id', $item['combo_id'] ?? null)
+                        ->where('quantity', $item['quantity'])
+                        ->where('is_additional', $item['is_additional'] ?? false)
+                        ->sortByDesc('id')->first();
+                    if ($createdItem) {
+                        $this->orderChangeLogRepository->createOrderChangeLog([
+                            'order_id' => $orderId,
+                            'user_id' => $userId,
+                            'change_timestamp' => $now,
+                            'change_type' => 'ADD_ITEM',
+                            'field_changed' => 'item',
+                            'old_value' => null,
+                            'new_value' => json_encode([
+                                'id' => $createdItem->id,
+                                'dish_id' => $createdItem->dish_id,
+                                'combo_id' => $createdItem->combo_id,
+                                'quantity' => $createdItem->quantity,
+                                'notes' => $createdItem->notes,
+                            ]),
+                            'description' => 'Thêm món vào đơn hàng',
+                        ]);
+                    }
+                } else {
+                    // Sửa món
+                    $oldItem = ($order->items ?? collect())->where('id', $item['id'])->first();
+                    $newItem = $updatedOrder->items->where('id', $item['id'])->first();
+                    if ($oldItem && $newItem) {
+                        // So sánh toàn bộ object món ăn, log chi tiết nếu có thay đổi
+                        $fieldsItem = ['dish_id', 'combo_id', 'quantity', 'notes', 'is_priority', 'is_additional', 'kitchen_status'];
+                        $changed = false;
+                        $diffs = [];
+                        foreach ($fieldsItem as $f) {
+                            if ($oldItem->$f != $newItem->$f) {
+                                $changed = true;
+                                $diffs[$f] = [
+                                    'old' => $oldItem->$f,
+                                    'new' => $newItem->$f
+                                ];
+                            }
+                        }
+                        if ($changed) {
+                            $this->orderChangeLogRepository->createOrderChangeLog([
+                                'order_id' => $orderId,
+                                'user_id' => $userId,
+                                'change_timestamp' => $now,
+                                'change_type' => 'UPDATE_ITEM',
+                                'field_changed' => 'item',
+                                'old_value' => json_encode($oldItem, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT),
+                                'new_value' => json_encode($newItem, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT),
+                                'description' => 'Cập nhật món ăn: ' . ($newItem->menuItem->name ?? $newItem->combo->name ?? ''),
+                            ]);
+                        }
+                    }
+                }
+            }
+        }
+        // 4. Log thay đổi bàn (nếu có)
+        if (!empty($data['tables'])) {
+            $oldTableIds = ($order->tables ?? collect())->pluck('id')->toArray();
+            $newTableIds = ($updatedOrder->tables ?? collect())->pluck('id')->toArray();
+            if ($oldTableIds !== $newTableIds) {
+                $this->orderChangeLogRepository->createOrderChangeLog([
+                    'order_id' => $orderId,
+                    'user_id' => $userId,
+                    'change_timestamp' => $now,
+                    'change_type' => 'UPDATE_TABLES',
+                    'field_changed' => 'tables',
+                    'old_value' => json_encode($oldTableIds),
+                    'new_value' => json_encode($newTableIds),
+                    'description' => 'Cập nhật danh sách bàn',
+                ]);
+            }
+        }
         $result->setResultSuccess(message: 'Cập nhật đơn hàng thành công!');
         return $result;
     }
@@ -546,6 +745,20 @@ class OrderService
         //     $this->notificationService->createKitchenOrderStatusNotification($kitchenOrderData, $orderItem->kitchen_status, $status);
         // }
 
+        // Ghi log thay đổi trạng thái món ăn trong đơn hàng
+        $orderItem = $ok->getData();
+        if ($orderItem) {
+            $this->orderChangeLogRepository->createOrderChangeLog([
+                'order_id' => $orderItem->order_id,
+                'user_id' => Auth::id(),
+                'change_timestamp' => now(),
+                'change_type' => 'UPDATE_ITEM_STATUS',
+                'field_changed' => 'item.kitchen_status',
+                'old_value' => $orderItem->getOriginal('kitchen_status'),
+                'new_value' => $orderItem->kitchen_status,
+                'description' => 'Cập nhật trạng thái món ăn',
+            ]);
+        }
         $result->setResultSuccess(data: $ok->getData(), message: 'Cập nhật trạng thái món thành công!');
         return $result;
     }
@@ -568,6 +781,54 @@ class OrderService
             $counts[$status] = $this->orderRepository->countByConditions(['status' => $status]);
         }
         return $counts;
+    }
+
+    /**
+     * Lấy lịch sử thay đổi của đơn hàng, trả về user_name (username nếu có, fallback full_name)
+     */
+    public function getOrderChangeLogs(int $orderId)
+    {
+        $logs = $this->orderChangeLogRepository->getOrderChangeLogs($orderId);
+        $userIds = $logs->pluck('user_id')->filter()->unique()->toArray();
+        $users = [];
+        if (!empty($userIds)) {
+            $users = \App\Models\User::whereIn('id', $userIds)
+                ->get(['id', 'username', 'full_name'])
+                ->keyBy('id')
+                ->map(function ($user) {
+                    return $user->username ?: $user->full_name;
+                })
+                ->toArray();
+        }
+        $logs = $logs->map(function ($log) use ($users) {
+            $log->user_name = $users[$log->user_id] ?? null;
+            return $log;
+        });
+        return $logs;
+    }
+
+    /**
+     * Lấy toàn bộ lịch sử thay đổi đơn hàng (cho trang quản trị)
+     */
+    public function getAllOrderChangeLogs()
+    {
+        $logs = $this->orderChangeLogRepository->getAllOrderChangeLogs();
+        $userIds = $logs->pluck('user_id')->filter()->unique()->toArray();
+        $users = [];
+        if (!empty($userIds)) {
+            $users = \App\Models\User::whereIn('id', $userIds)
+                ->get(['id', 'username', 'full_name'])
+                ->keyBy('id')
+                ->map(function ($user) {
+                    return $user->username ?: $user->full_name;
+                })
+                ->toArray();
+        }
+        $logs = $logs->map(function ($log) use ($users) {
+            $log->user_name = $users[$log->user_id] ?? null;
+            return $log;
+        });
+        return $logs;
     }
 
     public function getOrderByTableId($tableId): DataAggregate
