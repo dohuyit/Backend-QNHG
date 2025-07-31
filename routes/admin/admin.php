@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\UserRole\UserRoleController;
 use App\Http\Controllers\Admin\RolePermission\RolePermissionController;
 use App\Http\Controllers\Admin\Combo\ComboController;
 use App\Http\Controllers\Admin\Customer\CustomerController;
+use App\Http\Controllers\Admin\DiscountCode\DiscountCodeController;
 use App\Http\Controllers\Admin\Dish\DishController;
 use App\Http\Controllers\Admin\KitchenOrder\KitchenOrderController;
 use App\Http\Controllers\Admin\Order\OrderController;
@@ -189,6 +190,13 @@ Route::prefix('admin')->group(function () {
         // Notification
         Route::get('notifications/list', [NotificationController::class, 'getList']);
         Route::post('notifications/mark-all-read', [NotificationController::class, 'markAllRead']);
+
+        // Discount Codes
+        Route::get('discount-codes/list', [DiscountCodeController::class, 'getListDiscountCodes']);
+        Route::post('discount-codes/create', [DiscountCodeController::class, 'createDiscountCode']);
+        Route::post('discount-codes/{id}/update', [DiscountCodeController::class, 'updateDiscountCode']);
+        Route::delete('discount-codes/{id}/delete', [DiscountCodeController::class, 'deleteDiscountCode']);
+        Route::get('discount-codes/count-by-status', [DiscountCodeController::class, 'countByStatus']);
     });
     Route::get('/vnpay-return', [PaymentController::class, 'vnpayReturn']);
     Route::get('/momo-return', [PaymentController::class, 'momoReturn']);
