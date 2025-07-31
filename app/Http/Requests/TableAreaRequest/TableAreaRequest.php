@@ -16,7 +16,8 @@ class TableAreaRequest extends BaseFormRequest
                 'max:255',
                 'min:2',
                 Rule::unique('table_areas', 'name')->where(function ($query) {
-                    return $query->where('deleted_at', null);
+                    return $query->where('deleted_at', null)
+                        ->where('id', '!=', $this->route('id'));
                 })
             ],
             'description' => [
@@ -35,7 +36,7 @@ class TableAreaRequest extends BaseFormRequest
                 'string',
                 Rule::in(['active', 'inactive'])
             ],
-            
+
 
         ];
 

@@ -27,17 +27,15 @@ class UpdateOrderRequest extends BaseFormRequest
             'items.*.notes' => 'nullable|string|max:255',
             'items.*.is_priority' => 'boolean',
 
-            'tables' => 'required|array|min:1',
-            'tables.*.table_id' => 'exists:tables,id',
+            // Chỉ bắt buộc chọn bàn nếu là dine-in
+            'tables' => 'required_if:order_type,dine-in|array',
             'tables.*.notes' => 'nullable|string|max:255',
 
             'delivery_address' => 'nullable|string|max:255',
             'notes' => 'nullable|string|max:500',
 
-            // validate liên hệ
             'contact_name' => 'required|string|max:255',
-            'contact_phone.unique' => 'Số điện thoại này đã được sử dụng cho một đơn hàng khác',
-
+            'contact_phone' => ['required', 'string', 'max:20', 'regex:/^(0|\+84)[0-9]{9}$/'],
             'contact_email' => 'nullable|email|max:255',
         ];
     }
@@ -46,6 +44,7 @@ class UpdateOrderRequest extends BaseFormRequest
     {
         $validator->after(function ($validator) {
             $items = $this->input('items', []);
+            $orderType = $this->input('order_type');
             $tables = $this->input('tables', []);
             $status = $this->input('status', null);
 
@@ -59,8 +58,8 @@ class UpdateOrderRequest extends BaseFormRequest
                 }
             }
 
-            // Kiểm tra trạng thái với điều kiện đã chọn món & bàn
-            if (!empty($items) && !empty($tables) && ($status === 'pending' || $status === null)) {
+            // Kiểm tra trạng thái nếu có món và là dine-in thì phải khác pending
+            if (!empty($items) && $orderType === 'dine-in' && ($status === 'pending' || $status === null)) {
                 $validator->errors()->add(
                     'status',
                     'Vui lòng cập nhật trạng thái đơn hàng sang đã xác nhận khi đã chọn món và bàn.'
@@ -87,10 +86,8 @@ class UpdateOrderRequest extends BaseFormRequest
             'items.*.unit_price.min' => 'Đơn giá phải lớn hơn hoặc bằng 0',
             'items.*.notes.max' => 'Ghi chú món không được vượt quá 255 ký tự',
 
-            'tables.required' => 'Danh sách bàn không được bỏ trống',
-            'tables.min' => 'Phải chọn ít nhất 1 bàn',
+            'tables.required_if' => 'Bàn không được để trống',
             'tables.array' => 'Danh sách bàn không hợp lệ',
-            'tables.*.table_id.exists' => 'Bàn không tồn tại',
             'tables.*.notes.max' => 'Ghi chú bàn không được vượt quá 255 ký tự',
 
             'delivery_address.max' => 'Địa chỉ giao hàng không được vượt quá 255 ký tự',
