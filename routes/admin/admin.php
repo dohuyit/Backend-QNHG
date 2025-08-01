@@ -26,7 +26,7 @@ Route::prefix('admin')->group(function () {
 
     ##login admin
     Route::post('login', [AuthController::class, 'login']);
-
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
     Route::middleware(['auth:sanctum', 'check.status'])->group(function () {
         // Logout
         Route::post('logout', [AuthController::class, 'logout']);
@@ -85,7 +85,7 @@ Route::prefix('admin')->group(function () {
         Route::get('/tables/get-by-status', [TableController::class, 'getTablesByStatus']);
 
         ##resetpass
-        Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+
         Route::post('/reset-password/{id}', [AuthController::class, 'resetPassword']);
 
         ##Roles
