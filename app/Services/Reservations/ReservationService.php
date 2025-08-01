@@ -88,16 +88,32 @@ class ReservationService
         ];
 
         $ok  = $this->reservationRepository->createData($listDataCreate);
+        if ($ok) {
+            $this->reservationRepository->createReservationChangeLog([
+                'reservation_id' => $ok->id,
+                'user_id' => $ok->user_id,
+                'change_timestamp' => now(),
+                'change_type' => 'CREATE',
+                'field_changed' => null,
+                'old_value' => null,
+                'new_value' => null,
+                'description' => 'Tạo mới đơn đặt bàn',
+            ]);
+        }
         if (!$ok) {
             $result->setMessage(message: 'Tạo đơn đặt bàn thất bại, vui lòng thử lại!');
             return $result;
         }
         $result->setResultSuccess(message: 'Tạo đơn đặt bàn thành công!');
 
+
+
         // Dispatch event cho realtime
         event(new ReservationCreated($listDataCreate));
 
         $this->reservationMailService->sendClientConfirmMail($listDataCreate);
+
+        // }
         return $result;
     }
     public function getReservationDetail(int $id): DataAggregate
@@ -110,8 +126,13 @@ class ReservationService
             $result->setResultError(message: 'Đơn đặt bàn không tồn tại');
             return $result;
         }
+        // Lấy lịch sử thay đổi
+        $changeLogs = $this->reservationRepository->getReservationChangeLogs($id);
 
-        $result->setResultSuccess(data: ['reservation' => $reservation]);
+        $result->setResultSuccess(data: [
+            'reservation' => $reservation,
+            'change_logs' => $changeLogs,
+        ]);
         return $result;
     }
     public function updateReservation(array $data, Reservation $reservation): DataAggregate
@@ -167,8 +188,28 @@ class ReservationService
                     ]));
                 }
             } elseif ($newStatus === 'cancelled' && !$reservation->cancelled_at) {
+                // Kiểm tra đơn hàng liên kết có rỗng không
+                $orders = \App\Models\Order::where('reservation_id', $reservation->id)->get();
+                foreach ($orders as $order) {
+                    if ($order->items()->count() > 0) {
+                        $result->setMessage(message: 'Không thể hủy đơn đặt bàn vì đã có món trong đơn hàng. Vui lòng kiểm tra lại!');
+                        return $result;
+                    }
+                }
                 $listDataUpdate['cancelled_at'] = now();
+                // Hủy đơn hàng liên kết nếu có
+                foreach ($orders as $order) {
+                    $this->orderService->updateOrder(['status' => 'cancelled'], $order->id);
+                }
             } elseif ($newStatus === 'completed' && !$reservation->completed_at) {
+                // Kiểm tra đơn hàng liên kết có rỗng không
+                $orders = \App\Models\Order::where('reservation_id', $reservation->id)->get();
+                foreach ($orders as $order) {
+                    if ($order->items()->count() == 0) {
+                        $result->setMessage(message: 'Không thể hoàn thành đơn đặt bàn vì đơn hàng vẫn đang rỗng. Vui lòng kiểm tra lại!');
+                        return $result;
+                    }
+                }
                 $listDataUpdate['completed_at'] = now();
             }
         }
@@ -178,6 +219,29 @@ class ReservationService
             // Đồng bộ nhiều bàn với bảng reservation_tables
             $reservation->tables()->sync($data['table_id']);
         }
+        if ($ok) {
+            foreach ($listDataUpdate as $field => $newValue) {
+                $oldValue = $reservation->$field ?? null;
+                // So sánh, nếu khác thì log
+                if ($field === 'reservation_time' || $field === 'reservation_date') {
+                    // Có thể cần chuẩn hóa định dạng ngày/giờ trước khi so sánh
+                    $oldValue = (string)$oldValue;
+                    $newValue = (string)$newValue;
+                }
+                if ($oldValue != $newValue) {
+                    $this->reservationRepository->createReservationChangeLog([
+                        'reservation_id' => $reservation->id,
+                        'user_id' => $data['user_id'],
+                        'change_timestamp' => now(),
+                        'change_type' => 'UPDATE',
+                        'field_changed' => $field,
+                        'old_value' => $oldValue,
+                        'new_value' => $newValue,
+                        'description' => 'Cập nhật đơn đặt bàn từ ' . $oldValue . ' sang ' . $newValue,
+                    ]);
+                }
+            }
+        }
         if (!$ok) {
             $result->setMessage(message: 'Cập nhật thất bại, vui lòng thử lại!');
             return $result;
@@ -186,6 +250,25 @@ class ReservationService
 
         // Dispatch event cho realtime khi thay đổi trạng thái
         if ($newStatus !== $currentStatus) {
+            // Lấy danh sách admin từ bảng users, user_roles, roles
+            $admins = \App\Models\User::select('users.id')
+                ->join('user_roles', 'users.id', '=', 'user_roles.user_id')
+                ->join('roles', 'user_roles.role_id', '=', 'roles.id')
+                ->where('roles.role_name', 'Admin')
+                ->get();
+            foreach ($admins as $admin) {
+                \App\Models\Notification::create([
+                    'title' => 'Cập nhật trạng thái đơn đặt bàn',
+                    'message' => 'Đơn đặt bàn của ' . $reservation->customer_name . ' chuyển từ ' . $currentStatus . ' sang ' . $newStatus,
+                    'type' => 'reservation',
+                    'reservation_id' => $reservation->id,
+                    'order_id' => null,
+                    'bill_id' => null,
+                    'kitchen_order_id' => null,
+                    'receiver_id' => $admin->id,
+                    'read_at' => null,
+                ]);
+            }
             event(new ReservationStatusUpdated($reservation->toArray(), $currentStatus, $newStatus));
         }
 
@@ -232,8 +315,32 @@ class ReservationService
     public function softDeleteReservation($id): DataAggregate
     {
         $result = new DataAggregate();
-        $category = $this->reservationRepository->getByConditions(['id' => $id]);
-        $ok = $category->delete();
+        $reservation = $this->reservationRepository->getByConditions(['id' => $id]);
+        if (!$reservation) {
+            $result->setMessage(message: 'Đơn đặt bàn không tồn tại');
+            return $result;
+        }
+        // Lấy trạng thái
+        $status = $reservation->status;
+        // Lấy order liên kết
+        $orders = \App\Models\Order::where('reservation_id', $reservation->id)->get();
+        // Nếu completed thì không cho xóa
+        if ($status === 'completed') {
+            $result->setMessage(message: 'Đơn đặt bàn đã hoàn thành, không thể xóa để đảm bảo báo cáo/thống kê.');
+            return $result;
+        }
+        // Nếu đã xác nhận (confirmed)
+        if ($status === 'confirmed') {
+            foreach ($orders as $order) {
+                if ($order->items()->count() > 0) {
+                    $result->setMessage(message: 'Đơn đặt bàn đã có món trong đơn hàng, không thể xóa.');
+                    return $result;
+                }
+            }
+        }
+        // Nếu đã hủy thì chỉ xóa mềm (giữ record)
+        // Các trạng thái khác (pending, cancelled, không có order) đều cho xóa
+        $ok = $reservation->delete();
         if (!$ok) {
             $result->setMessage(message: 'Xóa thất bại, vui lòng thử lại!');
             return $result;
@@ -325,5 +432,31 @@ class ReservationService
             $counts[$status] = $this->reservationRepository->countByConditions(['status' => $status]);
         }
         return $counts;
+    }
+
+    /**
+     * Lấy lịch sử thay đổi của đơn đặt bàn
+     */
+    public function getReservationChangeLogs(int $reservationId)
+    {
+        // Lấy danh sách log thay đổi
+        $logs = $this->reservationRepository->getReservationChangeLogs($reservationId);
+        // Lấy danh sách user_id duy nhất từ log
+        $userIds = $logs->pluck('user_id')->filter()->unique()->toArray();
+        $users = [];
+        if (!empty($userIds)) {
+            $users = \App\Models\User::whereIn('id', $userIds)
+    ->get(['id', 'username', 'full_name'])
+    ->keyBy('id')
+    ->map(function($user) {
+        return $user->username ?: $user->full_name;
+    })->toArray();
+        }
+        // Gắn tên người thao tác vào từng log
+        $logs = $logs->map(function ($log) use ($users) {
+            $log->user_name = $users[$log->user_id] ?? null;
+            return $log;
+        });
+        return $logs;
     }
 }

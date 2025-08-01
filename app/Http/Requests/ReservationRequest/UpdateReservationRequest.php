@@ -24,7 +24,7 @@ class UpdateReservationRequest extends BaseFormRequest
         return [
             'customer_id'       => 'nullable|integer|exists:customers,id',
             'customer_name'     => 'required|string|max:100',
-            'customer_phone'    => 'required|string|max:20',
+            'customer_phone'    => 'required|string|max:20|regex:/^[0-9+\-\s]+$/|max:20',
             'customer_email'    => 'nullable|email|max:100',
             'reservation_date'  => 'required|date|after_or_equal:today',
             'reservation_time'  => 'required|date_format:H:i',
@@ -48,7 +48,7 @@ class UpdateReservationRequest extends BaseFormRequest
             'customer_phone.required'   => 'Vui lòng nhập số điện thoại.',
             'customer_phone.string'     => 'Số điện thoại phải là chuỗi.',
             'customer_phone.max'        => 'Số điện thoại không được vượt quá 20 ký tự.',
-
+            'customer_phone.regex'      => 'Số điện thoại không hợp lệ',
             'customer_email.email'      => 'Email không hợp lệ.',
             'customer_email.max'        => 'Email không được vượt quá 100 ký tự.',
 

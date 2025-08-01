@@ -14,11 +14,13 @@ use App\Http\Controllers\Admin\UserRole\UserRoleController;
 use App\Http\Controllers\Admin\RolePermission\RolePermissionController;
 use App\Http\Controllers\Admin\Combo\ComboController;
 use App\Http\Controllers\Admin\Customer\CustomerController;
+use App\Http\Controllers\Admin\DiscountCode\DiscountCodeController;
 use App\Http\Controllers\Admin\Dish\DishController;
 use App\Http\Controllers\Admin\KitchenOrder\KitchenOrderController;
 use App\Http\Controllers\Admin\Order\OrderController;
 use App\Http\Controllers\Admin\Payment\PaymentController;
 use App\Http\Controllers\Admin\Reservation\ReservationController;
+use App\Http\Controllers\Admin\NotificationController\NotificationController;
 
 Route::prefix('admin')->group(function () {
 
@@ -119,6 +121,7 @@ Route::prefix('admin')->group(function () {
 
         ##order
         Route::get('orders/list', [OrderController::class, 'getListOrders']);
+        Route::get('orders/change-logs', [OrderController::class, 'getAllOrderChangeLogs']);
         Route::get('orders/{id}/detail', [OrderController::class, 'getOrderDetail']);
         Route::post('orders/create', [OrderController::class, 'createOrder']);
         Route::post('orders/{id}/update', [OrderController::class, 'updateOrder']);
@@ -170,19 +173,30 @@ Route::prefix('admin')->group(function () {
         Route::post('reservations/{id}/restore', [ReservationController::class, 'restoreReservation']);
         Route::post('reservations/{id}/confirm', [ReservationController::class, 'confirmReservation']);
         Route::get('reservations/count-by-status', [ReservationController::class, 'countByStatus']);
+        Route::get('reservations/{id}/change-logs', [ReservationController::class, 'getChangeLogs']);
 
         // Kitchen Order
         Route::get('kitchen-orders/list', [KitchenOrderController::class, 'getListKitchenOrders']);
         Route::post('kitchen-orders/{id}/update-status', [KitchenOrderController::class, 'updateKitchenOrderStatus']);
         Route::get('kitchen-orders/count-by-status', [KitchenOrderController::class, 'countByStatus']);
 
+        // Lịch sử thay đổi đơn hàng
+        Route::get('orders/{id}/change-logs', [OrderController::class, 'getOrderChangeLogs']);
+
         // Order Payment
         Route::post('orders/{id}/pay', [PaymentController::class, 'payment']);
         Route::get('bills/{id}/detail', [PaymentController::class, 'getBillDetailForOrder']);
 
         // Notification
-        Route::get('notifications/list', [\App\Http\Controllers\Admin\NotificationController\NotificationController::class, 'getList']);
-        Route::post('notifications/mark-all-read', [\App\Http\Controllers\Admin\NotificationController\NotificationController::class, 'markAllRead']);
+        Route::get('notifications/list', [NotificationController::class, 'getList']);
+        Route::post('notifications/mark-all-read', [NotificationController::class, 'markAllRead']);
+
+        // Discount Codes
+        Route::get('discount-codes/list', [DiscountCodeController::class, 'getListDiscountCodes']);
+        Route::post('discount-codes/create', [DiscountCodeController::class, 'createDiscountCode']);
+        Route::post('discount-codes/{id}/update', [DiscountCodeController::class, 'updateDiscountCode']);
+        Route::delete('discount-codes/{id}/delete', [DiscountCodeController::class, 'deleteDiscountCode']);
+        Route::get('discount-codes/count-by-status', [DiscountCodeController::class, 'countByStatus']);
     });
     Route::get('/vnpay-return', [PaymentController::class, 'vnpayReturn']);
     Route::get('/momo-return', [PaymentController::class, 'momoReturn']);

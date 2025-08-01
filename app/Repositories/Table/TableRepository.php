@@ -86,7 +86,7 @@ class TableRepository implements TableRepositoryInterface
         $query = Table::query();
 
         if (!empty($conditions)) {
-            $this->filterTableList($query, $conditions);
+          $query = $this->filterTableList($query, $conditions);
         }
         return $query->count();
     }

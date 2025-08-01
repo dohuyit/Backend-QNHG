@@ -20,7 +20,7 @@ class DatabaseSeeder extends Seeder
             TableSeeder::class,
 
 
-//            UserSeeder::class,
+            UserSeeder::class,
             // Seed dish trước combo
             DishSeeder::class,
 
@@ -48,14 +48,15 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
 
             // user_roles phải sau khi có user và role
-//            UserRoleSeeder::class,
+            UserRoleSeeder::class,
 
             BillSeeder::class,
             BillPaymentSeeder::class,
 
-            
             CartSeeder::class,
             CartItemSeeder::class,
+
+            DiscountCodeSeeder::class,
         ]);
     }
 }
