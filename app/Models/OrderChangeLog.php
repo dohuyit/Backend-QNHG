@@ -10,6 +10,7 @@ class OrderChangeLog extends Model
 
     protected $fillable = [
         'order_id',             // ID đơn hàng
+        'batch_id',             // Mã batch thao tác
         'user_id',              // ID nhân viên thực hiện thay đổi
         'change_timestamp',     // Thời điểm thay đổi
         'change_type',          // Loại thay đổi: STATUS_UPDATE, ITEM_ADDED, etc.

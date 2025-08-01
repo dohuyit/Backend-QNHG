@@ -32,7 +32,7 @@ class OrderService
     public function getListOrders(array $params): ListAggregate
     {
         $filter = $params;
-        $limit = !empty($params['limit']) && $params['limit'] > 0 ? (int)$params['limit'] : 10000;
+        $limit = !empty($params['limit']) && $params['limit'] > 0 ? min((int)$params['limit'], 1000) : 100;
         $pagination = $this->orderRepository->getListOrders(filter: $filter, limit: $limit);
         $data = [];
         foreach ($pagination->items() as $item) {
@@ -299,6 +299,7 @@ class OrderService
     public function updateOrder(array $data, $id): DataAggregate
     {
         $result = new DataAggregate();
+        $batchId = uniqid('batch_');
         $order = $this->orderRepository->getByConditions(['id' => $id]);
         if (!$order) {
             $result->setMessage(message: 'Đơn hàng không tồn tại');
@@ -378,6 +379,7 @@ class OrderService
                         ]));
                         // GHI LOG XOÁ MÓN
                         $this->orderChangeLogRepository->createOrderChangeLog([
+                            'batch_id' => $batchId,
                             'order_id' => $updatedOrder->id,
                             'user_id' => Auth::id(),
                             'change_timestamp' => now(),
@@ -414,6 +416,7 @@ class OrderService
                         ]));
                         // GHI LOG THÊM MÓN
                         $this->orderChangeLogRepository->createOrderChangeLog([
+                            'batch_id' => $batchId,
                             'order_id' => $updatedOrder->id,
                             'user_id' => Auth::id(),
                             'change_timestamp' => now(),
@@ -451,6 +454,7 @@ class OrderService
                             foreach ($fieldsItem as $f) {
                                 if ($oldItem->$f != $updatedItem->$f) {
                                     $this->orderChangeLogRepository->createOrderChangeLog([
+                                        'batch_id' => $batchId,
                                         'order_id' => $updatedOrder->id,
                                         'user_id' => Auth::id(),
                                         'change_timestamp' => now(),
@@ -483,6 +487,7 @@ class OrderService
         // 1. Log thay đổi trạng thái
         if ($statusChanged) {
             $this->orderChangeLogRepository->createOrderChangeLog([
+                'batch_id' => $batchId,
                 'order_id' => $orderId,
                 'user_id' => $userId,
                 'change_timestamp' => $now,
@@ -507,6 +512,33 @@ class OrderService
                 $logOld = $isComplex ? json_encode($oldValue, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT) : $oldValue;
                 $logNew = $isComplex ? json_encode($newValue, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT) : $newValue;
                 $this->orderChangeLogRepository->createOrderChangeLog([
+                    'batch_id' => $batchId,
+                    'order_id' => $orderId,
+                    'user_id' => $userId,
+                    'change_timestamp' => $now,
+                    'change_type' => 'UPDATE_FIELD',
+                    'field_changed' => $field,
+                    'old_value' => $logOld,
+                    'new_value' => $logNew,
+                    'description' => 'Cập nhật trường ' . $field,
+                ]);
+            }
+        }
+        // 2. Log thay đổi các trường chính
+        // Tự động log mọi thay đổi trường của đơn hàng (kể cả trường mới phát sinh)
+        $ignoreFields = ['id', 'created_at', 'updated_at'];
+        $allFields = array_keys((array)$order->getAttributes());
+        foreach ($allFields as $field) {
+            if (in_array($field, $ignoreFields)) continue;
+            $oldValue = $order->$field;
+            $newValue = $updatedOrder->$field;
+            if ($oldValue != $newValue) {
+                // Nếu là dạng object/array thì lưu JSON
+                $isComplex = is_array($oldValue) || is_object($oldValue) || is_array($newValue) || is_object($newValue);
+                $logOld = $isComplex ? json_encode($oldValue, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT) : $oldValue;
+                $logNew = $isComplex ? json_encode($newValue, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT) : $newValue;
+                $this->orderChangeLogRepository->createOrderChangeLog([
+                    'batch_id' => $batchId,
                     'order_id' => $orderId,
                     'user_id' => $userId,
                     'change_timestamp' => $now,
@@ -526,6 +558,7 @@ class OrderService
                     $deletedItem = ($order->items ?? collect())->where('id', $item['id'])->first();
                     if ($deletedItem) {
                         $this->orderChangeLogRepository->createOrderChangeLog([
+                            'batch_id' => $batchId,
                             'order_id' => $orderId,
                             'user_id' => $userId,
                             'change_timestamp' => $now,
@@ -551,6 +584,7 @@ class OrderService
                         ->sortByDesc('id')->first();
                     if ($createdItem) {
                         $this->orderChangeLogRepository->createOrderChangeLog([
+                             'batch_id' => $batchId,
                             'order_id' => $orderId,
                             'user_id' => $userId,
                             'change_timestamp' => $now,
@@ -587,6 +621,7 @@ class OrderService
                         }
                         if ($changed) {
                             $this->orderChangeLogRepository->createOrderChangeLog([
+                                'batch_id' => $batchId,
                                 'order_id' => $orderId,
                                 'user_id' => $userId,
                                 'change_timestamp' => $now,
@@ -607,6 +642,7 @@ class OrderService
             $newTableIds = ($updatedOrder->tables ?? collect())->pluck('id')->toArray();
             if ($oldTableIds !== $newTableIds) {
                 $this->orderChangeLogRepository->createOrderChangeLog([
+                    'batch_id' => $batchId,
                     'order_id' => $orderId,
                     'user_id' => $userId,
                     'change_timestamp' => $now,
@@ -721,7 +757,7 @@ class OrderService
     public function updateOrderItemStatus(int $orderItemId, string $status): DataAggregate
     {
         $result = new DataAggregate();
-
+        $batchId = uniqid('batch_');
         $validStatuses = ['pending', 'preparing', 'ready', 'served', 'cancelled'];
         if (!in_array($status, $validStatuses)) {
             $result->setMessage(message: 'Trạng thái món không hợp lệ');
@@ -750,6 +786,7 @@ class OrderService
         $orderItem = $ok->getData();
         if ($orderItem) {
             $this->orderChangeLogRepository->createOrderChangeLog([
+                'batch_id' => $batchId,
                 'order_id' => $orderItem->order_id,
                 'user_id' => Auth::id(),
                 'change_timestamp' => now(),
@@ -801,11 +838,18 @@ class OrderService
                 })
                 ->toArray();
         }
-        $logs = $logs->map(function ($log) use ($users) {
-            $log->user_name = $users[$log->user_id] ?? null;
-            return $log;
-        });
-        return $logs;
+        // Gom nhóm theo batch_id
+        $batches = $logs->groupBy('batch_id')->map(function ($group) use ($users) {
+            $firstLog = $group->first();
+            return [
+                'batch_id' => $firstLog->batch_id,
+                'change_timestamp' => $group->max('change_timestamp'),
+                'user_id' => $firstLog->user_id,
+                'user_name' => $users[$firstLog->user_id] ?? null,
+                'logs' => $group->sortBy('change_type')->sortByDesc('change_timestamp')->values()->toArray(),
+            ];
+        })->sortByDesc('change_timestamp')->values();
+        return $batches;
     }
 
     /**
