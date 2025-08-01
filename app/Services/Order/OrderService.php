@@ -414,24 +414,7 @@ class OrderService
                             'is_additional' => $createdItem->is_additional,
                             'updated_at' => $createdItem->updated_at,
                         ]));
-                        // GHI LOG THÊM MÓN
-                        $this->orderChangeLogRepository->createOrderChangeLog([
-                            'batch_id' => $batchId,
-                            'order_id' => $updatedOrder->id,
-                            'user_id' => Auth::id(),
-                            'change_timestamp' => now(),
-                            'change_type' => 'ADD_ITEM',
-                            'field_changed' => 'item',
-                            'old_value' => null,
-                            'new_value' => json_encode([
-                                'id' => $createdItem->id,
-                                'dish_id' => $createdItem->dish_id,
-                                'combo_id' => $createdItem->combo_id,
-                                'quantity' => $createdItem->quantity,
-                                'notes' => $createdItem->notes,
-                            ]),
-                            'description' => 'Thêm món vào đơn hàng',
-                        ]);
+                        
                     }
                 } else {
                     // Nếu là món sửa (có id), broadcast event update
