@@ -204,8 +204,20 @@ class UserService
     {
         $result = new DataAggregate();
 
+        // Không cho phép khoá admin
+        if ($user->role === User::ROLE_ADMIN) {
+            $result->setMessage('Không thể khoá tài khoản admin');
+            return $result; // << PHẢI return $result
+        }
+
+        // Không cho phép khoá tài khoản đang đăng nhập
+        if (auth()->id() === $user->id) {
+            $result->setMessage('Không thể khoá chính tài khoản đang đăng nhập');
+            return $result; // << PHẢI return $result
+        }
+
         $updateData = [
-            'status' => User::STATUS_BLOCKED,
+            'status' => User::STATUS_INACTIVE,
             'updated_at' => now(),
         ];
 
@@ -220,13 +232,14 @@ class UserService
         }
 
         $result->setResultSuccess(
-            message: 'Đã chuyển tài khoản về chế độ bị khoá',
+            message: 'Tài khoản đã được chuyển sang trạng thái ngừng hoạt động',
             data: []
         );
 
-
         return $result;
     }
+
+
     public function unblockUser(User $user): DataAggregate
     {
         $result = new DataAggregate();
