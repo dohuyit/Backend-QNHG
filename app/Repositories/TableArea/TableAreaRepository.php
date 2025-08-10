@@ -36,6 +36,14 @@ class TableAreaRepository implements TableAreaRepositoryInterface
 
     private function filterTableAreaList(Builder $query, array $filter = []): Builder
     {
+        if ($val = $filter['query'] ?? null) {
+            $query->where(function($q) use ($val) {
+                $q->where('name', 'like', '%' . $val . '%')
+                    ->orWhere('status', 'like', '%' . $val . '%')
+                    ->orWhere('capacity', 'like', '%' . $val . '%');
+            });
+        }
+
         if ($val = $filter['name'] ?? null) {
             $query->where('name', 'like', '%' . $val . '%');
         }
