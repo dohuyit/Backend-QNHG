@@ -81,6 +81,14 @@ class PermissionSeeder extends Seeder
             ['permission_name' => 'kitchen-order.cancel', 'description' => 'Hủy đơn bếp', 'group' => 'Đơn hàng'],
             ['permission_name' => 'kitchen-order.count-by-status', 'description' => 'Thống kê đơn bếp theo trạng thái', 'group' => 'Đơn hàng'],
 
+            // ===== Mã giảm giá =====
+            ['permission_name' => 'discount.view', 'description' => 'Xem danh sách mã giảm giá', 'group' => 'Mã giảm giá'],
+            ['permission_name' => 'discount.create', 'description' => 'Tạo mã giảm giá', 'group' => 'Mã giảm giá'],
+            ['permission_name' => 'discount.update', 'description' => 'Cập nhật mã giảm giá', 'group' => 'Mã giảm giá'],
+            ['permission_name' => 'discount.delete', 'description' => 'Xóa mã giảm giá', 'group' => 'Mã giảm giá'],
+            ['permission_name' => 'discount.activate', 'description' => 'Bật / Tắt mã giảm giá', 'group' => 'Mã giảm giá'],
+            ['permission_name' => 'discount.count-by-status', 'description' => 'Thống kê mã giảm giá theo trạng thái', 'group' => 'Mã giảm giá'],
+
             // ===== Vai trò & Quyền =====
             ['permission_name' => 'role.view', 'description' => 'Xem vai trò', 'group' => 'Vai trò & Quyền'],
             ['permission_name' => 'role.create', 'description' => 'Tạo vai trò', 'group' => 'Vai trò & Quyền'],

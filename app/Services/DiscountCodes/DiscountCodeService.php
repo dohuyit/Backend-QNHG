@@ -54,6 +54,7 @@ class DiscountCodeService
             'start_date' => $data['start_date'],
             'end_date' => $data['end_date'],
             'is_active' => $data['is_active'],
+            'usage_limit' => $data['usage_limit'],
             'used' => 0
         ];
         $ok = $this->discountCodeRepository->createData($listDataCreate);
