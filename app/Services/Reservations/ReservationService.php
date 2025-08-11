@@ -43,7 +43,6 @@ class ReservationService
                 'reservation_date' => $item->reservation_date,
                 'reservation_time' => $item->reservation_time,
                 'number_of_guests' => $item->number_of_guests,
-                'table_id' => $item->table_id,
                 'notes' => $item->notes,
                 'status' => $item->status,
                 'user_id' => $item->user_id,
@@ -67,9 +66,6 @@ class ReservationService
     public function createReservation(array $data): DataAggregate
     {
         $result = new DataAggregate();
-        $tableId = is_array($data['table_id']) ? ($data['table_id'][0] ?? null) : $data['table_id'];
-        $table = $tableId ? $this->tableRepository->getByConditions(['id' => $tableId]) : null;
-
 
         $listDataCreate = [
             'customer_id' => $data['customer_id'],
@@ -79,12 +75,9 @@ class ReservationService
             'reservation_date' => $data['reservation_date'],
             'reservation_time' => $data['reservation_time'],
             'number_of_guests' => $data['number_of_guests'],
-            'table_id' => $data['table_id'],
             'notes' => $data['notes'],
             'status' => $data['status'] ?? 'pending',
             'user_id' => $data['user_id'],
-            'table_name' => $table?->table_number ?? 'Không rõ',
-            'table_area_name' => $table?->tableArea?->name ?? 'Không rõ',
         ];
 
         $ok  = $this->reservationRepository->createData($listDataCreate);
@@ -108,12 +101,10 @@ class ReservationService
 
 
 
-        // Dispatch event cho realtime
         event(new ReservationCreated($listDataCreate));
 
         $this->reservationMailService->sendClientConfirmMail($listDataCreate);
 
-        // }
         return $result;
     }
     public function getReservationDetail(int $id): DataAggregate
@@ -428,7 +419,7 @@ class ReservationService
         $listStatus = ['pending', 'confirmed', 'cancelled', 'completed', 'no_show', 'seated'];
         $counts = [];
 
-        foreach($listStatus as $status) {
+        foreach ($listStatus as $status) {
             $counts[$status] = $this->reservationRepository->countByConditions(['status' => $status]);
         }
         return $counts;
@@ -446,11 +437,11 @@ class ReservationService
         $users = [];
         if (!empty($userIds)) {
             $users = \App\Models\User::whereIn('id', $userIds)
-    ->get(['id', 'username', 'full_name'])
-    ->keyBy('id')
-    ->map(function($user) {
-        return $user->username ?: $user->full_name;
-    })->toArray();
+                ->get(['id', 'username', 'full_name'])
+                ->keyBy('id')
+                ->map(function ($user) {
+                    return $user->username ?: $user->full_name;
+                })->toArray();
         }
         // Gắn tên người thao tác vào từng log
         $logs = $logs->map(function ($log) use ($users) {
