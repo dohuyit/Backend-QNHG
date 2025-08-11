@@ -22,6 +22,11 @@ class OrderRepository implements OrderRepositoryInterface
         return Order::where($conditions)->first();
     }
 
+    public function getByConditionOrderItem(array $conditions): ?OrderItem
+    {
+        return OrderItem::where($conditions)->first();
+    }
+
     public function getListOrders(array $filter = [], int $limit = 10): LengthAwarePaginator
     {
         $query = Order::query()->with(['items.menuItem', 'tables', 'reservation', 'customer', 'user']);
@@ -268,11 +273,6 @@ class OrderRepository implements OrderRepositoryInterface
                 }
             }
 
-            // Không xóa OrderItem nào khác không được gửi lên!
-
-            // Update total amount
-            $orderData['total_amount'] = $totalAmount;
-            $orderData['final_amount'] = $totalAmount;
 
             // Update order details
             $order->update($orderData);

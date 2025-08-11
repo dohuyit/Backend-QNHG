@@ -24,6 +24,7 @@ return new class extends Migration
             $table->text('notes')->nullable()->comment('Ghi chú');
             $table->enum('status', ['pending', 'confirmed', 'cancelled', 'completed', 'no_show', 'seated'])->default('pending')->comment('Trạng thái đặt bàn');
             $table->foreignId('user_id')->nullable()->comment('Nhân viên tạo')->constrained('users', 'id')->onDelete('set null');
+            $table->foreignId('table_area_id')->nullable()->comment('Khu vực bàn')->constrained('table_areas', 'id')->onDelete('set null');
             $table->timestamp('confirmed_at')->nullable()->comment('Thời gian xác nhận');
             $table->timestamp('cancelled_at')->nullable()->comment('Thời gian hủy');
             $table->timestamp('completed_at')->nullable()->comment('Thời gian hoàn tất');

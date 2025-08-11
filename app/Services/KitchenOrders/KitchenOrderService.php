@@ -119,9 +119,18 @@ class KitchenOrderService
             }
 
             // Kiểm tra nếu toàn bộ món trong đơn đã 'ready' thì cập nhật đơn hàng
-            $orderItem = OrderItem::find($orderItemId);
+            $orderItem = $this->orderRepository->getByConditionOrderItem(['id' => $orderItemId]);
+            if (!$orderItem) {
+                $result->setMessage('Món ăn không tồn tại trong đơn hàng');
+                return $result;
+            }
             if ($orderItem && $orderItem->order_id) {
                 $orderId = $orderItem->order_id;
+
+                // Nếu món ăn bị hủy, cần cập nhật lại total_amount và final_amount
+                if ($newStatus === 'cancelled') {
+                    $this->recalculateOrderAmounts($orderId);
+                }
 
                 $allItemsReady = $this->kitchenOrderRepository->areAllItemsReadyInOrder($orderId);
                 if ($allItemsReady) {
@@ -214,5 +223,39 @@ class KitchenOrderService
 
         $result->setResultSuccess(data: $kitchenOrder, message: 'Tạo đơn bếp thành công');
         return $result;
+    }
+
+    private function recalculateOrderAmounts(int $orderId): void
+    {
+        $result = new DataAggregate();
+        $order = $this->orderRepository->getByConditions(['id' => $orderId]);
+        if (!$order) {
+            $result->setMessage('Đơn hàng không tồn tại');
+            return;
+        }
+
+        // Lấy tất cả order_items không bị hủy trong đơn hàng
+        $activeOrderItems = OrderItem::where('order_id', $orderId)
+            ->where('kitchen_status', '!=', 'cancelled')
+            ->get();
+
+
+        $newTotalAmount = 0;
+        foreach ($activeOrderItems as $item) {
+            $newTotalAmount += $item->unit_price * $item->quantity;
+        }
+
+        $discountAmount = $order->discount_amount ?? 0;
+        $taxAmount = $order->tax_amount ?? 0;
+        $serviceFee = $order->service_fee ?? 0;
+
+        $newFinalAmount = $newTotalAmount - $discountAmount + $taxAmount + $serviceFee;
+
+        // Cập nhật đơn hàng
+        $this->orderRepository->updateByConditions(['id' => $orderId], [
+            'total_amount' => $newTotalAmount,
+            'final_amount' => $newFinalAmount,
+            'updated_at' => now(),
+        ]);
     }
 }

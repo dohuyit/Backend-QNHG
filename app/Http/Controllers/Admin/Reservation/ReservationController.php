@@ -56,7 +56,6 @@ class ReservationController extends Controller
             'reservation_date',
             'reservation_time',
             'number_of_guests',
-            'table_id',
             'notes',
             'status',
             'confirmed_at',

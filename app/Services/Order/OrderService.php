@@ -315,6 +315,8 @@ class OrderService
             'contact_name' => $data['contact_name'] ?? $order->contact_name,
             'contact_email' => $data['contact_email'] ?? $order->contact_email,
             'contact_phone' => $data['contact_phone'] ?? $order->contact_phone,
+            'total_amount' => $data['total_amount'] ?? $order->total_amount,
+            'final_amount' => $data['final_amount'] ?? $order->final_amount,
         ];
 
         // Kiểm tra nếu có thay đổi trạng thái
@@ -414,7 +416,6 @@ class OrderService
                             'is_additional' => $createdItem->is_additional,
                             'updated_at' => $createdItem->updated_at,
                         ]));
-                        
                     }
                 } else {
                     // Nếu là món sửa (có id), broadcast event update
@@ -492,8 +493,8 @@ class OrderService
             if ($oldValue != $newValue) {
                 // Nếu là dạng object/array thì lưu JSON
                 $isComplex = is_array($oldValue) || is_object($oldValue) || is_array($newValue) || is_object($newValue);
-                $logOld = $isComplex ? json_encode($oldValue, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT) : $oldValue;
-                $logNew = $isComplex ? json_encode($newValue, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT) : $newValue;
+                $logOld = $isComplex ? json_encode($oldValue, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) : $oldValue;
+                $logNew = $isComplex ? json_encode($newValue, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) : $newValue;
                 $this->orderChangeLogRepository->createOrderChangeLog([
                     'batch_id' => $batchId,
                     'order_id' => $orderId,
@@ -518,8 +519,8 @@ class OrderService
             if ($oldValue != $newValue) {
                 // Nếu là dạng object/array thì lưu JSON
                 $isComplex = is_array($oldValue) || is_object($oldValue) || is_array($newValue) || is_object($newValue);
-                $logOld = $isComplex ? json_encode($oldValue, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT) : $oldValue;
-                $logNew = $isComplex ? json_encode($newValue, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT) : $newValue;
+                $logOld = $isComplex ? json_encode($oldValue, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) : $oldValue;
+                $logNew = $isComplex ? json_encode($newValue, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) : $newValue;
                 $this->orderChangeLogRepository->createOrderChangeLog([
                     'batch_id' => $batchId,
                     'order_id' => $orderId,
@@ -567,7 +568,7 @@ class OrderService
                         ->sortByDesc('id')->first();
                     if ($createdItem) {
                         $this->orderChangeLogRepository->createOrderChangeLog([
-                             'batch_id' => $batchId,
+                            'batch_id' => $batchId,
                             'order_id' => $orderId,
                             'user_id' => $userId,
                             'change_timestamp' => $now,
@@ -610,8 +611,8 @@ class OrderService
                                 'change_timestamp' => $now,
                                 'change_type' => 'UPDATE_ITEM',
                                 'field_changed' => 'item',
-                                'old_value' => json_encode($oldItem, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT),
-                                'new_value' => json_encode($newItem, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT),
+                                'old_value' => json_encode($oldItem, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT),
+                                'new_value' => json_encode($newItem, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT),
                                 'description' => 'Cập nhật món ăn: ' . ($newItem->menuItem->name ?? $newItem->combo->name ?? ''),
                             ]);
                         }
