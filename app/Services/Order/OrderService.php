@@ -117,7 +117,8 @@ class OrderService
             'contact_phone' => $data['contact_phone'] ?? null,
             'user_id' => Auth::id(),
             'order_time' => now(),
-            'status' => 'pending',
+            // Theo yêu cầu: đơn hàng mới tạo sẽ ở trạng thái "đã xác nhận"
+            'status' => 'confirmed',
             'order_code' => 'ORD' . Str::upper(Str::random(8)),
         ];
 
