@@ -211,16 +211,20 @@ class TableService
             $result->setResultError(message: 'Cập nhật thất bại, vui lòng thử lại!');
             return $result;
         }
-        // Nếu có cập nhật trạng thái thì broadcast event
+        // Nếu có cập nhật trạng thái: chỉ phát event nếu class tồn tại (tránh lỗi khi tắt realtime)
         if (isset($listDataUpdate['status'])) {
             $tableFresh = $this->tableRepository->getByConditions(['id' => $table->id]);
-            event(new \App\Events\Tables\TableStatusUpdated([
-                'id' => $tableFresh->id,
-                'table_number' => $tableFresh->table_number,
-                'status' => $tableFresh->status,
-                'updated_at' => $tableFresh->updated_at,
-                // ... các trường khác nếu cần
-            ]));
+            $eventClass = 'App\\Events\\Tables\\TableStatusUpdated';
+            if (class_exists($eventClass)) {
+                event(new $eventClass([
+                    'id' => $tableFresh->id,
+                    'table_number' => $tableFresh->table_number,
+                    'status' => $tableFresh->status,
+                    'updated_at' => $tableFresh->updated_at,
+                ]));
+            } else {
+                Log::warning('TableStatusUpdated event class not found; skipping broadcast');
+            }
         }
         $result->setResultSuccess(message: 'Cập nhật bàn thành công!');
         return $result;
@@ -233,7 +237,8 @@ class TableService
     {
         // Định nghĩa các trạng thái có thể chuyển đổi
         $allowedTransitions = [
-            'available' => ['occupied', 'cleaning', 'out_of_service'],
+            // Đồng bộ với frontend: từ Trống chỉ cho phép chuyển sang Dọn dẹp hoặc Ngưng phục vụ
+            'available' => ['cleaning', 'out_of_service'],
             'occupied' => ['available', 'cleaning'],
             'cleaning' => ['available', 'out_of_service'],
             'out_of_service' => ['available', 'cleaning'],
