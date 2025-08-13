@@ -25,4 +25,7 @@ interface ReservationRepositoryInterface
      * Tạo log thay đổi đơn đặt bàn
      */
     public function createReservationChangeLog(array $data);
+
+    public function getReservationStatusStats(): array;
+    public function getReservationTimeStats(?string $startDate, ?string $endDate, string $groupBy = 'day'): array;
 }

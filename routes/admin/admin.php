@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\Order\OrderController;
 use App\Http\Controllers\Admin\Payment\PaymentController;
 use App\Http\Controllers\Admin\Reservation\ReservationController;
 use App\Http\Controllers\Admin\NotificationController\NotificationController;
+use App\Http\Controllers\Admin\Statistics\StatisticsController;;
 
 Route::prefix('admin')->group(function () {
 
@@ -197,6 +198,12 @@ Route::prefix('admin')->group(function () {
         Route::post('discount-codes/{id}/update', [DiscountCodeController::class, 'updateDiscountCode']);
         Route::delete('discount-codes/{id}/delete', [DiscountCodeController::class, 'deleteDiscountCode']);
         Route::get('discount-codes/count-by-status', [DiscountCodeController::class, 'countByStatus']);
+
+        ## thống kê
+        Route::get('statistics/reservations/status-count', [StatisticsController::class, 'getReservationStatusStats']);
+        Route::get('statistics/reservations/time-count', [StatisticsController::class, 'getReservationTimeStats']);
+        Route::get('statistics/orders/revenue', [StatisticsController::class, 'getOrderRevenueStats']);
+
     });
     Route::get('/vnpay-return', [PaymentController::class, 'vnpayReturn']);
     Route::get('/momo-return', [PaymentController::class, 'momoReturn']);
