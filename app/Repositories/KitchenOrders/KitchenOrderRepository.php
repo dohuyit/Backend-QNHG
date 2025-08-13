@@ -29,14 +29,16 @@ class KitchenOrderRepository implements KitchenOrderRepositoryInterface
     }
     public function getKitchenOrderList(array $filter = [], int $limit = 10): LengthAwarePaginator
     {
-        $query = KitchenOrder::query();
+        $query = KitchenOrder::query()
+            ->with('order');
 
         if (!empty($filter)) {
-            $result = $this->filterKitchenOrders($query, $filter);
+            $this->filterKitchenOrders($query, $filter);
         }
 
         return $query->orderBy('created_at', 'desc')->paginate($limit);
     }
+
     public function updateByConditions(array $conditions, array $updateData): bool
     {
         $result = KitchenOrder::where($conditions)->update($updateData);
