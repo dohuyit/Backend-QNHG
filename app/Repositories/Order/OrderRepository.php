@@ -511,4 +511,42 @@ class OrderRepository implements OrderRepositoryInterface
             ->orderByDesc('created_at')
             ->first();
     }
+
+    public function getRevenueGroupedByTime(?string $startDate, ?string $endDate, string $groupBy)
+    {
+        $query = DB::table('orders')
+            ->selectRaw($this->selectTimeGroupRaw($groupBy) . ', SUM(final_amount) as total_revenue')
+            ->where('status', 'completed');
+
+        if ($startDate) {
+            $query->whereDate('created_at', '>=', $startDate);
+        }
+        if ($endDate) {
+            $query->whereDate('created_at', '<=', $endDate);
+        }
+
+        $query->groupBy('time')
+            ->orderBy('time', 'asc');
+
+        return $query->get();
+    }
+
+    /**
+     * Lấy đoạn raw sql select theo nhóm thời gian
+     */
+    private function selectTimeGroupRaw(string $groupBy): string
+    {
+        switch ($groupBy) {
+            case 'month':
+                return "DATE_FORMAT(created_at, '%Y-%m') as time";
+            case 'quarter':
+                return "CONCAT(YEAR(created_at), '-Q', QUARTER(created_at)) as time";
+            case 'year':
+                return "YEAR(created_at) as time";
+            case 'day':
+            default:
+                return "DATE_FORMAT(created_at, '%Y-%m-%d') as time";
+        }
+    }
+
 }

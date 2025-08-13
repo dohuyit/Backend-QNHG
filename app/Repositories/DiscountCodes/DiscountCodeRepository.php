@@ -9,6 +9,21 @@ class DiscountCodeRepository implements DiscountCodeRepositoryInterface
 {
     private function filterDiscountCodeList($query, array $filter = []): \Illuminate\Database\Eloquent\Builder
     {
+        if (!empty($filter['query'])) {
+            $search = $filter['query'];
+            $query->where(function($q) use ($search) {
+                $q->where('code', 'like', '%' . $search . '%')
+                    ->orWhere('type', 'like', '%' . $search . '%');
+            });
+        } else {
+            if ($val = $filter['code'] ?? null) {
+                $query->where('code', 'like', '%' . $val . '%');
+            }
+
+            if ($val = $filter['type'] ?? null) {
+                $query->where('type', $val);
+            }
+        }
         if ($val = $filter['code'] ?? null) {
             $query->where('code', 'like', '%' . $val . '%');
         }

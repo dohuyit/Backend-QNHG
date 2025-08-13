@@ -34,4 +34,6 @@ interface OrderRepositoryInterface
     public function updateByConditions(array $conditions, array $updateData): bool;
 
     public function getOrderByTableId($tableId): ?Order;
+    public function getRevenueGroupedByTime(?string $startDate, ?string $endDate, string $groupBy);
+
 }
