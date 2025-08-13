@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Repositories\KitchenOrders\KitchenOrderRepositoryInterface;
 use App\Services\KitchenOrders\KitchenOrderService;
 use App\Http\Requests\KitchenOrderRequest\StoreKitchenOrderRequest;
+use Illuminate\Http\Request;
 
 class KitchenOrderController extends Controller
 {
@@ -36,13 +37,12 @@ class KitchenOrderController extends Controller
         $data = $result->getResult();
         return $this->responseSuccess($data);
     }
-    public function updateKitchenOrderStatus(int $id)
+    public function updateKitchenOrderStatus(Request $request, string $id)
     {
-        $request = request();
         $newStatus = $request->input('status');
 
         if (!$newStatus) {
-            return $this->responseFail(message: 'Trạng thái mới không được cung cấp', statusCode: 400);
+            return $this->responseFail(message: 'Vui lòng cung cấp trạng thái mới', statusCode: 400);
         }
 
         $result = $this->kitchenOrderService->updateStatus($id, $newStatus);

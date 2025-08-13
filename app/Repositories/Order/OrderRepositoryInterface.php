@@ -11,6 +11,8 @@ interface OrderRepositoryInterface
 {
     public function getByConditions(array $conditions): ?Order;
 
+    public function getByConditionOrderItem(array $conditions): ?OrderItem;
+
     public function getListOrders(array $filter = [], int $limit = 10): LengthAwarePaginator;
 
     public function getTrashOrderList(array $filter = [], int $limit = 10): LengthAwarePaginator;

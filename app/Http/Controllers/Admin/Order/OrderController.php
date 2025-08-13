@@ -115,6 +115,8 @@ class OrderController extends Controller
             'items',
             'tables',
             'status',
+            'total_amount',  // thêm trường này
+            'final_amount',
         ]);
         $result = $this->orderService->updateOrder($data, $id);
         if (!$result->isSuccessCode()) {
