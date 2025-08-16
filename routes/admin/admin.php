@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\KitchenOrder\KitchenOrderController;
 use App\Http\Controllers\Admin\Order\OrderController;
 use App\Http\Controllers\Admin\Payment\PaymentController;
 use App\Http\Controllers\Admin\Reservation\ReservationController;
+use App\Http\Controllers\Admin\Auth\FaceAuthController;
 use App\Http\Controllers\Admin\NotificationController\NotificationController;
 
 Route::prefix('admin')->group(function () {
@@ -27,6 +28,19 @@ Route::prefix('admin')->group(function () {
     ##login admin
     Route::post('login', [AuthController::class, 'login']);
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+    Route::post('/reset-password/{id}', [AuthController::class, 'resetPassword']);
+
+ 
+    
+
+    // Face Authentication Routes
+    Route::prefix('face-auth')->group(function () {
+        Route::post('/login', [FaceAuthController::class, 'loginWithFaceNet']);
+        Route::post('/register', [FaceAuthController::class, 'registerFace']);
+        Route::delete('/delete/{user_id}', [FaceAuthController::class, 'deleteFace']);
+        Route::get('/users', [FaceAuthController::class, 'listRegisteredFaces']);
+    });
+
     Route::middleware(['auth:sanctum', 'check.status'])->group(function () {
         // Logout
         Route::post('logout', [AuthController::class, 'logout']);
@@ -85,8 +99,7 @@ Route::prefix('admin')->group(function () {
         Route::get('/tables/get-by-status', [TableController::class, 'getTablesByStatus']);
 
         ##resetpass
-
-        Route::post('/reset-password/{id}', [AuthController::class, 'resetPassword']);
+        // moved above; do not protect reset-password with auth
 
         ##Roles
         Route::post('roles/create', [RoleController::class, 'createRole']);
@@ -178,6 +191,8 @@ Route::prefix('admin')->group(function () {
         // Kitchen Order
         Route::get('kitchen-orders/list', [KitchenOrderController::class, 'getListKitchenOrders']);
         Route::post('kitchen-orders/{id}/update-status', [KitchenOrderController::class, 'updateKitchenOrderStatus']);
+
+       
         Route::get('kitchen-orders/count-by-status', [KitchenOrderController::class, 'countByStatus']);
 
         // Lịch sử thay đổi đơn hàng
@@ -198,6 +213,33 @@ Route::prefix('admin')->group(function () {
         Route::delete('discount-codes/{id}/delete', [DiscountCodeController::class, 'deleteDiscountCode']);
         Route::get('discount-codes/count-by-status', [DiscountCodeController::class, 'countByStatus']);
     });
+    Route::middleware(['auth:sanctum', 'check.status'])->group(function () {
+        // ... protected routes ...
+    });
+
+    // VnPay/Momo returns
     Route::get('/vnpay-return', [PaymentController::class, 'vnpayReturn']);
     Route::get('/momo-return', [PaymentController::class, 'momoReturn']);
+
+    // Face Recognition - PUBLIC (cho login)
+    Route::post('face/recognize', [App\Http\Controllers\Admin\FaceRecognitionController::class, 'recognizeFace'])
+        ->withoutMiddleware(['auth:sanctum', 'check.status'])
+        ->name('admin.face.recognize');
+
+    Route::options('face/recognize', function () {
+        return response()->noContent(204)
+            ->header('Access-Control-Allow-Origin', '*')
+            ->header('Access-Control-Allow-Methods', 'POST, OPTIONS')
+            ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+    })->withoutMiddleware(['auth:sanctum', 'check.status']);
+
+    // Face Recognition - Protected endpoints
+    Route::middleware(['auth:sanctum', 'check.status'])->prefix('face')->group(function () {
+        Route::post('capture', [App\Http\Controllers\Admin\FaceRecognitionController::class, 'captureface']);
+        Route::post('train', [App\Http\Controllers\Admin\FaceRecognitionController::class, 'trainFaces']);
+        Route::get('users', [App\Http\Controllers\Admin\FaceRecognitionController::class, 'getRegisteredUsers']);
+        Route::delete('users/{userId}', [App\Http\Controllers\Admin\FaceRecognitionController::class, 'deleteUserFace']);
+        Route::get('statistics', [App\Http\Controllers\Admin\FaceRecognitionController::class, 'getStatistics']);
+        Route::get('check-connection', [App\Http\Controllers\Admin\FaceRecognitionController::class, 'checkApiConnection']);
+    });
 });
