@@ -15,7 +15,11 @@ return [
     |
     */
 
-    'paths' => ['api/*', 'sanctum/csrf-cookie'],
+    'paths' => [
+        'api/*',
+        'admin-face-*', // Thêm dòng này
+        'admin/*'
+    ],
 
     'allowed_methods' => ['*'],
 
