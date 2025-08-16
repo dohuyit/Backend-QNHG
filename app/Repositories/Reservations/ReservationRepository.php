@@ -6,6 +6,7 @@ use App\Models\Reservation;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use App\Models\ReservationChangeLog;
+use Illuminate\Support\Facades\DB;
 
 class ReservationRepository implements ReservationRepositoryInterface
 {
@@ -98,5 +99,45 @@ class ReservationRepository implements ReservationRepositoryInterface
     public function createReservationChangeLog(array $data)
     {
         return ReservationChangeLog::create($data);
+    }
+
+    public function getReservationStatusStats(): array
+    {
+        return Reservation::select('status', DB::raw('COUNT(*) as count'))
+            ->groupBy('status')
+            ->pluck('count', 'status')
+            ->toArray();
+    }
+
+    public function getReservationTimeStats(?string $startDate, ?string $endDate, string $groupBy = 'day'): array
+    {
+        $query = Reservation::query();
+
+        if ($startDate && $endDate) {
+            $query->whereBetween('reservation_date', [$startDate, $endDate]);
+        }
+
+        switch ($groupBy) {
+            case 'month':
+                $selectTime = DB::raw("DATE_FORMAT(reservation_date, '%Y-%m') as time");
+                break;
+            case 'quarter':
+                $selectTime = DB::raw("CONCAT(YEAR(reservation_date), '-Q', QUARTER(reservation_date)) as time");
+                break;
+            case 'year':
+                $selectTime = DB::raw("YEAR(reservation_date) as time");
+                break;
+            case 'day':
+            default:
+                $selectTime = DB::raw("DATE(reservation_date) as time");
+                break;
+        }
+
+        $result = $query->select($selectTime, DB::raw('COUNT(*) as count'))
+            ->groupBy('time')
+            ->orderBy('time')
+            ->get();
+
+        return $result->map(fn($item) => ['time' => $item->time, 'count' => $item->count])->toArray();
     }
 }

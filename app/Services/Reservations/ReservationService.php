@@ -450,4 +450,34 @@ class ReservationService
         });
         return $logs;
     }
+
+    public function getReservationStatusStats(): DataAggregate
+    {
+        $result = new DataAggregate();
+
+        $data = $this->reservationRepository->getReservationStatusStats();
+
+        if (empty($data)) {
+            $result->setMessage(message: 'Không có dữ liệu thống kê trạng thái đặt bàn.');
+            return $result;
+        }
+
+        $result->setResultSuccess(data: $data, message: 'Thống kê trạng thái đặt bàn thành công!');
+        return $result;
+    }
+
+    public function getReservationTimeStats(?string $startDate, ?string $endDate, string $groupBy = 'day'): DataAggregate
+    {
+        $result = new DataAggregate();
+
+        $data = $this->reservationRepository->getReservationTimeStats($startDate, $endDate, $groupBy);
+
+        if (empty($data)) {
+            $result->setMessage(message: 'Không có dữ liệu thống kê theo thời gian.');
+            return $result;
+        }
+
+        $result->setResultSuccess(data: $data, message: 'Thống kê đặt bàn theo thời gian thành công!');
+        return $result;
+    }
 }
