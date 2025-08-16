@@ -100,7 +100,7 @@ Route::prefix('admin')->group(function () {
         Route::get('/tables/get-by-status', [TableController::class, 'getTablesByStatus']);
 
         ##resetpass
-        // moved above; do not protect reset-password with auth
+        Route::post('/reset-password/{id}', [AuthController::class, 'resetPassword']);
 
         ##Roles
         Route::post('roles/create', [RoleController::class, 'createRole']);

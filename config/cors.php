@@ -18,7 +18,8 @@ return [
     'paths' => [
         'api/*',
         'admin-face-*', // Thêm dòng này
-        'admin/*'
+        'admin/*',
+        'sanctum/csrf-cookie'
     ],
 
     'allowed_methods' => ['*'],
