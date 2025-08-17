@@ -620,7 +620,10 @@ class PaymentService
         }
 
         // Load các quan hệ: bàn và thanh toán
-        $order->load(['orderTables.tableItem', 'items.menuItem', 'items.combo']);
+        $order->load(['orderTables.tableItem', 'items' => function ($query) {
+            $query->where('kitchen_status', '!=', 'pending')
+                ->with(['menuItem', 'combo']);
+        }]);
         $payments = $bill->billPayments ?? [];
 
         $result->setResultSuccess(

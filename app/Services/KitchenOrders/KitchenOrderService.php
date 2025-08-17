@@ -113,27 +113,34 @@ class KitchenOrderService
         // Cập nhật trạng thái món ăn (order_item)
         $orderItemId = $kitchenOrder->order_item_id;
         if ($orderItemId) {
-            $updateItemSuccess = $this->kitchenOrderRepository->updateOrderItemStatus($orderItemId, $newStatus);
+            // Kiểm tra nếu đây là item của combo (có nhiều kitchen_order cho một order_item)
+            $allKitchenOrders = $this->kitchenOrderRepository->getAllKitchenOrdersByOrderItemId($orderItemId);
+            $allInNewStatus = $allKitchenOrders->every(function ($ko) use ($newStatus) {
+                return $ko->status === $newStatus;
+            });
 
-            if (!$updateItemSuccess) {
-                $result->setMessage('Cập nhật trạng thái món trong đơn hàng thất bại');
-                return $result;
+            if ($allInNewStatus) {
+                $updateItemSuccess = $this->kitchenOrderRepository->updateOrderItemStatus($orderItemId, $newStatus);
+
+                if (!$updateItemSuccess) {
+                    $result->setMessage('Cập nhật trạng thái món trong đơn hàng thất bại');
+                    return $result;
+                }
+            }
+
+            // Kiểm tra nếu món ăn bị hủy, cần cập nhật lại total_amount và final_amount
+            if ($newStatus === 'cancelled' && $allInNewStatus) {
+                $orderItem = $this->orderRepository->getByConditionOrderItem(['id' => $orderItemId]);
+                if ($orderItem && $orderItem->order_id) {
+                    $orderId = $orderItem->order_id;
+                    $this->recalculateOrderAmounts($orderId);
+                }
             }
 
             // Kiểm tra nếu toàn bộ món trong đơn đã 'ready' thì cập nhật đơn hàng
             $orderItem = $this->orderRepository->getByConditionOrderItem(['id' => $orderItemId]);
-            if (!$orderItem) {
-                $result->setMessage('Món ăn không tồn tại trong đơn hàng');
-                return $result;
-            }
             if ($orderItem && $orderItem->order_id) {
                 $orderId = $orderItem->order_id;
-
-                // Nếu món ăn bị hủy, cần cập nhật lại total_amount và final_amount
-                if ($newStatus === 'cancelled') {
-                    $this->recalculateOrderAmounts($orderId);
-                }
-
                 $allItemsReady = $this->kitchenOrderRepository->areAllItemsReadyInOrder($orderId);
                 if ($allItemsReady) {
                     $this->orderRepository->updateByConditions(['id' => $orderId], [
@@ -156,14 +163,6 @@ class KitchenOrderService
         // Thành công
         // Lấy lại dữ liệu kitchenOrder mới nhất để broadcast
         $kitchenOrderFresh = $this->kitchenOrderRepository->getByConditions(['id' => $id]);
-        // Fire event realtime cho KitchenOrder cập nhật trạng thái
-        // event(new \App\Events\KitchenOrders\KitchenOrderCreated([
-        //     'id' => $kitchenOrderFresh->id,
-        //     'order_id' => $kitchenOrderFresh->order_id,
-        //     'item_name' => $kitchenOrderFresh->item_name,
-        //     'status' => $kitchenOrderFresh->status,
-        //     'updated_at' => $kitchenOrderFresh->updated_at,
-        // ]));
 
         // Event cập nhật OrderItem cũ
         event(new \App\Events\Orders\OrderItemUpdated([

@@ -32,7 +32,7 @@ class OrderService
     public function getListOrders(array $params): ListAggregate
     {
         $filter = $params;
-        $limit = !empty($params['limit']) && $params['limit'] > 0 ? min((int)$params['limit'], 1000) : 100;
+        $limit = !empty($params['limit']) && $params['limit'] > 0 ? (int)$params['limit'] : 12;
         $pagination = $this->orderRepository->getListOrders(filter: $filter, limit: $limit);
         $data = [];
         foreach ($pagination->items() as $item) {
@@ -199,13 +199,13 @@ class OrderService
         }
 
         // Tạo thông báo cho đơn hàng mới
-        // $orderNotificationData = [
-        //     'id' => $order->id,
-        //     'order_code' => $order->order_code,
-        //     'total_amount' => $order->total_amount,
-        //     'reservation_id' => $order->reservation_id,
-        // ];
-        // $this->notificationService->createOrderNotification($orderNotificationData);
+        $orderNotificationData = [
+            'id' => $order->id,
+            'order_code' => $order->order_code,
+            'total_amount' => $order->total_amount,
+            'reservation_id' => $order->reservation_id,
+        ];
+        $this->notificationService->createOrderNotification($orderNotificationData);
 
         // Fire event OrderCreated để trigger listener và broadcast
         event(new \App\Events\Orders\OrderCreated([
