@@ -4,6 +4,7 @@ namespace App\Repositories\KitchenOrders;
 
 use App\Models\KitchenOrder;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 
 interface KitchenOrderRepositoryInterface
 {
@@ -15,4 +16,6 @@ interface KitchenOrderRepositoryInterface
     public function create(array $data);
 
     public function areAllItemsReadyInOrder(int $orderId): bool;
+
+    public function getAllKitchenOrdersByOrderItemId(int $orderItemId): ?Collection;
 }

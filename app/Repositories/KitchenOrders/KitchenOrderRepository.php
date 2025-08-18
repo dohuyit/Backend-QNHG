@@ -7,6 +7,7 @@ use App\Models\OrderItem;
 use App\Repositories\KitchenOrders\KitchenOrderRepositoryInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 
 class KitchenOrderRepository implements KitchenOrderRepositoryInterface
 {
@@ -29,14 +30,16 @@ class KitchenOrderRepository implements KitchenOrderRepositoryInterface
     }
     public function getKitchenOrderList(array $filter = [], int $limit = 10): LengthAwarePaginator
     {
-        $query = KitchenOrder::query();
+        $query = KitchenOrder::query()
+            ->with('order');
 
         if (!empty($filter)) {
-            $result = $this->filterKitchenOrders($query, $filter);
+            $this->filterKitchenOrders($query, $filter);
         }
 
         return $query->orderBy('created_at', 'desc')->paginate($limit);
     }
+
     public function updateByConditions(array $conditions, array $updateData): bool
     {
         $result = KitchenOrder::where($conditions)->update($updateData);
@@ -74,5 +77,21 @@ class KitchenOrderRepository implements KitchenOrderRepositoryInterface
         return OrderItem::where('order_id', $orderId)
             ->where('kitchen_status', '!=', 'ready')
             ->doesntExist();
+    }
+
+    public function getAllKitchenOrdersByOrderItemId(int $orderItemId): ?Collection
+    {
+        try {
+            $kitchenOrders = KitchenOrder::where('order_item_id', $orderItemId)
+                ->get();
+
+            if ($kitchenOrders->isEmpty()) {
+                return null;
+            }
+
+            return $kitchenOrders;
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 }

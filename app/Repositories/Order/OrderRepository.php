@@ -3,6 +3,7 @@
 namespace App\Repositories\Order;
 
 use App\Models\Combo;
+use App\Models\ComboItem;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\OrderItemChangeLog;
@@ -130,53 +131,101 @@ class OrderRepository implements OrderRepositoryInterface
         try {
             DB::beginTransaction();
 
-            // Tạo đơn hàng
             $order = Order::create($orderData);
 
-            // Tạo OrderItem và KitchenOrder nếu có món
+            $dishIds = collect($items)->pluck('dish_id')->filter()->unique()->toArray();
+            $comboIds = collect($items)->pluck('combo_id')->filter()->unique()->toArray();
+
+            $menuItems = Dish::whereIn('id', $dishIds)->get()->keyBy('id');
+            $comboList = Combo::whereIn('id', $comboIds)->get()->keyBy('id');
+
+            // 3. Tạo OrderItem và KitchenOrder
             foreach ($items as $item) {
+                $quantity = (int)($item['quantity'] ?? 1);
+                $itemName = null;
+                $unitPrice = null;
+
+                if (!empty($item['dish_id'])) {
+                    $menuItem = $menuItems->get($item['dish_id']);
+                    $unitPrice = $menuItem->selling_price;
+                    $itemName = $menuItem->name;
+                } elseif (!empty($item['combo_id'])) {
+                    $comboItem = $comboList->get($item['combo_id']);
+                    $unitPrice = $comboItem->selling_price;
+                    $itemName = $comboItem->name;
+                }
+
                 $orderItem = OrderItem::create([
                     'order_id' => $order->id,
                     'dish_id' => $item['dish_id'] ?? null,
                     'combo_id' => $item['combo_id'] ?? null,
-                    'quantity' => $item['quantity'],
-                    'unit_price' => $item['unit_price'],
-                    'kitchen_status' => $item['kitchen_status'],
-                    'notes' => $item['notes'],
-                    'is_priority' => $item['is_priority'],
+                    'quantity' => max(1, $quantity),
+                    'unit_price' => $unitPrice,
+                    'kitchen_status' => $item['kitchen_status'] ?? 'pending',
+                    'notes' => $item['notes'] ?? null,
+                    'is_priority' => $item['is_priority'] ?? false,
+                    'is_additional' => $item['is_additional'] ?? 0,
                 ]);
 
-                KitchenOrder::create([
-                    'order_item_id' => $orderItem->id,
-                    'order_id' => $order->id,
-                    'table_number' => $order->tables()->first()->table->number ?? null,
-                    'item_name' => $item['item_name'],
-                    'quantity' => $item['quantity'],
-                    'notes' => $item['notes'],
-                    'status' => 'pending',
-                    'is_priority' => $item['is_priority'],
-                    'received_at' => now(),
-                ]);
+                // 4. Gán bàn
+                $tableIds = [];
+                foreach ($tables as $table) {
+                    $tableId = $table['table_id'] ?? $table['id'] ?? $table;
+                    OrderTable::create([
+                        'order_id' => $order->id,
+                        'table_id' => $tableId,
+                    ]);
+                    $tableIds[] = $tableId;
+                }
+
+                $order->load('tables');
+                $relatedTables = $order->tables->pluck('table_number')->unique()->values()->toArray();
+
+                // Nếu là combo → tạo KitchenOrder cho từng món trong combo
+                if (!empty($item['combo_id'])) {
+                    $comboDishes = ComboItem::where('combo_id', $item['combo_id'])
+                        ->with(['dish', 'combo'])
+                        ->get();
+
+                    foreach ($comboDishes as $cd) {
+                        KitchenOrder::create([
+                            'order_item_id' => $orderItem->id,
+                            'order_id' => $order->id,
+                            'table_numbers' => $relatedTables,
+                            'item_name' => $cd->dish->name,
+                            'combo_name' => $cd->combo->name ?? null,
+                            'quantity' => $cd->quantity * max(1, $quantity),
+                            'notes' => $item['notes'] ?? null,
+                            'status' => 'pending',
+                            'is_priority' => $item['is_priority'] ?? false,
+                            'item_type' => 'combo',
+                            'received_at' => now(),
+                        ]);
+                    }
+                } else {
+                    // Món lẻ
+                    KitchenOrder::create([
+                        'order_item_id' => $orderItem->id,
+                        'order_id' => $order->id,
+                        'table_numbers' => $relatedTables,
+                        'item_name' => $itemName,
+                        'quantity' => max(1, $quantity),
+                        'notes' => $item['notes'] ?? null,
+                        'status' => 'pending',
+                        'is_priority' => $item['is_priority'] ?? false,
+                        'item_type' => 'dish',
+                        'received_at' => now(),
+                    ]);
+                }
             }
 
-            // Tạo OrderTable nếu có bàn
-            $tableIds = [];
-            foreach ($tables as $table) {
-                $tableId = $table['table_id'] ?? $table['id'] ?? $table;
-                OrderTable::create([
-                    'order_id' => $order->id,
-                    'table_id' => $tableId,
-                ]);
-                $tableIds[] = $tableId;
-            }
-
-            // ✅ Đánh dấu trạng thái bàn sang occupied
+            // 5. Cập nhật trạng thái bàn
             if (!empty($tableIds)) {
                 Table::whereIn('id', $tableIds)->update(['status' => 'occupied']);
             }
 
             DB::commit();
-            return $order;
+            return $order->load(['items', 'tables']);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('[OrderRepository] Failed to create order: ' . $e->getMessage());
@@ -188,16 +237,19 @@ class OrderRepository implements OrderRepositoryInterface
     {
         try {
             DB::beginTransaction();
-            // Fetch all existing OrderItems for the order, keyed by ID
             $existingItems = OrderItem::where('order_id', $order->id)->get()->keyBy('id');
 
-            // Prepare menu items for validation and pricing
             $dishIds = collect($items)->pluck('dish_id')->filter()->unique()->toArray();
             $comboIds = collect($items)->pluck('combo_id')->filter()->unique()->toArray();
             $menuItems = Dish::whereIn('id', $dishIds)->get()->keyBy('id');
             $comboItems = Combo::whereIn('id', $comboIds)->get()->keyBy('id');
 
             $totalAmount = 0;
+
+            // Load order tables once
+            $order->load('tables');
+            $relatedTables = $order->tables->pluck('table_number')->toArray();
+            $tableNumbersJson = json_encode(array_unique($relatedTables));
 
             // Process each item in the incoming data
             foreach ($items as $item) {
@@ -229,6 +281,8 @@ class OrderRepository implements OrderRepositoryInterface
                 // Nếu đã có id và tồn tại -> update
                 if (!empty($item['id']) && $existingItems->has($item['id'])) {
                     $orderItem = $existingItems->get($item['id']);
+
+                    // Cập nhật OrderItem
                     $orderItem->update([
                         'dish_id' => $item['dish_id'] ?? null,
                         'combo_id' => $item['combo_id'] ?? null,
@@ -238,13 +292,41 @@ class OrderRepository implements OrderRepositoryInterface
                         'is_additional' => $item['is_additional'] ?? 0,
                     ]);
 
-                    // Update corresponding KitchenOrder
-                    KitchenOrder::where('order_item_id', $orderItem->id)->update([
-                        'item_name' => $itemName,
-                        'quantity' => max(1, $quantity),
-                        'notes' => $item['notes'] ?? null,
-                        'is_priority' => $item['is_priority'] ?? false,
-                    ]);
+                    // Update existing KitchenOrders instead of deleting and recreating
+                    $kitchenOrders = KitchenOrder::where('order_item_id', $orderItem->id)->get();
+
+                    if ($orderItem->combo_id) {
+                        // For combo: Update quantities in existing KitchenOrders
+                        $comboDishes = ComboItem::where('combo_id', $orderItem->combo_id)
+                            ->with(['dish', 'combo'])
+                            ->get();
+
+                        // Assuming the number of KitchenOrders matches the combo items
+                        foreach ($kitchenOrders as $index => $kitchenOrder) {
+                            if (isset($comboDishes[$index])) {
+                                $cd = $comboDishes[$index];
+                                $kitchenOrder->update([
+                                    'table_numbers' => $tableNumbersJson,
+                                    'item_name' => $cd->dish->name,
+                                    'combo_name' => $cd->combo->name ?? null,
+                                    'quantity' => $cd->quantity * $orderItem->quantity,
+                                    'notes' => $item['notes'] ?? null,
+                                    'is_priority' => $orderItem->is_priority,
+                                ]);
+                            }
+                        }
+                    } else {
+                        // For dish: Update the single KitchenOrder
+                        if ($kitchenOrders->first()) {
+                            $kitchenOrders->first()->update([
+                                'table_numbers' => $tableNumbersJson,
+                                'item_name' => $menuItems->get($orderItem->dish_id)->name ?? $itemName,
+                                'quantity' => $orderItem->quantity,
+                                'notes' => $item['notes'] ?? null,
+                                'is_priority' => $orderItem->is_priority,
+                            ]);
+                        }
+                    }
                 } else {
                     // Tạo mới OrderItem
                     $newItem = OrderItem::create([
@@ -258,21 +340,42 @@ class OrderRepository implements OrderRepositoryInterface
                         'is_additional' => $item['is_additional'] ?? 0,
                     ]);
 
-                    // Tạo KitchenOrder tương ứng
-                    KitchenOrder::create([
-                        'order_item_id' => $newItem->id,
-                        'order_id' => $order->id,
-                        'table_number' => $order->tables()->first()->table->number ?? null,
-                        'item_name' => $itemName,
-                        'quantity' => max(1, $quantity),
-                        'notes' => $item['notes'] ?? null,
-                        'status' => 'pending',
-                        'is_priority' => $item['is_priority'] ?? false,
-                        'received_at' => now(),
-                    ]);
+                    if (!empty($item['combo_id'])) {
+                        $comboDishes = ComboItem::where('combo_id', $item['combo_id'])
+                            ->with(['dish', 'combo'])
+                            ->get();
+
+                        foreach ($comboDishes as $cd) {
+                            KitchenOrder::create([
+                                'order_item_id' => $newItem->id,
+                                'order_id' => $order->id,
+                                'table_numbers' => $tableNumbersJson,
+                                'item_name' => $cd->dish->name,
+                                'combo_name' => $cd->combo->name ?? null,
+                                'quantity' => $cd->quantity * max(1, $quantity),
+                                'notes' => $item['notes'] ?? null,
+                                'status' => 'pending',
+                                'is_priority' => $item['is_priority'] ?? false,
+                                'item_type' => 'combo',
+                                'received_at' => now(),
+                            ]);
+                        }
+                    } else {
+                        KitchenOrder::create([
+                            'order_item_id' => $newItem->id,
+                            'order_id' => $order->id,
+                            'table_numbers' => $tableNumbersJson,
+                            'item_name' => $itemName,
+                            'quantity' => max(1, $quantity),
+                            'notes' => $item['notes'] ?? null,
+                            'status' => 'pending',
+                            'is_priority' => $item['is_priority'] ?? false,
+                            'item_type' => 'dish',
+                            'received_at' => now(),
+                        ]);
+                    }
                 }
             }
-
 
             // Update order details
             $order->update($orderData);
@@ -480,5 +583,4 @@ class OrderRepository implements OrderRepositoryInterface
                 return "DATE_FORMAT(created_at, '%Y-%m-%d') as time";
         }
     }
-
 }
