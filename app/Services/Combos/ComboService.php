@@ -67,7 +67,6 @@ class ComboService
             $path = $file->storeAs('combos', $filename, 'public');
             $listDataCreate['image_url'] = $path;
         }
-
         // Sử dụng model Combo để tạo mới combo và các item liên quan
         try {
             $combo = \App\Models\Combo::create($listDataCreate);
