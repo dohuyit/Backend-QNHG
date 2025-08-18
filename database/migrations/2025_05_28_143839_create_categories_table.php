@@ -13,10 +13,18 @@ return new class extends Migration
     {
         Schema::create('categories', function (Blueprint $table) {
             $table->id()->comment('Mã danh mục món ăn');
-            $table->foreignId('parent_id')->nullable()->comment('Mã danh mục cha (NULL nếu là danh mục gốc)')->constrained('categories', 'id')->onDelete('set null');
+            $table->foreignId('parent_id')
+                ->nullable()
+                ->comment('Mã danh mục cha (NULL nếu là danh mục gốc)')
+                ->constrained('categories', 'id')
+                ->onDelete('set null');
             $table->string('name', 100)->comment('Tên danh mục');
             $table->text('description')->nullable()->comment('Mô tả danh mục');
             $table->string('image_url', 255)->nullable()->comment('URL hình ảnh');
+
+            // Thêm trường thời gian làm món ăn
+            $table->unsignedInteger('cooking_time')->nullable()->comment('Thời gian chế biến (tính bằng phút)');
+
             $table->boolean('is_active')->default(true)->comment('Trạng thái hiển thị');
             $table->timestamps();
             $table->softDeletes()->comment('Thêm trường xóa mềm');
@@ -24,6 +32,7 @@ return new class extends Migration
             $table->comment('Danh mục các loại món ăn');
         });
     }
+
 
     /**
      * Reverse the migrations.

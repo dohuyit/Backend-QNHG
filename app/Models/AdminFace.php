@@ -54,7 +54,7 @@ class AdminFace extends Model
      */
     public static function getRoles()
     {
-        return ['admin', 'bếp', 'nhân viên'];
+        return ['Admin', 'Quản lý bếp', 'Nhân viên'];
     }
 
     /**
@@ -62,7 +62,7 @@ class AdminFace extends Model
      */
     public function isAdmin()
     {
-        return $this->role_name === 'admin';
+        return $this->role_name === 'Admin';
     }
 
     /**
@@ -70,7 +70,7 @@ class AdminFace extends Model
      */
     public function isKitchen()
     {
-        return $this->role_name === 'bếp';
+        return $this->role_name === 'Quản lý bếp';
     }
 
     /**
@@ -78,6 +78,6 @@ class AdminFace extends Model
      */
     public function isStaff()
     {
-        return $this->role_name === 'nhân viên';
+        return $this->role_name === 'Nhân viên';
     }
 }

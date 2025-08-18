@@ -33,11 +33,25 @@ class KitchenOrderService
 
         $data = [];
         foreach ($pagination->items() as $item) {
+            // Lấy cooking_time từ category nếu là món lẻ
+            $cookingTime = null;
+            if ($item->item_type === 'dish' && $item->order_item_id) {
+                $orderItem = \App\Models\OrderItem::find($item->order_item_id);
+                if ($orderItem && $orderItem->menuItem && $orderItem->menuItem->category) {
+                    $cookingTime = $orderItem->menuItem->category->cooking_time;
+                }
+            }
+            // Lấy danh sách số bàn của đơn (nhiều bàn)
+            $tableNumbers = [];
+            if ($item->order && $item->order->tables) {
+                $tableNumbers = $item->order->tables->pluck('table_number')->filter()->values()->toArray();
+            }
+
             $data[] = [
                 'id' => (string) $item->id,
                 'order_item_id' => $item->order_item_id,
                 'order_code' => $item->order->order_code ?? null,
-                'table_numbers' => $item->table_numbers,
+                'table_numbers' => $tableNumbers,
                 'item_name' => $item->item_name,
                 'combo_name' => $item->combo_name,
                 'quantity' => $item->quantity,
@@ -49,6 +63,7 @@ class KitchenOrderService
                 'completed_at' => $item->completed_at,
                 'created_at' => $item->created_at,
                 'updated_at' => $item->updated_at,
+                'cooking_time' => $cookingTime,
             ];
         }
 
