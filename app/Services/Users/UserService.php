@@ -135,6 +135,12 @@ class UserService
 
         $data = [];
         foreach ($pagination->items() as $item) {
+            // Load thông tin role cho user
+            $item->load('roles');
+            
+            // Lấy role đầu tiên (primary role)
+            $primaryRole = $item->roles->first();
+            
             $data[] = [
                 'id' => (string) $item->id,
                 'username' => $item->username,
@@ -146,6 +152,14 @@ class UserService
                 'last_login' => $item->last_login,
                 'created_at' => $item->created_at,
                 'updated_at' => $item->updated_at,
+                // Thêm thông tin role
+                'role_id' => $primaryRole ? (string) $primaryRole->id : null,
+                'role_name' => $primaryRole ? $primaryRole->role_name : null,
+                'role' => $primaryRole ? [
+                    'id' => (string) $primaryRole->id,
+                    'role_name' => $primaryRole->role_name,
+                    'description' => $primaryRole->description ?? null,
+                ] : null,
             ];
         }
 
