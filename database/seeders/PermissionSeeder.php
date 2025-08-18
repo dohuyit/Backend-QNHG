@@ -90,6 +90,7 @@ class PermissionSeeder extends Seeder
             ['permission_name' => 'discount.count-by-status', 'description' => 'Thống kê mã giảm giá theo trạng thái', 'group' => 'Mã giảm giá'],
 
             // ===== Vai trò & Quyền =====
+
             ['permission_name' => 'role.view', 'description' => 'Xem vai trò', 'group' => 'Vai trò & Quyền'],
             ['permission_name' => 'role.create', 'description' => 'Tạo vai trò', 'group' => 'Vai trò & Quyền'],
             ['permission_name' => 'role.update', 'description' => 'Cập nhật vai trò', 'group' => 'Vai trò & Quyền'],
