@@ -314,7 +314,10 @@ class UserService
 
         $data = [
             'user' => $user,
-            'role' => $user->getPrimaryRoleName(),
+            'role' => [
+                'id' => $user->roles()->first()?->id,
+                'role_name' => $user->getPrimaryRoleName(),
+            ],
             'permissions' => $user->getAllPermissions(),
         ];
 
