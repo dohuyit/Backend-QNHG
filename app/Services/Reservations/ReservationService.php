@@ -28,7 +28,7 @@ class ReservationService
     public function getListReservation(array $params): ListAggregate
     {
         $filter = $params;
-        $limit = !empty($params['limit']) && $params['limit'] > 0 ? (int)$params['limit'] : 8;
+        $limit = !empty($params['limit']) && $params['limit'] > 0 ? (int)$params['limit'] : 12;
 
         $pagination = $this->reservationRepository->getReservationList(filter: $filter, limit: $limit);
 

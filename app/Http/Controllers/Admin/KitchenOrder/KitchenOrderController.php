@@ -26,10 +26,12 @@ class KitchenOrderController extends Controller
             'order_id',
             'table_number',
             'item_name',
+            'combo_name',
             'quantity',
             'notes',
             'status',
             'is_priority',
+            'item_type',
             'received_at',
             'completed_at',
         ]);

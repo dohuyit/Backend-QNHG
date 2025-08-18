@@ -48,6 +48,12 @@ return [
         'return_url' => env('MOMO_RETURN_URL'),
         'notify_url' => env('MOMO_NOTIFY_URL'),
     ],
+
+    'face_recognition' => [
+        'api_url' => env('FACE_RECOGNITION_API_URL', 'http://localhost:5000'),
+        'min_accuracy' => env('FACE_RECOGNITION_MIN_ACCURACY', 20),
+        'max_images' => env('FACE_RECOGNITION_MAX_IMAGES', 200),
+    ],
     'vnpay_client' => [
         'tmn_code' => env('VNPAY_CLIENT_TMN_CODE'),
         'hash_secret' => env('VNPAY_CLIENT_HASH_SECRET'),
