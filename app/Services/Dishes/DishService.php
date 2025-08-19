@@ -18,41 +18,61 @@ class DishService
     }
     public function getListDishes(array $params): ListAggregate
     {
-        $filter = $params;
         $limit = !empty($params['limit']) && $params['limit'] > 0 ? (int)$params['limit'] : 10;
-        $pagination = $this->dishRepository->getDishList(filter: $filter, limit: $limit);
 
-        $data = [];
-        foreach ($pagination->items() as $item) {
-            $data[] = [
-                'id' => (string)$item->id,
-                'category' => $item->category ? [
-                    'id' => (string) $item->category->id,
-                    'name' => $item->category->name,
-                ] : null,
-                'name' => $item->name,
-                'image_url' => $item->image_url,
-                'description' => $item->description,
-                'original_price' => $item->original_price,
-                'selling_price' => $item->selling_price,
-                'unit' => $item->unit,
-                'tags' => $item->tags ? ConvertHelper::convertJsonToString($item->tags) : '',
-                'is_featured' => (bool)$item->is_featured,
-                'status' => $item->status,
-                'created_at' => $item->created_at,
-                'updated_at' => $item->updated_at,
-            ];
-        }
-
-        $result = new ListAggregate($data);
-        $result->setMeta(
-            page: $pagination->currentPage(),
-            perPage: $pagination->perPage(),
-            total: $pagination->total()
-        );
-
-        return $result;
+    // Chuẩn hoá filter
+    $filter = [];
+    if (! empty($params['name'])) {
+        $filter['name'] = $params['name'];
     }
+    if (! empty($params['category_id'])) {
+        $filter['category_id'] = $params['category_id'];
+    }
+    if (! empty($params['status']) && $params['status'] !== 'all') {
+        $filter['status'] = $params['status'];
+    }
+    if (! empty($params['price_from'])) {
+        $filter['price_from'] = (float) $params['price_from'];
+    }
+    if (! empty($params['price_to'])) {
+        $filter['price_to'] = (float) $params['price_to'];
+    }
+
+    // gọi repository với filter đã chuẩn
+    $pagination = $this->dishRepository->getDishList(filter: $filter, limit: $limit);
+
+    $data = [];
+    foreach ($pagination->items() as $item) {
+        $data[] = [
+            'id'             => (string) $item->id,
+            'category'       => $item->category ? [
+                'id'   => (string) $item->category->id,
+                'name' => $item->category->name,
+            ] : null,
+            'name'           => $item->name,
+            'image_url'      => $item->image_url,
+            'description'    => $item->description,
+            'original_price' => $item->original_price,
+            'selling_price'  => $item->selling_price,
+            'unit'           => $item->unit,
+            'tags'           => $item->tags  ?ConvertHelper::convertJsonToString($item->tags) : '',
+            'is_featured'    => (bool) $item->is_featured,
+            'status'         => $item->status,
+            'created_at'     => $item->created_at,
+            'updated_at'     => $item->updated_at,
+        ];
+    }
+
+    $result = new ListAggregate($data);
+    $result->setMeta(
+        page: $pagination->currentPage(),
+        perPage: $pagination->perPage(),
+        total: $pagination->total()
+    );
+
+    return $result;
+}
+
     public function createDish(array $data): DataAggregate
     {
         $result = new DataAggregate();

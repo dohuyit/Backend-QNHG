@@ -53,6 +53,7 @@ class ComboController extends Controller
         $data = $request->only(
             'name',
             'description',
+            'image_url',
             'original_total_price',
             'selling_price',
             'is_active'

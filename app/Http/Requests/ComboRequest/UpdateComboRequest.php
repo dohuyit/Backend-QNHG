@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Requests\ComboRequest;
+use Illuminate\Validation\Rule;
 
 use App\Http\Requests\BaseFormRequest;
 
@@ -31,19 +32,26 @@ class UpdateComboRequest extends BaseFormRequest
     }
     public function rules()
     {
-        $comboId = $this->route('id');
+        $comboId = $this->route('id'); // id truyền qua route
+
         return [
-            'name' => 'required|string|max:255',
-            'image_url' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:5120',
-            'description' => 'nullable|string',
-            'original_total_price' => 'required|numeric|min:0',
-            'selling_price' => 'required|numeric|min:0',
-            'is_active' => 'required|boolean',
-            'items' => 'nullable|array',
-            'items.*.dish_id' => 'required|integer|exists:dishes,id',
-            'items.*.quantity' => 'required|integer|min:1',
-        ];
-    }
+        'name'                 => [
+            'required',
+            'string',
+            'max:255',
+            Rule::unique('combos', 'name')->ignore($comboId), // bỏ qua combo hiện tại
+        ],
+        'image_url'            => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:5120',
+        'description'          => 'nullable|string',
+        'original_total_price' => 'required|numeric|min:0',
+        'selling_price'        => 'required|numeric|min:0',
+        'is_active'            => 'required|boolean',
+        'items'                => 'nullable|array',
+        'items.*.dish_id'      => 'required|integer|exists:dishes,id',
+        'items.*.quantity'     => 'required|integer|min:1',
+    ];
+}
+
     public function messages()
     {
         return [

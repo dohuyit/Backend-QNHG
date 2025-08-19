@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Repositories\KitchenOrders;
 
 use App\Models\KitchenOrder;
@@ -12,7 +11,7 @@ use Illuminate\Support\Collection;
 class KitchenOrderRepository implements KitchenOrderRepositoryInterface
 {
 
-    private function filterKitchenOrders(Builder $query, array $filter = []): Builder
+    public function filterKitchenOrders(Builder $query, array $filter = []): Builder
     {
         if ($val = $filter['status'] ?? null) {
             $query->where('status', $val);
@@ -26,15 +25,33 @@ class KitchenOrderRepository implements KitchenOrderRepositoryInterface
             $query->where('item_name', 'like', "%$val%");
         }
 
+        // 🔎 Thêm search tổng hợp
+        if ($val = $filter['search'] ?? null) {
+            $query->where(function ($q) use ($val) {
+                $q->where('kitchen_orders.id', 'like', "%$val%") // mã đơn bếp
+                    ->orWhere('item_name', 'like', "%$val%")
+                    ->orWhere('combo_name', 'like', "%$val%");
+
+                // join với orders
+                $q->orWhereHas('order', function ($q2) use ($val) {
+                    $q2->where('order_code', 'like', "%$val%");
+                });
+
+                // join với tables
+                $q->orWhereHas('order.tables', function ($q3) use ($val) {
+                    $q3->where('table_number', 'like', "%$val%");
+                });
+            });
+        }
+
         return $query;
     }
-    public function getKitchenOrderList(array $filter = [], int $limit = 10): LengthAwarePaginator
-    {
-        $query = KitchenOrder::query()
-            ->with('order');
 
-        if (!empty($filter)) {
-            $this->filterKitchenOrders($query, $filter);
+    public function getKitchenOrderList(array $filter = [], int $limit = 1000): LengthAwarePaginator {
+        $query = KitchenOrder::with(['order', 'order.tables']); // nhớ eager load
+
+        if (! empty($filter)) {
+            $query = $this->filterKitchenOrders($query, $filter);
         }
 
         return $query->orderBy('created_at', 'desc')->paginate($limit);
@@ -43,7 +60,7 @@ class KitchenOrderRepository implements KitchenOrderRepositoryInterface
     public function updateByConditions(array $conditions, array $updateData): bool
     {
         $result = KitchenOrder::where($conditions)->update($updateData);
-        return (bool)$result;
+        return (bool) $result;
     }
     public function getByConditions(array $conditions): ?KitchenOrder
     {
@@ -54,7 +71,7 @@ class KitchenOrderRepository implements KitchenOrderRepositoryInterface
     {
         $query = KitchenOrder::query();
 
-        if (!empty($conditions)) {
+        if (! empty($conditions)) {
             $this->filterKitchenOrders($query, $conditions);
         }
         return $query->count();

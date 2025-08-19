@@ -45,7 +45,7 @@ class DishRepository implements DishRepositoryInterface
         $query = Dish::with('category');
 
         if (!empty($filter)) {
-            $result = $this->filterDishList($query, $filter);
+            $query = $this->filterDishList($query, $filter);
         }
 
         return $query->orderBy('created_at', 'desc')->paginate($limit);
