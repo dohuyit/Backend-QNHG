@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
+use App\Models\AdminFace;
 use Illuminate\Support\Facades\Schema;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -22,18 +23,49 @@ class FaceRecognitionController extends Controller
     }
 
     /**
+     * Lấy danh sách users có thể đăng ký khuôn mặt
+     */
+    public function getAvailableUsers(): JsonResponse
+    {
+        try {
+            // Lấy tất cả users active
+            $users = User::where('status', User::STATUS_ACTIVE)
+                ->select('id', 'username', 'email', 'full_name')
+                ->with(['roles:id,role_name'])
+                ->get()
+                ->map(function ($user) {
+                    return [
+                        'id' => $user->id,
+                        'username' => $user->username,
+                        'email' => $user->email,
+                        'full_name' => $user->full_name,
+                        'role_name' => $user->getPrimaryRoleName() ?? 'Chưa có vai trò',
+                        'has_face_registered' => AdminFace::where('user_id', $user->id)->exists()
+                    ];
+                });
+
+            return response()->json([
+                'success' => true,
+                'data' => $users,
+                'message' => 'Lấy danh sách users thành công'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Lỗi khi lấy danh sách users: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Chụp và lưu ảnh khuôn mặt
      */
     public function captureface(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'user_id' => 'required|integer',
+            'user_id' => 'required|integer|exists:users,id',
             'image' => 'required|string',
-            'image_count' => 'required|integer|min:1',
-            'user_info' => 'sometimes|array',
-            'user_info.email' => 'sometimes|email',
-            'user_info.full_name' => 'sometimes|string|max:255',
-            'user_info.role' => 'sometimes|in:Admin,Quản lý bếp,Nhân viên'
+            'image_count' => 'required|integer|min:1'
         ]);
 
         if ($validator->fails()) {
@@ -44,11 +76,28 @@ class FaceRecognitionController extends Controller
             ], 422);
         }
 
+        // Lấy thông tin user từ database
+        $user = User::with('roles')->find($request->user_id);
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không tìm thấy user'
+            ], 404);
+        }
+
+        // Tạo user_info từ database thay vì từ request
+        $userInfo = [
+            'id' => $user->id,
+            'email' => $user->email,
+            'full_name' => $user->full_name,
+            'role' => $user->getPrimaryRoleName() ?? 'Chưa có vai trò'
+        ];
+
         $result = $this->faceService->captureface(
             $request->user_id,
             $request->image,
             $request->image_count,
-            $request->user_info ?? []
+            $userInfo
         );
 
         return response()->json($result, $result['success'] ? 200 : 400);
@@ -97,25 +146,23 @@ class FaceRecognitionController extends Controller
 
         // Nếu nhận diện thành công và đạt ngưỡng, tạo Sanctum token chuẩn
         if ($result['success'] && $result['accuracy'] >= 10) {
-            $userInfo = $result['user_info'] ?? [];
-            $recognizedUserId = $result['user_id'] ?? null; // có thể là mã ngoài (user_id)
-
+            $recognizedUserId = $result['user_id'] ?? null;
+            
+            // Tìm user từ admin_faces trước, sau đó lấy thông tin từ users
+            $adminFace = AdminFace::where('user_id', $recognizedUserId)->first();
+            
             $user = null;
-            // Ưu tiên KHỚP THEO user_info.id nếu dự án quy ước id này là users.id
-            if (isset($userInfo['id'])) {
-                $user = User::find($userInfo['id']);
+            if ($adminFace) {
+                // Lấy user từ bảng users dựa trên user_id trong admin_faces
+                $user = User::with(['roles.permissions'])->find($adminFace->user_id);
             }
-            // Nếu chưa khớp được, thử theo email
-            if (!$user && isset($userInfo['email'])) {
-                $user = User::where('email', $userInfo['email'])->first();
-            }
-            // Nếu chưa có, thử theo username nếu có
-            if (!$user && isset($userInfo['username'])) {
-                $user = User::where('username', $userInfo['username'])->first();
-            }
-            // Nếu vẫn chưa có và có recognizedUserId, thử map theo cột users.user_id nếu tồn tại
-            if (!$user && $recognizedUserId && Schema::hasColumn((new User)->getTable(), 'user_id')) {
-                $user = User::where('user_id', $recognizedUserId)->first();
+            
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'login_success' => false,
+                    'message' => 'Không tìm thấy người dùng tương ứng trong hệ thống'
+                ], 404);
             }
 
             if ($user) {
@@ -130,28 +177,23 @@ class FaceRecognitionController extends Controller
                     $result['token'] = $token;
                     $result['login_success'] = true;
                     // Chuẩn hóa user_info trả về: LUÔN dùng users.id cho key 'id'
-                    // Đảm bảo đã load quan hệ roles/permissions (nếu có)
-                    try { $user->loadMissing(['roles.permissions']); } catch (\Throwable $e) {}
-                    // Lấy roles/permissions an toàn, hỗ trợ cả Spatie methods và Eloquent relations
+                    // Lấy roles và permissions từ User model (nguồn chính thống)
                     $roleNames = [];
                     $permissionNames = [];
-                    try {
-                        if (method_exists($user, 'getRoleNames')) {
-                            $roleNames = $user->getRoleNames()->toArray();
-                        } elseif (isset($user->roles)) {
-                            $roleNames = $user->roles->pluck('name')->toArray();
+                    
+                    // Lấy roles từ relationship
+                    if ($user->roles && $user->roles->count() > 0) {
+                        $roleNames = $user->roles->pluck('role_name')->filter()->unique()->values()->toArray();
+                        
+                        // Lấy permissions từ các roles
+                        foreach ($user->roles as $role) {
+                            if ($role->permissions && $role->permissions->count() > 0) {
+                                $rolePermissions = $role->permissions->pluck('permission_name')->filter()->toArray();
+                                $permissionNames = array_merge($permissionNames, $rolePermissions);
+                            }
                         }
-                    } catch (\Throwable $e) {}
-                    try {
-                        if (method_exists($user, 'getAllPermissions')) {
-                            $permissionNames = $user->getAllPermissions()->pluck('name')->toArray();
-                        } elseif (isset($user->permissions)) {
-                            $permissionNames = $user->permissions->pluck('name')->toArray();
-                        }
-                    } catch (\Throwable $e) {}
-                    // Loại null/ trùng lặp
-                    $roleNames = array_values(array_filter(array_unique($roleNames), function($v){ return !is_null($v) && $v !== ''; }));
-                    $permissionNames = array_values(array_filter(array_unique($permissionNames), function($v){ return !is_null($v) && $v !== ''; }));
+                        $permissionNames = array_values(array_unique($permissionNames));
+                    }
 
                     // Dùng role_name cũ từ payload nếu không lấy được từ hệ thống role
                     $existingInfo = [];

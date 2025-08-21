@@ -244,6 +244,7 @@ Route::prefix('admin')->group(function () {
     Route::middleware(['auth:sanctum', 'check.status'])->prefix('face')->group(function () {
         Route::post('capture', [App\Http\Controllers\Admin\FaceRecognitionController::class, 'captureface']);
         Route::post('train', [App\Http\Controllers\Admin\FaceRecognitionController::class, 'trainFaces']);
+        Route::get('available-users', [App\Http\Controllers\Admin\FaceRecognitionController::class, 'getAvailableUsers']);
         Route::get('users', [App\Http\Controllers\Admin\FaceRecognitionController::class, 'getRegisteredUsers']);
         Route::delete('users/{userId}', [App\Http\Controllers\Admin\FaceRecognitionController::class, 'deleteUserFace']);
         Route::get('statistics', [App\Http\Controllers\Admin\FaceRecognitionController::class, 'getStatistics']);
