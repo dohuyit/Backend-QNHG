@@ -44,6 +44,7 @@ class CategoryController extends Controller
             'description',
             'is_active',
             'parent_id',
+            'cooking_time',
         ]);
 
         $result = $this->categoryService->createCategory($data);
@@ -69,6 +70,7 @@ class CategoryController extends Controller
             'description',
             'is_active',
             'parent_id',
+            'cooking_time',
         ]);
 
         $category = $this->categoryRepository->getByConditions(['id' => $id]);

@@ -16,7 +16,7 @@ return new class extends Migration
             $table->integer('user_id')->unique();
             $table->string('email');
             $table->string('full_name');
-            $table->enum('role_name', ['admin', 'bếp', 'nhân viên'])->default('nhân viên');
+            $table->enum('role_name', ['Admin', 'Quản lý bếp', 'Nhân viên'])->default('Nhân viên');
             $table->text('face_encoding')->nullable(); // Lưu vector encoding của khuôn mặt
             $table->boolean('is_trained')->default(false); // Đã training chưa
             $table->timestamps();

@@ -27,6 +27,7 @@ class StoreCategoryRequest extends BaseFormRequest
             'image_url' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'description' => 'nullable|string',
             'is_active' => 'required|boolean',
+            'cooking_time' => 'nullable|integer|min:0',
         ];
      }
      public function messages(): array

@@ -40,6 +40,7 @@ class CategoryService
                 'description' => $item->description,
                 'image_url' => $item->image_url,
                 'is_active' => (bool)$item->is_active,
+                'cooking_time' => $item->cooking_time,
                 'parent' => [
                     'id' => (string)$parent?->id,
                     'name' => $parent?->name,
@@ -66,7 +67,8 @@ class CategoryService
             'name' => $data['name'],
             'description' => $data['description'],
             'is_active' => $data['is_active'],
-            'parent_id' => $data['parent_id'],
+            'parent_id' => array_key_exists('parent_id', $data) ? $data['parent_id'] : null,
+            'cooking_time' => $data['cooking_time'] ?? null,
         ];
 
         if (!empty($data['image_url'])) {
@@ -97,7 +99,19 @@ class CategoryService
             return $result;
         }
 
-        $result->setResultSuccess(data: ['category' => $category]);
+        $result->setResultSuccess(data: [
+            'category' => [
+                'id' => (string)$category->id,
+                'name' => $category->name,
+                'description' => $category->description,
+                'image_url' => $category->image_url,
+                'is_active' => (bool)$category->is_active,
+                'cooking_time' => $category->cooking_time,
+                'parent_id' => $category->parent_id,
+                'created_at' => $category->created_at,
+                'updated_at' => $category->updated_at,
+            ]
+        ]);
         return $result;
     }
     public function updateCategory(array $data, Category $category): DataAggregate
@@ -108,7 +122,8 @@ class CategoryService
             'name' => $data['name'],
             'description' => $data['description'],
             'is_active' => $data['is_active'],
-            'parent_id' => $data['parent_id'],
+            'parent_id' => array_key_exists('parent_id', $data) ? $data['parent_id'] : null,
+            'cooking_time' => $data['cooking_time'] ?? null,
         ];
 
         if (!empty($data['image_url'])) {
