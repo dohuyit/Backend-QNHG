@@ -31,8 +31,8 @@ Route::prefix('admin')->group(function () {
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
     Route::post('/reset-password/{id}', [AuthController::class, 'resetPassword']);
 
- 
-    
+
+
 
     // Face Authentication Routes
     Route::prefix('face-auth')->group(function () {
@@ -193,7 +193,7 @@ Route::prefix('admin')->group(function () {
         Route::get('kitchen-orders/list', [KitchenOrderController::class, 'getListKitchenOrders']);
         Route::post('kitchen-orders/{id}/update-status', [KitchenOrderController::class, 'updateKitchenOrderStatus']);
 
-       
+
         Route::get('kitchen-orders/count-by-status', [KitchenOrderController::class, 'countByStatus']);
 
         // Lịch sử thay đổi đơn hàng
@@ -202,6 +202,7 @@ Route::prefix('admin')->group(function () {
         // Order Payment
         Route::post('orders/{id}/pay', [PaymentController::class, 'payment']);
         Route::get('bills/{id}/detail', [PaymentController::class, 'getBillDetailForOrder']);
+        Route::get('bills/{id}/export-pdf', [PaymentController::class, 'exportBillPdf']);
 
         // Notification
         Route::get('notifications/list', [NotificationController::class, 'getList']);
@@ -218,7 +219,6 @@ Route::prefix('admin')->group(function () {
         Route::get('statistics/reservations/status-count', [StatisticsController::class, 'getReservationStatusStats']);
         Route::get('statistics/reservations/time-count', [StatisticsController::class, 'getReservationTimeStats']);
         Route::get('statistics/orders/revenue', [StatisticsController::class, 'getOrderRevenueStats']);
-
     });
     Route::middleware(['auth:sanctum', 'check.status'])->group(function () {
         // ... protected routes ...

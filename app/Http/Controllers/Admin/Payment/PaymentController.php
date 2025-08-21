@@ -87,4 +87,13 @@ class PaymentController  extends Controller
         $data = $result->getData();
         return $this->responseSuccess($data);
     }
+
+    public function exportBillPdf(string $id)
+    {
+        $result = $this->paymentService->exportBillPdf($id);
+        if (!$result->isSuccessCode()) {
+            return $this->responseFail(message: $result->getMessage(), statusCode: 404);
+        }
+        return $this->responseSuccess($result->getData());
+    }
 }

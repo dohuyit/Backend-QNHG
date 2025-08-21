@@ -44,8 +44,6 @@ class CategorySeeder extends Seeder
 
         // Insert danh mục con thuộc Thực đơn
         $menuItems = [
-            'Combo',
-            'Món mới',
             'Đồ uống',
             'Dê tươi',
             'Salad - Nộm',
