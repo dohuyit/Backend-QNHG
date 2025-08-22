@@ -62,7 +62,8 @@ class Order extends Model
         return $this->hasOne(Bill::class, 'order_id');
     }
 
-    public function kitchenOrders() {
+    public function kitchenOrders()
+    {
         return $this->hasMany(KitchenOrder::class, 'order_id');
     }
 
