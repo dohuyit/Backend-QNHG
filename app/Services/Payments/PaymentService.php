@@ -49,36 +49,29 @@ class PaymentService
             return $result;
         }
 
-        $subTotal = round((float)$order->total_amount, 2);
-        $discount = isset($data['discount_amount']) ? round((float)$data['discount_amount'], 2) : 0.0;
-        $deliveryFee = isset($data['delivery_fee']) ? round((float)$data['delivery_fee'], 2) : 0.0;
-        $finalAmount = round($subTotal + $deliveryFee - $discount, 2);
+        $amountPaid = round((float)$data['amount_paid'], 2);
 
-        if ($finalAmount <= 0) {
+        if ($amountPaid <= 0) {
             $result->setMessage('Số tiền thanh toán không hợp lệ.');
             return $result;
         }
 
-        $amountPaid = !empty($data['amount_paid']) && $data['amount_paid'] > 0
-            ? round((float)$data['amount_paid'], 2)
-            : $finalAmount;
-
-        if ($amountPaid > $finalAmount) {
-            $result->setMessage('Vượt quá số tiền cần thanh toán.');
-            return $result;
-        }
+        // Cập nhật final_amount cho order
+        $this->orderRepository->updateByConditions(['id' => $order->id], [
+            'final_amount' => $amountPaid
+        ]);
 
         $paymentMethod = $data['payment_method'] ?? 'cash';
 
         // Tạo bill nếu chưa có hoặc không còn hợp lệ
         if (!$bill || $bill->status !== 'unpaid') {
             $bill = $this->paymentRepository->createBill([
-                'bill_code' => strtoupper('B' . now()->format('YmdHis') . rand(10, 99)),
+                'bill_code' => 'Bill' . str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT),
                 'order_id' => $order->id,
-                'sub_total' => $subTotal,
-                'discount_amount' => $discount,
-                'delivery_fee' => $deliveryFee,
-                'final_amount' => $finalAmount,
+                'sub_total' => $data['sub_total'] ?? $amountPaid,
+                'discount_amount' => $data['discount_amount'] ?? 0,
+                'delivery_fee' => $data['delivery_fee'] ?? 0,
+                'final_amount' => $amountPaid,
                 'status' => 'unpaid',
                 'user_id' => $userId,
             ]);
@@ -105,7 +98,7 @@ class PaymentService
                     'payment_url' => $paymentUrl,
                     'order' => $order,
                     'bill' => $bill,
-                    'final_amount' => $finalAmount,
+                    'final_amount' => $amountPaid,
                 ]
             );
             return $result;
@@ -132,7 +125,7 @@ class PaymentService
                     'payment_url' => $paymentUrl,
                     'order' => $order,
                     'bill' => $bill,
-                    'final_amount' => $finalAmount,
+                    'final_amount' => $amountPaid,
                 ]
             );
             return $result;
@@ -148,39 +141,25 @@ class PaymentService
             'notes' => $data['notes'] ?? null,
         ]);
 
-        $totalPaid = round($this->paymentRepository->sumPaymentsForBill($bill->id), 2);
-        $remaining = round($finalAmount - $totalPaid, 2);
+        // Cập nhật trạng thái bill thành paid và order thành completed
+        $this->paymentRepository->updateBillByConditions(['id' => $bill->id], ['status' => 'paid']);
+        $this->orderRepository->updateByConditions(['id' => $order->id], [
+            'status' => 'completed'
+        ]);
 
-        if ($remaining <= 1) {
-            $this->paymentRepository->updateBillByConditions(['id' => $bill->id], ['status' => 'paid']);
-            $this->orderRepository->updateByConditions(['id' => $order->id], [
-                'status' => 'completed',
-                'final_amount' => $finalAmount,
-            ]);
-
+        // Nếu là đơn dine-in, cập nhật trạng thái bàn sang cleaning
+        if ($order->order_type === 'dine-in') {
             $tableIds = $order->orderTables->pluck('table_id')->toArray();
-
             foreach ($tableIds as $tableId) {
                 $this->tableRepository->updateByConditions(['id' => $tableId], ['status' => 'cleaning']);
             }
-
-            $result->setResultSuccess(
-                message: 'Đã thanh toán đủ.',
-                data: [
-                    'bill' => $bill->fresh(),
-                    'payment' => $payment,
-                    'remaining' => 0.0,
-                ]
-            );
-            return $result;
         }
 
         $result->setResultSuccess(
-            message: 'Thanh toán một phần. Còn lại: ' . number_format($remaining, 2) . ' VND',
+            message: 'Thanh toán thành công.',
             data: [
                 'bill' => $bill->fresh(),
-                'payment' => $payment,
-                'remaining' => $remaining,
+                'payment' => $payment
             ]
         );
         return $result;
@@ -601,6 +580,48 @@ class PaymentService
         return json_decode($result, true);
     }
 
+    public function exportBillPdf(string $orderId): DataAggregate
+    {
+        $result = new DataAggregate();
+
+        // Lấy thông tin bill từ getBillDetail
+        $billDetailResult = $this->getBillDetail($orderId);
+        $data = $billDetailResult->getData();
+        if (!$data) {
+            return $billDetailResult;
+        }
+        $bill = $data['bill'];
+        $order = $data['order'];
+        $tables = $data['tables'];
+        $payments = $data['payments'];
+
+        // Tạo PDF với DomPDF
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('exports.bill', [
+            'bill' => $bill,
+            'order' => $order,
+            'tables' => $tables,
+            'payments' => $payments,
+            'dateTime' => now()->format('d/m/Y H:i:s'),
+        ]);
+
+        // Tên file PDF
+        $filename = 'Bill-' . $bill->bill_code . '.pdf';
+
+        // Lưu file PDF vào storage
+        $pdf->save(storage_path('app/public/bills/' . $filename));
+
+        // Trả về URL để download PDF
+        $result->setResultSuccess(
+            message: 'Export PDF thành công',
+            data: [
+                'pdf_url' => url('storage/bills/' . $filename),
+                'filename' => $filename
+            ]
+        );
+
+        return $result;
+    }
+
     public function getBillDetail(string $orderId): DataAggregate
     {
         $result = new DataAggregate;
@@ -621,9 +642,10 @@ class PaymentService
 
         // Load các quan hệ: bàn và thanh toán
         $order->load(['orderTables.tableItem', 'items' => function ($query) {
-            $query->where('kitchen_status', '!=', 'pending')
+            $query->whereNotIn('kitchen_status', ['pending', 'cancelled'])
                 ->with(['menuItem', 'combo']);
         }]);
+
         $payments = $bill->billPayments ?? [];
 
         $result->setResultSuccess(

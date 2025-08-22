@@ -139,6 +139,17 @@ class OrderRepository implements OrderRepositoryInterface
             $menuItems = Dish::whereIn('id', $dishIds)->get()->keyBy('id');
             $comboList = Combo::whereIn('id', $comboIds)->get()->keyBy('id');
 
+            // Gán bàn
+            $tableIds = [];
+            foreach ($tables as $table) {
+                $tableId = $table['table_id'] ?? $table['id'] ?? $table;
+                OrderTable::create([
+                    'order_id' => $order->id,
+                    'table_id' => $tableId,
+                ]);
+                $tableIds[] = $tableId;
+            }
+
             // 3. Tạo OrderItem và KitchenOrder
             foreach ($items as $item) {
                 $quantity = (int)($item['quantity'] ?? 1);
@@ -167,27 +178,20 @@ class OrderRepository implements OrderRepositoryInterface
                     'is_additional' => $item['is_additional'] ?? 0,
                 ]);
 
-                // 4. Gán bàn
-                $tableIds = [];
-                foreach ($tables as $table) {
-                    $tableId = $table['table_id'] ?? $table['id'] ?? $table;
-                    OrderTable::create([
-                        'order_id' => $order->id,
-                        'table_id' => $tableId,
-                    ]);
-                    $tableIds[] = $tableId;
-                }
-
                 $order->load('tables');
                 $relatedTables = $order->tables->pluck('table_number')->unique()->values()->toArray();
 
                 // Nếu là combo → tạo KitchenOrder cho từng món trong combo
                 if (!empty($item['combo_id'])) {
                     $comboDishes = ComboItem::where('combo_id', $item['combo_id'])
-                        ->with(['dish', 'combo'])
+                        ->with(['dish.category', 'combo'])
                         ->get();
 
                     foreach ($comboDishes as $cd) {
+                        if ($cd->dish->category->name === 'Đồ uống') {
+                            continue;
+                        }
+
                         KitchenOrder::create([
                             'order_item_id' => $orderItem->id,
                             'order_id' => $order->id,
@@ -203,6 +207,12 @@ class OrderRepository implements OrderRepositoryInterface
                         ]);
                     }
                 } else {
+                    if (!empty($item['dish_id'])) {
+                        $menuItem = $menuItems->get($item['dish_id']);
+                        if ($menuItem && $menuItem->category->name === 'Đồ uống') {
+                            continue;
+                        }
+                    }
                     // Món lẻ
                     KitchenOrder::create([
                         'order_item_id' => $orderItem->id,
@@ -298,13 +308,17 @@ class OrderRepository implements OrderRepositoryInterface
                     if ($orderItem->combo_id) {
                         // For combo: Update quantities in existing KitchenOrders
                         $comboDishes = ComboItem::where('combo_id', $orderItem->combo_id)
-                            ->with(['dish', 'combo'])
+                            ->with(['dish.category', 'combo'])
                             ->get();
 
                         // Assuming the number of KitchenOrders matches the combo items
                         foreach ($kitchenOrders as $index => $kitchenOrder) {
                             if (isset($comboDishes[$index])) {
                                 $cd = $comboDishes[$index];
+                                // Bỏ qua nếu danh mục là "Đồ uống"
+                                if ($cd->dish->category->name === 'Đồ uống') {
+                                    continue;
+                                }
                                 $kitchenOrder->update([
                                     'table_numbers' => $tableNumbersJson,
                                     'item_name' => $cd->dish->name,
@@ -316,8 +330,11 @@ class OrderRepository implements OrderRepositoryInterface
                             }
                         }
                     } else {
-                        // For dish: Update the single KitchenOrder
                         if ($kitchenOrders->first()) {
+                            $dish = $menuItems->get($orderItem->dish_id);
+                            if ($dish && $dish->category->name === 'Đồ uống') {
+                                continue;
+                            }
                             $kitchenOrders->first()->update([
                                 'table_numbers' => $tableNumbersJson,
                                 'item_name' => $menuItems->get($orderItem->dish_id)->name ?? $itemName,
@@ -342,10 +359,13 @@ class OrderRepository implements OrderRepositoryInterface
 
                     if (!empty($item['combo_id'])) {
                         $comboDishes = ComboItem::where('combo_id', $item['combo_id'])
-                            ->with(['dish', 'combo'])
+                            ->with(['dish.category', 'combo'])
                             ->get();
 
                         foreach ($comboDishes as $cd) {
+                            if ($cd->dish->category->name === 'Đồ uống') {
+                                continue;
+                            }
                             KitchenOrder::create([
                                 'order_item_id' => $newItem->id,
                                 'order_id' => $order->id,
@@ -361,6 +381,12 @@ class OrderRepository implements OrderRepositoryInterface
                             ]);
                         }
                     } else {
+                        if (!empty($item['dish_id'])) {
+                            $menuItem = $menuItems->get($item['dish_id']);
+                            if ($menuItem && $menuItem->category->name === 'Đồ uống') {
+                                continue;
+                            }
+                        }
                         KitchenOrder::create([
                             'order_item_id' => $newItem->id,
                             'order_id' => $order->id,
