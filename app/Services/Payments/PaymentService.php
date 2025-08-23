@@ -49,29 +49,44 @@ class PaymentService
             return $result;
         }
 
-        $amountPaid = round((float)$data['amount_paid'], 2);
-
-        if ($amountPaid <= 0) {
+        $subTotal = round((float)$order->total_amount, 2);
+        $discount = isset($data['discount_amount']) ? round((float)$data['discount_amount'], 2) : 0.0;
+        $deliveryFee = isset($data['delivery_fee']) ? round((float)$data['delivery_fee'], 2) : 0.0;
+        if (!empty($data['type']) && !empty($data['discount_amount'])) {
+            if ($data['type'] === 'fixed') {
+                $discount = round((float)$data['discount_amount'], 2);
+            } elseif ($data['type'] === 'percentage') {
+                $percent = (float)$data['discount_amount'];
+                if ($percent > 0 && $percent <= 100) {
+                    $discount = round($subTotal * $percent / 100, 2);
+                }
+            }
+        }
+        $finalAmount = round($subTotal + $deliveryFee - $discount, 2);
+        if ($finalAmount < 0) {
             $result->setMessage('Số tiền thanh toán không hợp lệ.');
             return $result;
         }
 
-        // Cập nhật final_amount cho order
-        $this->orderRepository->updateByConditions(['id' => $order->id], [
-            'final_amount' => $amountPaid
-        ]);
+        $amountPaid = !empty($data['amount_paid']) && $data['amount_paid'] > 0
+            ? round((float)$data['amount_paid'], 2)
+            : $finalAmount;
 
+        if ($finalAmount > 0 && $amountPaid > $finalAmount) {
+            $result->setMessage('Vượt quá số tiền cần thanh toán.');
+            return $result;
+        }
         $paymentMethod = $data['payment_method'] ?? 'cash';
 
         // Tạo bill nếu chưa có hoặc không còn hợp lệ
         if (!$bill || $bill->status !== 'unpaid') {
             $bill = $this->paymentRepository->createBill([
-                'bill_code' => 'Bill' . str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT),
+                'bill_code' => strtoupper('B' . now()->format('YmdHis') . rand(10, 99)),
                 'order_id' => $order->id,
-                'sub_total' => $data['sub_total'] ?? $amountPaid,
-                'discount_amount' => $data['discount_amount'] ?? 0,
-                'delivery_fee' => $data['delivery_fee'] ?? 0,
-                'final_amount' => $amountPaid,
+                'sub_total' => $subTotal,
+                'discount_amount' => $discount,
+                'delivery_fee' => $deliveryFee,
+                'final_amount' => $finalAmount,
                 'status' => 'unpaid',
                 'user_id' => $userId,
             ]);
@@ -98,7 +113,7 @@ class PaymentService
                     'payment_url' => $paymentUrl,
                     'order' => $order,
                     'bill' => $bill,
-                    'final_amount' => $amountPaid,
+                    'final_amount' => $finalAmount,
                 ]
             );
             return $result;
@@ -125,7 +140,7 @@ class PaymentService
                     'payment_url' => $paymentUrl,
                     'order' => $order,
                     'bill' => $bill,
-                    'final_amount' => $amountPaid,
+                    'final_amount' => $finalAmount,
                 ]
             );
             return $result;
@@ -141,25 +156,39 @@ class PaymentService
             'notes' => $data['notes'] ?? null,
         ]);
 
-        // Cập nhật trạng thái bill thành paid và order thành completed
-        $this->paymentRepository->updateBillByConditions(['id' => $bill->id], ['status' => 'paid']);
-        $this->orderRepository->updateByConditions(['id' => $order->id], [
-            'status' => 'completed'
-        ]);
+        $totalPaid = round($this->paymentRepository->sumPaymentsForBill($bill->id), 2);
+        $remaining = round($finalAmount - $totalPaid, 2);
 
-        // Nếu là đơn dine-in, cập nhật trạng thái bàn sang cleaning
-        if ($order->order_type === 'dine-in') {
+        if ($remaining <= 1) {
+            $this->paymentRepository->updateBillByConditions(['id' => $bill->id], ['status' => 'paid']);
+            $this->orderRepository->updateByConditions(['id' => $order->id], [
+                'status' => 'completed',
+                'final_amount' => $finalAmount,
+            ]);
+
             $tableIds = $order->orderTables->pluck('table_id')->toArray();
+
             foreach ($tableIds as $tableId) {
                 $this->tableRepository->updateByConditions(['id' => $tableId], ['status' => 'cleaning']);
             }
+
+            $result->setResultSuccess(
+                message: 'Đã thanh toán đủ.',
+                data: [
+                    'bill' => $bill->fresh(),
+                    'payment' => $payment,
+                    'remaining' => 0.0,
+                ]
+            );
+            return $result;
         }
 
         $result->setResultSuccess(
-            message: 'Thanh toán thành công.',
+            message: 'Thanh toán một phần. Còn lại: ' . number_format($remaining, 2) . ' VND',
             data: [
                 'bill' => $bill->fresh(),
-                'payment' => $payment
+                'payment' => $payment,
+                'remaining' => $remaining,
             ]
         );
         return $result;
