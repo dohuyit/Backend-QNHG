@@ -52,9 +52,18 @@ class PaymentService
         $subTotal = round((float)$order->total_amount, 2);
         $discount = isset($data['discount_amount']) ? round((float)$data['discount_amount'], 2) : 0.0;
         $deliveryFee = isset($data['delivery_fee']) ? round((float)$data['delivery_fee'], 2) : 0.0;
+        if (!empty($data['type']) && !empty($data['discount_amount'])) {
+            if ($data['type'] === 'fixed') {
+                $discount = round((float)$data['discount_amount'], 2);
+            } elseif ($data['type'] === 'percentage') {
+                $percent = (float)$data['discount_amount'];
+                if ($percent > 0 && $percent <= 100) {
+                    $discount = round($subTotal * $percent / 100, 2);
+                }
+            }
+        }
         $finalAmount = round($subTotal + $deliveryFee - $discount, 2);
-
-        if ($finalAmount <= 0) {
+        if ($finalAmount < 0) {
             $result->setMessage('Số tiền thanh toán không hợp lệ.');
             return $result;
         }
@@ -63,11 +72,10 @@ class PaymentService
             ? round((float)$data['amount_paid'], 2)
             : $finalAmount;
 
-        if ($amountPaid > $finalAmount) {
+        if ($finalAmount > 0 && $amountPaid > $finalAmount) {
             $result->setMessage('Vượt quá số tiền cần thanh toán.');
             return $result;
         }
-
         $paymentMethod = $data['payment_method'] ?? 'cash';
 
         // Tạo bill nếu chưa có hoặc không còn hợp lệ

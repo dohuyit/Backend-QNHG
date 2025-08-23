@@ -32,7 +32,8 @@ class PaymentController  extends Controller
             'notes',
             'discount_amount',
             'delivery_fee',
-            'user_id'
+            'user_id',
+            'type',
         ]);
 
         $result = $this->paymentService->handlePayment($id, $data);
