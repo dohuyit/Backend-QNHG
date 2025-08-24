@@ -82,24 +82,22 @@ class PaymentService
         // Tạo bill nếu chưa có hoặc không còn hợp lệ
         if (!$bill || $bill->status !== 'unpaid') {
             $bill = $this->paymentRepository->createBill([
-                'bill_code' => strtoupper('B' . now()->format('YmdHis') . rand(10, 99)),
+                'bill_code' => 'Bill' . str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT),
                 'order_id' => $order->id,
-                'sub_total' => $subTotal,
-                'discount_amount' => $discount,
-                'delivery_fee' => $deliveryFee,
-                'final_amount' => $finalAmount,
+                'sub_total' => $data['sub_total'] ?? $amountPaid,
+                'discount_amount' => $data['discount_amount'] ?? 0,
+                'delivery_fee' => $data['delivery_fee'] ?? 0,
+                'final_amount' => $amountPaid,
                 'status' => 'unpaid',
                 'user_id' => $userId,
             ]);
         }
-
         // Thanh toán VNPay
         if ($paymentMethod === 'vnpay') {
             if ($amountPaid < 10000) {
                 $result->setMessage('Số tiền tối thiểu cho VNPay là 10,000đ.');
                 return $result;
             }
-
             $paymentResult = $this->generateVnpayUrl($order->id, $amountPaid);
             $paymentUrl = $paymentResult->getData()['payment_url'] ?? '';
 
@@ -107,14 +105,13 @@ class PaymentService
                 $result->setMessage('Không thể tạo URL VNPay.');
                 return $result;
             }
-
             $result->setResultSuccess(
                 message: 'Vui lòng thanh toán qua VNPay.',
                 data: [
                     'payment_url' => $paymentUrl,
                     'order' => $order,
                     'bill' => $bill,
-                    'final_amount' => $finalAmount,
+                    'final_amount' => $amountPaid,
                 ]
             );
             return $result;
@@ -141,7 +138,7 @@ class PaymentService
                     'payment_url' => $paymentUrl,
                     'order' => $order,
                     'bill' => $bill,
-                    'final_amount' => $finalAmount,
+                    'final_amount' => $amountPaid,
                 ]
             );
             return $result;
@@ -157,39 +154,25 @@ class PaymentService
             'notes' => $data['notes'] ?? null,
         ]);
 
-        $totalPaid = round($this->paymentRepository->sumPaymentsForBill($bill->id), 2);
-        $remaining = round($finalAmount - $totalPaid, 2);
+        // Cập nhật trạng thái bill thành paid và order thành completed
+        $this->paymentRepository->updateBillByConditions(['id' => $bill->id], ['status' => 'paid']);
+        $this->orderRepository->updateByConditions(['id' => $order->id], [
+            'status' => 'completed'
+        ]);
 
-        if ($remaining <= 1) {
-            $this->paymentRepository->updateBillByConditions(['id' => $bill->id], ['status' => 'paid']);
-            $this->orderRepository->updateByConditions(['id' => $order->id], [
-                'status' => 'completed',
-                'final_amount' => $finalAmount,
-            ]);
-
+        // Nếu là đơn dine-in, cập nhật trạng thái bàn sang cleaning
+        if ($order->order_type === 'dine-in') {
             $tableIds = $order->orderTables->pluck('table_id')->toArray();
-
             foreach ($tableIds as $tableId) {
                 $this->tableRepository->updateByConditions(['id' => $tableId], ['status' => 'cleaning']);
             }
-
-            $result->setResultSuccess(
-                message: 'Đã thanh toán đủ.',
-                data: [
-                    'bill' => $bill->fresh(),
-                    'payment' => $payment,
-                    'remaining' => 0.0,
-                ]
-            );
-            return $result;
         }
 
         $result->setResultSuccess(
-            message: 'Thanh toán một phần. Còn lại: ' . number_format($remaining, 2) . ' VND',
+            message: 'Thanh toán thành công.',
             data: [
                 'bill' => $bill->fresh(),
-                'payment' => $payment,
-                'remaining' => $remaining,
+                'payment' => $payment
             ]
         );
         return $result;
