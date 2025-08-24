@@ -20,58 +20,58 @@ class DishService
     {
         $limit = !empty($params['limit']) && $params['limit'] > 0 ? (int)$params['limit'] : 10;
 
-    // Chuẩn hoá filter
-    $filter = [];
-    if (! empty($params['name'])) {
-        $filter['name'] = $params['name'];
-    }
-    if (! empty($params['category_id'])) {
-        $filter['category_id'] = $params['category_id'];
-    }
-    if (! empty($params['status']) && $params['status'] !== 'all') {
-        $filter['status'] = $params['status'];
-    }
-    if (! empty($params['price_from'])) {
-        $filter['price_from'] = (float) $params['price_from'];
-    }
-    if (! empty($params['price_to'])) {
-        $filter['price_to'] = (float) $params['price_to'];
-    }
+        // Chuẩn hoá filter
+        $filter = [];
+        if (! empty($params['name'])) {
+            $filter['name'] = $params['name'];
+        }
+        if (! empty($params['category_id'])) {
+            $filter['category_id'] = $params['category_id'];
+        }
+        if (! empty($params['status']) && $params['status'] !== 'all') {
+            $filter['status'] = $params['status'];
+        }
+        if (! empty($params['price_from'])) {
+            $filter['price_from'] = (float) $params['price_from'];
+        }
+        if (! empty($params['price_to'])) {
+            $filter['price_to'] = (float) $params['price_to'];
+        }
 
-    // gọi repository với filter đã chuẩn
-    $pagination = $this->dishRepository->getDishList(filter: $filter, limit: $limit);
+        // gọi repository với filter đã chuẩn
+        $pagination = $this->dishRepository->getDishList(filter: $filter, limit: $limit);
 
-    $data = [];
-    foreach ($pagination->items() as $item) {
-        $data[] = [
-            'id'             => (string) $item->id,
-            'category'       => $item->category ? [
-                'id'   => (string) $item->category->id,
-                'name' => $item->category->name,
-            ] : null,
-            'name'           => $item->name,
-            'image_url'      => $item->image_url,
-            'description'    => $item->description,
-            'original_price' => $item->original_price,
-            'selling_price'  => $item->selling_price,
-            'unit'           => $item->unit,
-            'tags'           => $item->tags  ?ConvertHelper::convertJsonToString($item->tags) : '',
-            'is_featured'    => (bool) $item->is_featured,
-            'status'         => $item->status,
-            'created_at'     => $item->created_at,
-            'updated_at'     => $item->updated_at,
-        ];
+        $data = [];
+        foreach ($pagination->items() as $item) {
+            $data[] = [
+                'id'             => (string) $item->id,
+                'category'       => $item->category ? [
+                    'id'   => (string) $item->category->id,
+                    'name' => $item->category->name,
+                ] : null,
+                'name'           => $item->name,
+                'image_url'      => $item->image_url,
+                'description'    => $item->description,
+                'original_price' => $item->original_price,
+                'selling_price'  => $item->selling_price,
+                'unit'           => $item->unit,
+                'tags'           => $item->tags  ? ConvertHelper::convertJsonToString($item->tags) : '',
+                'is_featured'    => (bool) $item->is_featured,
+                'status'         => $item->status,
+                'created_at'     => $item->created_at,
+                'updated_at'     => $item->updated_at,
+            ];
+        }
+
+        $result = new ListAggregate($data);
+        $result->setMeta(
+            page: $pagination->currentPage(),
+            perPage: $pagination->perPage(),
+            total: $pagination->total()
+        );
+
+        return $result;
     }
-
-    $result = new ListAggregate($data);
-    $result->setMeta(
-        page: $pagination->currentPage(),
-        perPage: $pagination->perPage(),
-        total: $pagination->total()
-    );
-
-    return $result;
-}
 
     public function createDish(array $data): DataAggregate
     {
@@ -453,20 +453,40 @@ class DishService
     public function updateFeatured(int $id): DataAggregate
     {
         $result = new DataAggregate();
-        $dish =  $this->dishRepository->getByConditions(['id' => $id]);
-        if (!$dish) {
-            $result->setMessage('Món ăn không tồn tại!');
-            return $result;
-        }
-        $newValue = !$dish->is_featured;
-        $ok = $this->dishRepository->updateByConditions(['id'  => $id], ['is_featured' => $newValue]);
 
-        $message = $newValue ? 'Món ăn đã được bật trạng thái nổi bật!' : 'Món ăn đã được tắt trạng thái nổi bật!';
-        if (!$ok) {
-            $result->setMessage('Cập nhật món ăn nổi bật thất bại, vui lòng thử lại!');
+        // Lấy thông tin món ăn
+        $dish = $this->dishRepository->getByConditions(['id' => $id]);
+        if (!$dish) {
+            $result->setResultError(message: 'Món ăn không tồn tại!');
             return $result;
         }
-        $result->setResultSuccess(message: $message);
+
+        // Kiểm tra trạng thái active
+        if ($dish->status !== 'active') {
+            $result->setResultError(message: 'Chỉ có thể cập nhật trạng thái nổi bật cho món ăn đang hoạt động!');
+            return $result;
+        }
+
+        // Cập nhật trạng thái featured
+        $newValue = !$dish->is_featured;
+        $ok = $this->dishRepository->updateByConditions(['id' => $id], ['is_featured' => $newValue]);
+
+        if (!$ok) {
+            $result->setResultError(message: 'Cập nhật món ăn nổi bật thất bại, vui lòng thử lại!');
+            return $result;
+        }
+
+        // Lấy thông tin món ăn sau khi cập nhật
+        $updatedDish = $this->dishRepository->getByConditions(['id' => $id]);
+
+        $message = $newValue
+            ? 'Món ăn đã được bật trạng thái nổi bật!'
+            : 'Món ăn đã được tắt trạng thái nổi bật!';
+
+        $result->setResultSuccess(
+            message: $message,
+        );
+
         return $result;
     }
 }
