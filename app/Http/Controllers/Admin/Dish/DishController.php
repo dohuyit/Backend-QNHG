@@ -159,7 +159,7 @@ class DishController extends Controller
 
         return $this->responseSuccess($result);
     }
-    public function updateFeaturedDish(int $id)
+    public function updateFeaturedDish(string $id)
     {
         $result = $this->dishService->updateFeatured($id);
         if (!$result->isSuccessCode()) {
