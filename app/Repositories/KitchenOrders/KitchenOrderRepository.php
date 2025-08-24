@@ -44,6 +44,23 @@ class KitchenOrderRepository implements KitchenOrderRepositoryInterface
             });
         }
 
+        // 📆 Lọc theo khoảng ngày
+        $dateFrom = $filter['date_from'] ?? null; // Y-m-d
+        $dateTo = $filter['date_to'] ?? null;     // Y-m-d
+        if ($dateFrom || $dateTo) {
+            // Nếu lọc món đã sẵn sàng, ưu tiên completed_at; ngược lại dùng created_at
+            $dateField = 'created_at';
+            if (($filter['status'] ?? null) === 'ready') {
+                $dateField = 'completed_at';
+            }
+            if ($dateFrom) {
+                $query->whereDate($dateField, '>=', $dateFrom);
+            }
+            if ($dateTo) {
+                $query->whereDate($dateField, '<=', $dateTo);
+            }
+        }
+
         return $query;
     }
 

@@ -2,15 +2,17 @@
 
 namespace App\Services\Reservations;
 
+use Log;
+use Carbon\Carbon;
+use App\Models\Reservation;
 use App\Common\DataAggregate;
 use App\Common\ListAggregate;
-use App\Events\Reservations\ReservationCreated;
-use App\Events\Reservations\ReservationStatusUpdated;
-use App\Models\Reservation;
-use App\Repositories\Reservations\ReservationRepositoryInterface;
-use App\Repositories\Table\TableRepositoryInterface;
-use App\Services\Mails\ReservationMailService;
 use App\Services\Order\OrderService;
+use App\Services\Mails\ReservationMailService;
+use App\Events\Reservations\ReservationCreated;
+use App\Repositories\Table\TableRepositoryInterface;
+use App\Events\Reservations\ReservationStatusUpdated;
+use App\Repositories\Reservations\ReservationRepositoryInterface;
 
 class ReservationService
 {
@@ -27,6 +29,11 @@ class ReservationService
     }
     public function getListReservation(array $params): ListAggregate
     {
+        // Tự động hủy các đơn đặt bàn quá 30 phút so với giờ khách đặt mà chưa đến
+        // Triển khai nhanh tại đây để đảm bảo đồng bộ trạng thái khi nhân viên mở danh sách
+        // (có thể tách ra Scheduler trong Console\Kernel nếu muốn chạy nền định kỳ)
+        $this->autoCancelExpiredReservations();
+
         $filter = $params;
         $limit = !empty($params['limit']) && $params['limit'] > 0 ? (int)$params['limit'] : 12;
 
@@ -63,6 +70,50 @@ class ReservationService
 
         return $result;
     }
+
+    /**
+     * Tự động hủy các đơn đặt bàn nếu đã quá 30 phút kể từ thời gian đặt mà khách không đến
+     * Áp dụng cho các đơn ở trạng thái 'pending' hoặc 'confirmed'
+     */
+    private function autoCancelExpiredReservations(): void
+    {
+        try {
+            $now = Carbon::now()->format('Y-m-d H:i:s');
+
+            $overdues = Reservation::query()
+                ->whereIn('status', ['pending', 'confirmed'])
+                ->whereNotNull('reservation_date')
+                ->whereNotNull('reservation_time')
+                // Đúng logic: nếu (reservation_date + reservation_time + 30 phút) <= hiện tại
+                ->whereRaw("TIMESTAMP(reservation_date, reservation_time) + INTERVAL 30 MINUTE <= ?", [$now])
+                ->get();
+
+            foreach ($overdues as $reservation) {
+                $oldStatus = $reservation->status;
+
+                $this->reservationRepository->updateByConditions(['id' => $reservation->id], [
+                    'status' => 'cancelled',
+                    'cancelled_at' => now(),
+                ]);
+
+                $this->reservationRepository->createReservationChangeLog([
+                    'reservation_id' => $reservation->id,
+                    'user_id' => $reservation->user_id,
+                    'change_timestamp' => now(),
+                    'change_type' => 'STATUS_UPDATE',
+                    'field_changed' => 'status',
+                    'old_value' => $oldStatus,
+                    'new_value' => 'cancelled',
+                    'description' => 'Tự động hủy do quá 30 phút so với giờ đặt',
+                ]);
+
+                event(new ReservationStatusUpdated($reservation->toArray(), $oldStatus, 'cancelled'));
+            }
+        } catch (\Throwable $e) {
+            Log::warning('[Reservation] Auto-cancel expired reservations failed: ' . $e->getMessage());
+        }
+    }
+
     public function createReservation(array $data): DataAggregate
     {
         $result = new DataAggregate();
