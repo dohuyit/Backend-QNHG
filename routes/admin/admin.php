@@ -220,9 +220,6 @@ Route::prefix('admin')->group(function () {
         Route::get('statistics/reservations/time-count', [StatisticsController::class, 'getReservationTimeStats']);
         Route::get('statistics/orders/revenue', [StatisticsController::class, 'getOrderRevenueStats']);
     });
-    Route::middleware(['auth:sanctum', 'check.status'])->group(function () {
-        // ... protected routes ...
-    });
 
     // VnPay/Momo returns
     Route::get('/vnpay-return', [PaymentController::class, 'vnpayReturn']);
