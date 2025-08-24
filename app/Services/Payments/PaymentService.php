@@ -72,10 +72,11 @@ class PaymentService
             ? round((float)$data['amount_paid'], 2)
             : $finalAmount;
 
-        if ($finalAmount > 0 && $amountPaid > $finalAmount) {
-            $result->setMessage('Vượt quá số tiền cần thanh toán.');
-            return $result;
-        }
+
+        $this->orderRepository->updateByConditions(['id' => $order->id], [
+            'final_amount' => $finalAmount
+        ]);
+
         $paymentMethod = $data['payment_method'] ?? 'cash';
 
         // Tạo bill nếu chưa có hoặc không còn hợp lệ
