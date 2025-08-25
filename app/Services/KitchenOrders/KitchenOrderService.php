@@ -31,16 +31,84 @@ class KitchenOrderService
         $limit = !empty($params['limit']) && $params['limit'] > 0 ? (int)$params['limit'] : 1000;
         $pagination = $this->kitchenOrderRepository->getKitchenOrderList(filter: $filter, limit: $limit);
 
+        // Eager-load trước các OrderItem liên quan để tránh N+1 và tính cooking_time chính xác
+        $orderItemIds = collect($pagination->items())
+            ->pluck('order_item_id')
+            ->filter()
+            ->unique()
+            ->values();
+
+        $orderItemsMap = OrderItem::with([
+            'menuItem.category',                 // món lẻ -> category có cooking_time
+            'combo.items.dish.category',         // combo -> các món con -> category có cooking_time
+        ])->whereIn('id', $orderItemIds)->get()->keyBy('id');
+
         $data = [];
         foreach ($pagination->items() as $item) {
-            // Lấy cooking_time từ category nếu là món lẻ
             $cookingTime = null;
-            if ($item->item_type === 'dish' && $item->order_item_id) {
-                $orderItem = \App\Models\OrderItem::find($item->order_item_id);
-                if ($orderItem && $orderItem->menuItem && $orderItem->menuItem->category) {
-                    $cookingTime = $orderItem->menuItem->category->cooking_time;
+
+            if ($item->order_item_id && isset($orderItemsMap[$item->order_item_id])) {
+                $orderItem = $orderItemsMap[$item->order_item_id];
+
+                if ($item->item_type === 'dish') {
+                    // Món lẻ: lấy cooking_time theo category của dish
+                    $cookingTime = optional(optional($orderItem->menuItem)->category)->cooking_time;
+                } elseif ($item->item_type === 'combo') {
+                    // Combo: ưu tiên lấy cooking_time của đúng món con (khớp theo tên item_name),
+                    // nếu không khớp được thì fallback = max cooking_time trong combo
+                    $combo = $orderItem->combo;
+                    if ($combo && $combo->items) {
+                        $normalizedKoName = $this->normalizeName((string) $item->item_name);
+                        $matchedCookingTime = null;
+
+                        foreach ($combo->items as $comboItem) {
+                            $dish = $comboItem->dish;
+                            if (!$dish) { continue; }
+                            $dishName = (string) $dish->name;
+                            $dishCookingTime = optional(optional($dish)->category)->cooking_time;
+
+                            // Nếu tên khớp (sau normalize), dùng cooking_time của món khớp
+                            $normalizedDishName = $this->normalizeName($dishName);
+                            if ($dishName && (
+                                $normalizedDishName === $normalizedKoName ||
+                                str_contains($normalizedDishName, $normalizedKoName) ||
+                                str_contains($normalizedKoName, $normalizedDishName)
+                            )) {
+                                if (is_numeric($dishCookingTime)) {
+                                    $matchedCookingTime = (int) $dishCookingTime;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (!is_null($matchedCookingTime) && $matchedCookingTime > 0) {
+                            $cookingTime = $matchedCookingTime;
+                        } else {
+                            // Fallback: lấy max cooking_time của tất cả món trong combo
+                            $times = [];
+                            foreach ($combo->items as $comboItem) {
+                                $t = optional(optional(optional($comboItem->dish)->category))->cooking_time;
+                                if (is_numeric($t) && (int)$t > 0) { $times[] = (int) $t; }
+                            }
+                            if (!empty($times)) {
+                                $cookingTime = max($times);
+                            } else {
+                                // Fallback cuối: cố gắng map theo tên món trong bảng dishes
+                                $likeName = trim($item->item_name);
+                                if ($likeName !== '') {
+                                    $dishGuess = \App\Models\Dish::with('category')
+                                        ->where('name', 'like', "%" . $likeName . "%")
+                                        ->first();
+                                    if ($dishGuess && $dishGuess->category && is_numeric($dishGuess->category->cooking_time)) {
+                                        $cookingTime = (int) $dishGuess->category->cooking_time;
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
+
             // Lấy danh sách số bàn của đơn (nhiều bàn)
             $tableNumbers = [];
             if ($item->order && $item->order->tables) {
@@ -54,7 +122,7 @@ class KitchenOrderService
                 'table_numbers' => $tableNumbers,
                 'item_name' => $item->item_name,
                 'combo_name' => $item->combo_name,
-                'quantity' => $item->quantity,
+                'quantity' => (int) $item->quantity,
                 'notes' => $item->notes,
                 'status' => $item->status,
                 'is_priority' => (bool) $item->is_priority,
@@ -63,7 +131,7 @@ class KitchenOrderService
                 'completed_at' => $item->completed_at,
                 'created_at' => $item->created_at,
                 'updated_at' => $item->updated_at,
-                'cooking_time' => $cookingTime,
+                'cooking_time' => is_null($cookingTime) ? null : (int) $cookingTime,
             ];
         }
 
@@ -75,6 +143,20 @@ class KitchenOrderService
         );
 
         return $result;
+    }
+
+    /**
+     * Chuẩn hoá tên để so sánh: hạ chữ, bỏ khoảng trắng thừa, bỏ nội dung trong ngoặc.
+     */
+    private function normalizeName(string $name): string
+    {
+        // Bỏ nội dung trong ngoặc tròn
+        $name = preg_replace('/\([^\)]*\)/u', '', $name);
+        // Gom khoảng trắng về 1 dấu cách
+        $name = preg_replace('/\s+/u', ' ', $name);
+        // Trim và hạ chữ
+        $name = trim(mb_strtolower($name, 'UTF-8'));
+        return $name;
     }
 
     public function updateStatus(int $id, string $newStatus): DataAggregate
