@@ -33,10 +33,12 @@ class DashboardStaffController extends Controller
                 ->count('id');
         }
 
-        // 3) Hàng đợi món đã sẵn sàng (ready)
+        // 3) Hàng đợi món theo trạng thái (mặc định: ready)
+        $status = $request->query('status', 'ready'); // pending|preparing|ready|cancelled
+        $limit = (int) $request->query('limit', 10);
         $serveQueue = $this->kitchenOrderService->getListKitchenOrder([
-            'status' => 'ready',
-            'limit' => 10,
+            'status' => $status,
+            'limit' => $limit,
         ])->getResult();
 
         // 4) Cảnh báo (placeholder): đơn đặt bàn sắp đến giờ hoặc quá hạn đã có autoCancel
@@ -64,7 +66,7 @@ class DashboardStaffController extends Controller
         return $this->responseSuccess(data: [
             'reservation_status_counts' => $reservationStatusCounts,
             'active_tables_count' => $activeTablesCount,
-            'serve_queue' => $serveQueue['data'] ?? $serveQueue,
+            'serve_queue' => $serveQueue['items'] ?? $serveQueue,
             'alerts' => $alerts,
             'top_dishes' => $topDishes,
         ]);

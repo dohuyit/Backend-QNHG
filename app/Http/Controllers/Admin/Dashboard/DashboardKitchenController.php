@@ -34,15 +34,60 @@ class DashboardKitchenController extends Controller
             $dateFrom = $today;
             $dateTo = $today;
         }
+        // Lấy danh sách ready KHÔNG áp filter ngày ở repository (vì completed_at có thể null),
+        // ta sẽ tự lọc theo khoảng ngày ở dưới dựa trên completed_at hoặc updated_at
         $readyFilter = [
             'status' => 'ready',
-            'limit' => 10,
-            'date_from' => $dateFrom,
-            'date_to' => $dateTo,
+            'limit' => 1000,
         ];
         $readyList = $this->kitchenOrderService->getListKitchenOrder($readyFilter)->getResult();
 
-        // FE sẽ tự tính tỉ lệ đúng/trễ giờ dựa trên các trường hiện có của ready_items
+        // Tính on-time vs late ngay tại BE để FE luôn có số liệu
+        $readyItems = $readyList['data'] ?? $readyList ?? [];
+        $onTime = 0; $late = 0; $considered = 0;
+        $defaultCooking = 15; // phút
+        foreach ($readyItems as $it) {
+            $cooking = $it['cooking_time'] ?? null;
+            if (!is_numeric($cooking) || (int)$cooking <= 0) { $cooking = $defaultCooking; }
+            $startStr = $it['received_at'] ?? $it['created_at'] ?? null;
+            $doneStr  = $it['completed_at'] ?? $it['updated_at'] ?? null;
+            if (!$startStr || !$doneStr) { continue; }
+            try {
+                $start = \Carbon\Carbon::parse($startStr);
+                $done  = \Carbon\Carbon::parse($doneStr);
+            } catch (\Exception $e) { continue; }
+            // Áp dụng lọc khoảng ngày nếu có: dùng mốc 'done'
+            if ($dateFrom && $done->toDateString() < $dateFrom) { continue; }
+            if ($dateTo && $done->toDateString() > $dateTo) { continue; }
+            if ($done->lessThan($start)) { continue; }
+            $diffMin = (int) ceil($done->diffInSeconds($start) / 60);
+            if ($diffMin <= (int)$cooking) { $onTime++; } else { $late++; }
+            $considered++;
+        }
+
+        // Fallback: nếu khoảng ngày không có dữ liệu, lấy tổng thể để hiển thị
+        if ($considered === 0) {
+            $fallbackFilter = [ 'status' => 'ready', 'limit' => 1000 ];
+            $fallbackList = $this->kitchenOrderService->getListKitchenOrder($fallbackFilter)->getResult();
+            $fallbackItems = $fallbackList['data'] ?? $fallbackList ?? [];
+            foreach ($fallbackItems as $it) {
+                $cooking = $it['cooking_time'] ?? null;
+                if (!is_numeric($cooking) || (int)$cooking <= 0) { $cooking = $defaultCooking; }
+                $startStr = $it['received_at'] ?? $it['created_at'] ?? null;
+                $doneStr  = $it['completed_at'] ?? $it['updated_at'] ?? null;
+                if (!$startStr || !$doneStr) { continue; }
+                try {
+                    $start = \Carbon\Carbon::parse($startStr);
+                    $done  = \Carbon\Carbon::parse($doneStr);
+                } catch (\Exception $e) { continue; }
+                if ($dateFrom && $done->toDateString() < $dateFrom) { continue; }
+                if ($dateTo && $done->toDateString() > $dateTo) { continue; }
+                if ($done->lessThan($start)) { continue; }
+                $diffMin = (int) ceil($done->diffInSeconds($start) / 60);
+                if ($diffMin <= (int)$cooking) { $onTime++; } else { $late++; }
+                $considered++;
+            }
+        }
 
         // 4) Top món gọi nhiều (tổng quantity theo dish_id, bỏ cancelled)
         // order_items có dish_id/combo_id, không có menu_item_id/menu_item_name
@@ -68,6 +113,8 @@ class DashboardKitchenController extends Controller
             'priority_items' => $priorityList['data'] ?? $priorityList,
             'ready_items' => $readyList['data'] ?? $readyList,
             'top_dishes' => $topDishes,
+            'on_time_count' => $onTime,
+            'late_count' => $late,
         ]);
     }
 }
