@@ -300,6 +300,7 @@ class OrderRepository implements OrderRepositoryInterface
                         'unit_price' => $unitPrice,
                         'is_priority' => $item['is_priority'] ?? false,
                         'is_additional' => $item['is_additional'] ?? 0,
+                        'kitchen_status' => $item['kitchen_status'] ?? $orderItem->kitchen_status,
                     ]);
 
                     // Update existing KitchenOrders instead of deleting and recreating
