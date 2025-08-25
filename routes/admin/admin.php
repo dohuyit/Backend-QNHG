@@ -23,6 +23,8 @@ use App\Http\Controllers\Admin\Reservation\ReservationController;
 use App\Http\Controllers\Admin\Auth\FaceAuthController;
 use App\Http\Controllers\Admin\NotificationController\NotificationController;
 use App\Http\Controllers\Admin\Statistics\StatisticsController;;
+use App\Http\Controllers\Admin\Dashboard\DashboardKitchenController;
+use App\Http\Controllers\Admin\Dashboard\DashboardStaffController;
 
 Route::prefix('admin')->group(function () {
 
@@ -219,6 +221,10 @@ Route::prefix('admin')->group(function () {
         Route::get('statistics/reservations/status-count', [StatisticsController::class, 'getReservationStatusStats']);
         Route::get('statistics/reservations/time-count', [StatisticsController::class, 'getReservationTimeStats']);
         Route::get('statistics/orders/revenue', [StatisticsController::class, 'getOrderRevenueStats']);
+
+        // Dashboard endpoints
+        Route::get('dashboard/kitchen', [DashboardKitchenController::class, 'index']);
+        Route::get('dashboard/staff', [DashboardStaffController::class, 'index']);
     });
 
     // VnPay/Momo returns

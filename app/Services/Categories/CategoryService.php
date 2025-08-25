@@ -63,12 +63,20 @@ class CategoryService
     {
         $result = new DataAggregate();
 
+        // Chuẩn hóa cooking_time: nếu rỗng -> null, nếu có -> ép kiểu int
+        $cookingTime = null;
+        if (array_key_exists('cooking_time', $data)) {
+            $cookingTime = ($data['cooking_time'] === '' || $data['cooking_time'] === null)
+                ? null
+                : (int)$data['cooking_time'];
+        }
+
         $listDataCreate = [
             'name' => $data['name'],
             'description' => $data['description'],
             'is_active' => $data['is_active'],
             'parent_id' => array_key_exists('parent_id', $data) ? $data['parent_id'] : null,
-            'cooking_time' => $data['cooking_time'] ?? null,
+            'cooking_time' => $cookingTime,
         ];
 
         if (!empty($data['image_url'])) {
@@ -118,12 +126,20 @@ class CategoryService
     {
         $result = new DataAggregate();
 
+        // Chuẩn hóa cooking_time: nếu rỗng -> null, nếu có -> ép kiểu int
+        $cookingTime = null;
+        if (array_key_exists('cooking_time', $data)) {
+            $cookingTime = ($data['cooking_time'] === '' || $data['cooking_time'] === null)
+                ? null
+                : (int)$data['cooking_time'];
+        }
+
         $listDataUpdate = [
             'name' => $data['name'],
             'description' => $data['description'],
             'is_active' => $data['is_active'],
             'parent_id' => array_key_exists('parent_id', $data) ? $data['parent_id'] : null,
-            'cooking_time' => $data['cooking_time'] ?? null,
+            'cooking_time' => $cookingTime,
         ];
 
         if (!empty($data['image_url'])) {
