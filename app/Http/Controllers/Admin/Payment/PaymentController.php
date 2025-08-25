@@ -29,6 +29,7 @@ class PaymentController  extends Controller
         $data = $request->only([
             'payment_method',
             'amount_paid',
+            'sub_total',
             'notes',
             'discount_amount',
             'delivery_fee',
